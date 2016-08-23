@@ -1,0 +1,130 @@
+@media (max-width: 767px) {
+    .msg-container {
+        margin: 0 10px!important;
+        padding: 0 10px!important;
+    }
+}
+
+.clear {
+    clear: both;
+}
+
+.main-container {
+    padding: 0 0;
+}
+
+h1,
+.h1 {
+    color: #fff;
+    font-size: 30px;
+    line-height: 30px;
+    padding: 0;
+    margin: 20px 0;
+}
+
+h2,
+.h2 {
+    color: #d52f61;
+    font-size: 18px;
+    line-height: 18px;
+    font-weight: bold;
+    padding: 0;
+    margin: 20px 0;
+}
+
+p
+{
+  text-align: justify;
+}
+
+hr {
+    margin: 20px 0;
+    color: #999;
+    background-color: #999;
+    border-color: #999;
+}
+
+.flush-top {
+    margin-top: 0;
+}
+
+.img-fillwidth {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+@media (max-width: 767px) {
+    #fullscreen {
+        margin-right: 10px;
+    }
+}
+
+#machina-base {
+    position: relative;
+    margin: 0 0;
+    width: 100%;
+    height: 100%;
+    padding: 4px 0 0 0;
+    clear: both;
+    color: #fff;
+    background-color: #f0f;
+    /*background: -webkit-radial-gradient(#6E6C72,#100F13);*/
+    background: -webkit-radial-gradient(#6E6C72,#0C0B10);
+    background: -moz-radial-gradient(#6E6C72,#0C0B10);
+    background: radial-gradient(#6e6c72,#0C0B10);
+}
+
+#machina-base blockquote {
+    border-left: 0;
+}
+
+.tiled-background {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: url("board1.png") repeat center top transparent;
+    opacity: 0.30;
+    filter: alpha(opacity=30);
+}
+
+
+#machina-base .container {
+    margin: 0 auto;
+}
+
+#machina-base-top {
+    position: relative;
+    /*font-size: 16px;*/
+    line-height: 36px;
+    font-weight: 400;
+}
+
+#machina-base-top blockquote
+{
+  font-style: italic;
+}
+
+#machina-base-top h1 {
+    font-size: 48px;
+    line-height: 52px;
+    margin: 40px 0;
+}
+
+#machina-base-logo-caption {
+    text-align: center;
+    margin-top: -40px;
+    font-size: 10px;
+}
+
+#machina-base-clipped-img,
+#wearable-machina-base-clipped-img {
+    /*position: absolute;*/
+    bottom: 20px;
+    left: -55px;
+}
+
+
