@@ -27,14 +27,41 @@
  * For more information, consult the "BCM2835 ARM Peripherals" manual.
  */
 
-#define CPU_GPIO_BASE        (CPU_IO_BASE + 0x00200000U) // GPU = 0x7E200000
-#define CPU_TIMER_BASE       (CPU_IO_BASE + 0x00003000U) // GPU = 0x7E003000
+#define CPU_GPIO_BASE            (CPU_IO_BASE + 0x00200000U) // GPU = 0x7E200000
+#define CPU_TIMER_BASE           (CPU_IO_BASE + 0x00003000U) // GPU = 0x7E003000
 
-#define SOC_PM_BASE          (CPU_IO_BASE + 0x00100000U)
-#define SOC_PM_RSTC          (SOC_PM_BASE + 0x0000001CU)
-#define SOC_PM_WDOG          (SOC_PM_BASE + 0x00000024U)
-#define SOC_PM_PASSWORD      (0x5A000000U)
+
+#define GPU_CACHED_BASE		0x40000000
+#define GPU_UNCACHED_BASE	0xC0000000
+
+#if RPIGEN == 1
+	#ifdef GPU_L2_CACHE_ENABLED
+		#define GPU_MEM_BASE	GPU_CACHED_BASE
+	#else
+		#define GPU_MEM_BASE	GPU_UNCACHED_BASE
+	#endif
+#else
+	#define GPU_MEM_BASE	GPU_UNCACHED_BASE
+#endif
+
+
+#define SOC_PM_BASE              (CPU_IO_BASE + 0x00100000U)
+#define SOC_PM_RSTC              (SOC_PM_BASE + 0x0000001CU)
+#define SOC_PM_WDOG              (SOC_PM_BASE + 0x00000024U)
+#define SOC_PM_PASSWORD          (0x5A000000U)
 #define SOC_PM_RSTC_WRCFG_FULL_RESET (0x20)
 
+
+#define SOC_MAILBOX_BASE         (CPU_IO_BASE + 0x0000B880U) // GPU = 0x7E00B880
+#define SOC_MAILBOX_READ         (SOC_MAILBOX_BASE)
+#define SOC_MAILBOX_POLL         (SOC_MAILBOX_BASE + 0x00000018U) // GPU = 0x7E00B898
+#define SOC_MAILBOX_WRITE        (SOC_MAILBOX_BASE + 0x00000020U) // GPU = 0x7E00B8A0
+
+#define SOC_MAILBOX_STATUS_EMPTY (0x40000000)
+#define SOC_MAILBOX_STATUS_FULL  (0x80000000)
+
+#define MAILBOX_CHANNEL_POWER    (0x00)
+#define MAILBOX_CHANNEL_DISPLAY  (0x01)
+#define MAILBOX_CHANNEL_ARM      (0x08)  // ARM to VC
 
 #endif // MACHINA_SOC_H

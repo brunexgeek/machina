@@ -27,7 +27,7 @@
 /**
  * @brief Size of the kernel stack.
  */
-#define SYS_KERNEL_STACK_SIZE     (0x40000)
+#define SYS_KERNEL_STACK_SIZE     (0x20000)
 
 /**
  * @brief Memory offset of the kernel stack.

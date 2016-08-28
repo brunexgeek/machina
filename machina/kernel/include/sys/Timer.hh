@@ -30,11 +30,19 @@ struct TimerRegisters
 class Timer
 {
 	public:
-		static uint64_t getTicks()
+		static uint64_t tick()
 		{
-			TimerRegisters *regs =  (TimerRegisters*) CPU_TIMER_BASE;
-			const uint64_t *value = (const uint64_t*) &regs->counterLow;
+			const volatile uint64_t *value = (uint64_t*) (CPU_TIMER_BASE + 0x04);
 			return *value;
+		}
+
+		static void sleep(
+			uint64_t micro )
+		{
+			const volatile uint64_t *value = (uint64_t*) (CPU_TIMER_BASE + 0x04);
+			micro += *value;
+
+			while (*value < micro);
 		}
 };
 

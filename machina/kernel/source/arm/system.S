@@ -61,30 +61,33 @@ system_entryPoint:
 system_enableCore:
 	changeToSVC
 
-	mrc p15, 0, r0, c0, c0, 5		/* read MPIDR */
-	and r0, r0, #SYS_CPU_CORES-1		/* get CPU ID */
+	// retrieves the CPU ID
+	mrc p15, 0, r0, c0, c0, 5
+	and r0, r0, #SYS_CPU_CORES - 1
 
-	mov r1, #SYS_EXCEPT_STACK_SIZE	/* calculate exception stack offset for core */
+	// computes the exception stack offset for the current core
+	mov r1, #SYS_EXCEPT_STACK_SIZE
 	mul r1, r0, r1
 
-	// enters IRQ mode and set it stack base [B1-1140]
+	// change to IRQ mode and set it stack base [B1-1140]
 	cps #CPU_IRQ_MODE
 	mov r2, #SYS_IRQ_STACK
 	add sp, r1, r2
 
-	// enters Abort mode and set it stack base [B1-1140]
+	// change to Abort mode and set it stack base [B1-1140]
 	cps #CPU_ABORT_MODE
 	mov r2, #SYS_ABORT_STACK
 	add sp, r1, r2
 
-	// enters Undefined mode and set it stack base [B1-1140]
+	// change to Undefined mode and set it stack base [B1-1140]
 	cps #CPU_UNDEF_MODE
 	add sp, r1, r2
 
-	mov r1, #SYS_EXCEPT_STACK_SIZE		/* calculate kernel stack offset for core */
+	// computes the kernel stack offset for the current core
+	mov r1, #SYS_EXCEPT_STACK_SIZE
 	mul r1, r0, r1
 
-	// enters System mode and set it stack base [B1-1139]
+	// change to System mode and set it stack base [B1-1139]
 	cps #CPU_SYSTEM_MODE
 	mov r2, #SYS_KERNEL_STACK
 	add sp, r1, r2

@@ -1,10 +1,11 @@
 #include <sys/System.hh>
-#include "sysio.hh"
+#include <sys/sysio.hh>
 #include <sys/errors.h>
 #include <sys/soc.h>
 #include <sys/types.h>
 #include <sys/sync.h>
 #include <sys/Timer.hh>
+#include <sys/Display.hh>
 
 
 /*
@@ -32,7 +33,17 @@ extern void (*__end_init_array) (void);
 static volatile bool DISABLED_CORES[SYS_CPU_CORES];
 
 
-int kernel_main() { return 0;};
+int kernel_main()
+{
+	machina::Display display;
+	do
+	{
+		display.print("Machina! ");
+		display.refresh();
+		asm volatile ("wfi");
+	} while (true);
+	return 0;
+};
 
 
 /*
@@ -133,20 +144,20 @@ static void system_initializeVFP (void)
 }
 
 
-extern "C" void system_initialize(void)
+extern "C" void system_initialize()
 {
 	for (size_t i = 0; i < SYS_CPU_CORES; ++i)
 		DISABLED_CORES[i] = false;
 
 #if (RPIGEN > 1)
 	// L1 data cache may contain random entries after reset, delete them
-	InvalidateDataCacheL1Only ();
-#ifndef ENABLE_MULTI_CORE
+	//InvalidateDataCacheL1Only ();
+#ifdef ENABLE_MULTI_CORE
 	// put all secondary SYS_CPU_cores to sleep
-	for (unsigned nCore = 1; nCore < ARM_CPU_SYS_CPU_CORES; nCore++)
+	for (unsigned nCore = 1; nCore < SYS_CPU_CORES; nCore++)
 	{
 		// https://www.raspberrypi.org/forums/viewtopic.php?f=72&t=98904&start=25#p700528
-		PUT32(ARM_LOCAL_MAILBOX3_SET0 + 0x10 * nCore, (u32) &system_disableCore);
+		PUT32(0x4000008C + 0x10 * nCore, (uint32_t) &system_disableCore);
 	}
 #endif
 #endif
