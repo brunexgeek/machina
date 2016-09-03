@@ -14,10 +14,14 @@ typedef __INT64_TYPE__   int64_t;
 
 #if (__SIZEOF_POINTER__ == 4)
 
+#define ARM_32 1
+
 typedef __UINT32_TYPE__  size_t;
 typedef __INT32_TYPE__   ssize_t;
 
-#else
+#elif (__SIZEOF_POINTER__ == 8)
+
+#define ARM_64 1
 
 typedef __UINT64_TYPE__  size_t;
 typedef __INT64_TYPE__   ssize_t;

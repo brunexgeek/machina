@@ -6,6 +6,7 @@
 #include <sys/sync.h>
 #include <sys/Timer.hh>
 #include <sys/Display.hh>
+#include <sys/Mailbox.hh>
 
 
 /*
@@ -32,14 +33,33 @@ extern void (*__end_init_array) (void);
 
 static volatile bool DISABLED_CORES[SYS_CPU_CORES];
 
+struct MacAddressProperty
+{
+	machina::MailboxTag tag;
+	uint8_t address[6];
+	uint8_t padding[2];
+};
+
 
 int kernel_main()
 {
+	char HEXS[] = "0123456789abcdef";
 	machina::Display display;
+
+	MacAddressProperty bla;
+	machina::Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010003, &bla, sizeof(bla));
+	display.print("This board MAC address is: ");
+
+	for (size_t i = 0; i < sizeof(bla.address); ++i)
+	{
+		display.print( HEXS[bla.address[i] >> 4] );
+		display.print( HEXS[bla.address[i] & 0x0F] );
+		display.print(':');
+	}
+	display.refresh();
+
 	do
 	{
-		display.print("Machina! ");
-		display.refresh();
 		asm volatile ("wfi");
 	} while (true);
 	return 0;

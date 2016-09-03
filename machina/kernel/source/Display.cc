@@ -42,7 +42,7 @@ enum AnsiEscapeState
 
 Color DISPLAY_PALETTE[] =
 {
-	DISPLAY_COLOR(0x2E, 0x34, 0x36),
+	DISPLAY_COLOR(0x0E, 0x14, 0x16),
 	DISPLAY_COLOR(0xCC, 0x00, 0x00),
 	DISPLAY_COLOR(0x4E, 0x9A, 0x06),
 	DISPLAY_COLOR(0xC4, 0xA0, 0x00),
@@ -65,7 +65,7 @@ Color DISPLAY_PALETTE[] =
 };
 
 
-//static Display instance(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+//static Display *instance = NULL;
 
 
 Display::Display (
@@ -111,9 +111,10 @@ Display::Display (
 	info.textOffset = 0;
 
 	memset(info.attribute, 0, sizeof(info.attribute));
-	for (size_t i = 0; i < info.bufferSize / sizeof(Color); ++i)
-		info.buffer[i] = DISPLAY_PALETTE[1];
+	/*for (size_t i = 0; i < info.bufferSize / sizeof(Color); ++i)
+		info.buffer[i] = DISPLAY_PALETTE[1];*/
 }
+
 
 Display::~Display ()
 {
@@ -176,11 +177,12 @@ void Display::print(
 
 			case '\n':
 				info.textOffset = (info.textOffset + info.columns) % info.textSize;
-				// pass through
+				info.textOffset = (info.textOffset / info.columns) * info.columns;
+				memset(info.text + info.textOffset, ' ', info.columns);
+				break;
 
 			case '\r':
 				info.textOffset = (info.textOffset / info.columns) * info.columns;
-				clearLine();
 				break;
 
 			default:
@@ -250,17 +252,19 @@ void Display::print(
 		}
 	}
 
-	// every time we reach the begin of a new line we need to
-	// clean that line
-	if ((info.textOffset % info.columns) == 0)
-		memset(info.text + info.textOffset, ' ', info.columns);
+	// every time we reach the end of the line we need to
+	// clean the next one
+	if ((info.textOffset % (info.columns - 1)) == 0)
+	{
+		memset(info.text + info.textOffset + 1, ' ', info.columns);
+	}
 }
 
 
 void Display::clearLine()
 {
 	size_t offset = (info.textOffset / info.columns) * info.columns;
-	memset(info.text, ' ', info.columns);
+	memset(info.text + offset, ' ', info.columns);
 }
 
 
@@ -269,8 +273,13 @@ void Display::refresh()
 	uint32_t glyphW = info.font.getGlyphWidth();
 	uint32_t glyphH = info.font.getGlyphHeight();
 
-	for (size_t i = 0; i < info.bufferSize / sizeof(Color); ++i)
-		info.buffer[i] = DISPLAY_PALETTE[0];
+	size_t *ptr = (size_t*) info.buffer;
+	size_t color = 	DISPLAY_PALETTE[0] << 16 | DISPLAY_PALETTE[0];
+	#ifdef ARM_64
+	color |= (color << 32);
+	#endif
+	for (size_t i = 0; i < info.bufferSize / sizeof(size_t); ++i)
+		ptr[i] = color;
 
 	for (size_t i = 0; i < info.textSize; ++i)
 	{
@@ -299,12 +308,10 @@ void Display::draw(
 		for (uint32_t x = 0; x < glyphW; ++x)
 		{
 			Color current = info.font.getBitUnsafe(symbol, x, y) ? foreground : background;
-			//Color current = (x == y) ? 0xffff : 0x00;
 			info.buffer[ (y + posY) * info.width + x + posX ] = current;
 		}
 	}
 }
-
 
 
 } // machina

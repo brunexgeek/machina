@@ -41,7 +41,6 @@ struct DisplayInfo
 	uint8_t text[DISPLAY_COLUMNS * DISPLAY_ROWS];
 	uint32_t textSize;
 	uint32_t textOffset;
-	uint32_t textStart;
 	/*
 	 * 01-03  Color index (16 colors)
 	 * 04-07  Unused
