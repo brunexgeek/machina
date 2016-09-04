@@ -37,7 +37,7 @@ struct DisplayInfo
 	uint32_t nState;
 	uint32_t foreground;
 	uint32_t background;
-	Font font;
+	const Font *font;
 	uint8_t text[DISPLAY_COLUMNS * DISPLAY_ROWS];
 	uint32_t textSize;
 	uint32_t textOffset;
@@ -88,7 +88,7 @@ class Display : public Device
 
 		const Font &getFont() const
 		{
-			return info.font;
+			return *info.font;
 		}
 
 		const DisplayInfo &getInfo() const

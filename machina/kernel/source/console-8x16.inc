@@ -1,5 +1,5 @@
 
-static const FontInformation FONT_DATA =
+static const FontInformation CONSOLE_DATA =
 {
 	8, 16, 255,
 	{

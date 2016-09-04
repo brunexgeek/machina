@@ -102,10 +102,10 @@ Display::Display (
 	info.height     = height;
 	info.foreground = 9;
 	info.background = 0;
-	info.font = Font::getInstance();
+	info.font = &Font::getMonospaceFont();
 
-	info.columns   = width / info.font.getGlyphWidth();
-	info.rows      = height / info.font.getGlyphHeight();
+	info.columns   = width / info.font->getGlyphWidth();
+	info.rows      = height / info.font->getGlyphHeight();
 	info.textSize = info.columns * info.rows;
 	memset(info.text, ' ', info.textSize);
 	info.textOffset = 0;
@@ -270,8 +270,8 @@ void Display::clearLine()
 
 void Display::refresh()
 {
-	uint32_t glyphW = info.font.getGlyphWidth();
-	uint32_t glyphH = info.font.getGlyphHeight();
+	uint32_t glyphW = info.font->getGlyphWidth();
+	uint32_t glyphH = info.font->getGlyphHeight();
 
 	size_t *ptr = (size_t*) info.buffer;
 	size_t color = 	DISPLAY_PALETTE[0] << 16 | DISPLAY_PALETTE[0];
@@ -300,15 +300,18 @@ void Display::draw(
 	Color foreground,
 	Color background )
 {
-	uint32_t glyphW = info.font.getGlyphWidth();
-	uint32_t glyphH = info.font.getGlyphHeight();
+	uint32_t glyphW = info.font->getGlyphWidth();
+	uint32_t glyphH = info.font->getGlyphHeight();
+
+	const uint16_t *glyph = info.font->getGlyph(symbol);
 
 	for (uint32_t y = 0; y < glyphH; ++y)
 	{
-		for (uint32_t x = 0; x < glyphW; ++x)
+		uint32_t offsetY = y + posY;
+		for (uint32_t x = 0, bit = 1 << 15; x < glyphW; ++x, bit >>= 1)
 		{
-			Color current = info.font.getBitUnsafe(symbol, x, y) ? foreground : background;
-			info.buffer[ (y + posY) * info.width + x + posX ] = current;
+			Color current = ( glyph[y] & bit ) ? foreground : background;
+			info.buffer[ offsetY * info.width + x + posX ] = current;
 		}
 	}
 }

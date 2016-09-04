@@ -14,10 +14,11 @@ struct PBM
 	uint32_t width;
 	uint32_t height;
 	uint32_t glyphs;
+	uint32_t dataSize;
 	uint8_t *data;
 };
 
-
+/*
 int exportText()
 {
 	Font &font = Font::getInstance();
@@ -29,7 +30,7 @@ int exportText()
 
 	for (size_t i = 0x00; i <= 0xFF; ++i)
 	{
-		const uint8_t *glyph = font.getGlyph(i);
+		const uint16_t *glyph = font.getGlyph(i);
 
 		std::cout << "# " << i << std::endl;
 
@@ -41,7 +42,7 @@ int exportText()
 		}
 	}
 	return 0;
-}
+}*/
 
 
 bool importPBM(
@@ -70,12 +71,15 @@ bool importPBM(
 	ss >> pbm.width >> pbm.height;
 	pbm.glyphs = (pbm.height / (pbm.width * 2));
 
-	std::cerr << "Monochrome PBM " << std::endl;
+	std::cerr << "Monochrome PBM " << fileName << std::endl;
 	std::cerr << "   Width: " << pbm.width << std::endl;
 	std::cerr << "  Height: " << pbm.height << std::endl;
 	std::cerr << "  Glyphs: " << pbm.glyphs << std::endl;
 
-	if (pbm.width != 8 || pbm.height != 4096) return false;
+	if (pbm.width > 16) return false;
+
+	pbm.dataSize  = (pbm.width + 7) & ~7;
+	pbm.dataSize = (pbm.dataSize / 8) * pbm.height;
 
 	do
 	{
@@ -84,9 +88,9 @@ bool importPBM(
 			break;
 	} while (true);
 
-	pbm.data = new uint8_t[pbm.height * pbm.width]();
+	pbm.data = new uint8_t[pbm.dataSize]();
 
-	input.read( (char*) pbm.data, pbm.height * pbm.width);
+	input.read( (char*) pbm.data, pbm.dataSize);
 
 	input.close();
 
@@ -94,14 +98,27 @@ bool importPBM(
 }
 
 
-void printGlyph(
+void printGlyph8(
 	uint8_t *glyph,
-	size_t size )
+	size_t height )
 {
 	std::cout << "\t\t{ " << hex << setfill('0');
 
-	for (size_t i = 0; i < size; ++i)
+	for (size_t i = 0; i < height; ++i)
 		std::cout << "0x" << setw(2) << (int) glyph[i] << ", ";
+
+	std::cout << "}," << std::endl;
+}
+
+
+void printGlyph16(
+	uint16_t *glyph,
+	size_t height )
+{
+	std::cout << "\t\t{ " << hex << setfill('0');
+
+	for (size_t i = 0; i < height; ++i)
+		std::cout << "0x" << setw(4) << (int) glyph[i] << ", ";
 
 	std::cout << "}," << std::endl;
 }
@@ -110,17 +127,30 @@ void printGlyph(
 void exportPBM(
 	PBM &pbm )
 {
-	uint32_t glyphSize = 16; // 8 bits x 16 rows
-	const uint8_t *unknownGlyph = pbm.data;
+	uint32_t glyphHeight = pbm.height / 256;
 
 	std::cout << "FontInformation FONT_DATA = " << std::endl << "{" << std::endl;
-	std::cout << "\t" << pbm.width << ", " << (pbm.width * 2) << ", " << 255 << "," << std::endl;
+	std::cout << "\t" << pbm.width << ", " << glyphHeight << ", " << (pbm.height / glyphHeight) << "," << std::endl;
 	std::cout << "\t{ " << std::endl;
 
-	for (size_t i = 0; i < 255; ++i)
+std::cout << pbm.dataSize << std::endl;
+
+	if (pbm.width <= 8)
 	{
-		printGlyph( pbm.data + i * glyphSize, glyphSize);
+		for (size_t i = 0; i < 256; ++i)
+		{
+			printGlyph8( pbm.data + i * glyphHeight, glyphHeight);
+		}
 	}
+	else
+	{
+		uint16_t *data = (uint16_t*) pbm.data;
+		for (size_t i = 0; i < 256; ++i)
+		{
+			printGlyph16( data + i * glyphHeight, glyphHeight);
+		}
+	}
+
 
 	std::cout << "\t}" << std::endl << "};" << std::endl;
 }
