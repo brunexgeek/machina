@@ -17,6 +17,7 @@ enum PageTag
 	PFT_ASTACK,    // Abort stack
 	PFT_ISTACK,    // IRQ stack
 	PFT_PHYS,      // Physical memory table
+	PFT_ALLOCATED, // Allocated frame
 	PFT_LAST
 };
 
@@ -33,16 +34,17 @@ class PhysicalMemory
 
 		size_t allocate(
 			size_t count,
-			uint8_t tag );
+			uint8_t tag = PFT_ALLOCATED );
 
 		void free(
 			size_t index,
-			size_t count = 1 );
+			size_t count,
+			bool cleanup = false );
 
 		void print(
 			Display &display );
 
-		int printGrid(
+		int printMap(
 			Display &display );
 
 	private:

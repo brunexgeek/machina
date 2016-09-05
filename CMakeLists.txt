@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(MACHINA_ROOT ${CMAKE_CURRENT_DIRECTORY})
+set(MACHINA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(MACHINA_TARGET "Raspberry Pi Model B" CACHE STRING "Target Raspberry board")
 set_property(CACHE  MACHINA_TARGET PROPERTY STRINGS
@@ -46,7 +46,8 @@ set(CMAKE_CXX_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -fno-exce
 set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "")
 
 
-add_subdirectory(machina/kernel)
+add_subdirectory(kernel)
+add_subdirectory(libs/libmc)
 
 
 if (CMAKE_CXX_COMPILER_VERSION)

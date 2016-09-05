@@ -5,7 +5,9 @@
 #include <sys/types.h>
 #include <sys/Font.hh>
 #include <sys/Device.hh>
-
+#ifndef __arm__
+#include <iostream>
+#endif
 
 #define DISPLAY_COLOR(r, g, b) \
 	( ( ( (r) >> 3 ) << 11) | ( ( (g) >> 2 ) << 5) | ( (b) >> 3 ) )
@@ -40,13 +42,40 @@ struct DisplayInfo
 	const Font *font;
 	uint8_t text[DISPLAY_COLUMNS * DISPLAY_ROWS];
 	uint32_t textSize;
-	uint32_t textOffset;
+	uint32_t _textOffset;
 	/*
 	 * 01-03  Color index (16 colors)
 	 * 04-07  Unused
 	 */
 	uint8_t attribute[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 	uint32_t lineMask[8];
+	bool scroll;
+
+	void setOffset(
+		uint32_t offset )
+	{
+		_textOffset = offset;
+
+
+		// every time we reach the end of the line we need to
+		// clean the next one
+		if ((_textOffset % (columns - 1)) == 0)
+		{
+			for (size_t i = _textOffset + 1; i < _textOffset + 1 + columns; ++i)
+				text[i] = ' ';
+		}
+
+		if (_textOffset > textSize)
+		{
+			scroll = true;
+			_textOffset %= textSize;
+		}
+	}
+
+	uint32_t getOffset()
+	{
+		return _textOffset;
+	}
 };
 
 

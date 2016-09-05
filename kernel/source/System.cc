@@ -53,6 +53,10 @@ int kernel_main()
 
 	machina::PhysicalMemory phys;
 	phys.print(display);
+	size_t index = phys.allocate(3);
+	phys.print(display);
+	phys.free(index + 1, 1);
+	phys.print(display);
 
 	MemoryTag split;
 

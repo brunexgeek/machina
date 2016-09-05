@@ -8,6 +8,7 @@ include_directories(
 set(CMAKE_EXE_LINKER_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/kernel.ld")
 
 add_executable(kernel ${SOURCE})
+target_link_libraries(kernel libmc)
 set_target_properties(kernel PROPERTIES
     OUTPUT_NAME "kernel.elf"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

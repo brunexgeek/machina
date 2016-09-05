@@ -103,12 +103,13 @@ Display::Display (
 	info.foreground = 9;
 	info.background = 0;
 	info.font = &Font::getMonospaceFont();
+	info.scroll = false;
 
 	info.columns   = width / info.font->getGlyphWidth();
 	info.rows      = height / info.font->getGlyphHeight();
 	info.textSize = info.columns * info.rows;
 	memset(info.text, ' ', info.textSize);
-	info.textOffset = 0;
+	info.setOffset(0);
 
 	memset(info.attribute, 0, sizeof(info.attribute));
 
@@ -178,19 +179,19 @@ void Display::print(
 				break;
 
 			case '\n':
-				info.textOffset = (info.textOffset + info.columns) % info.textSize;
-				info.textOffset = (info.textOffset / info.columns) * info.columns;
-				memset(info.text + info.textOffset, ' ', info.columns);
+				info.setOffset( info.getOffset() + info.columns );
+				info.setOffset( info.getOffset() / info.columns * info.columns );
+				memset(info.text + info.getOffset(), ' ', info.columns);
 				break;
 
 			case '\r':
-				info.textOffset = (info.textOffset / info.columns) * info.columns;
+				info.setOffset( info.getOffset() / info.columns * info.columns );
 				break;
 
 			default:
-				info.text[ info.textOffset ] = symbol;
-				info.attribute[ info.textOffset ] = (uint8_t) (info.foreground | (info.background << 4));
-				info.textOffset = (info.textOffset + 1) % info.textSize;
+				info.text[ info.getOffset() ] = symbol;
+				info.attribute[ info.getOffset() ] = (uint8_t) (info.foreground | (info.background << 4));
+				info.setOffset( info.getOffset() + 1 );
 				break;
 		}
 	}
@@ -253,20 +254,13 @@ void Display::print(
 				break;
 		}
 	}
-
-	// every time we reach the end of the line we need to
-	// clean the next one
-	if ((info.textOffset % (info.columns - 1)) == 0)
-	{
-		memset(info.text + info.textOffset + 1, ' ', info.columns);
-	}
 }
 
 
 void Display::clearLine()
 {
-	size_t offset = (info.textOffset / info.columns) * info.columns;
-	memset(info.text + offset, ' ', info.columns);
+	/*size_t offset = (info.textOffset / info.columns) * info.columns;
+	memset(info.text + offset, ' ', info.columns);*/
 }
 
 
@@ -283,15 +277,32 @@ void Display::refresh()
 	for (size_t i = 0; i < info.bufferSize / sizeof(size_t); ++i)
 		ptr[i] = color;
 
-	for (size_t i = 0; i < info.textSize; ++i)
+	size_t start = 0;
+	if (info.scroll)
 	{
-		if (info.text[i] == ' ') continue;
-
-		uint32_t x = (i % info.columns) * glyphW;
-		uint32_t y = (i / info.columns) * glyphH;
-		draw(info.text[i], x, y, DISPLAY_PALETTE[ info.attribute[i] & 0x0F ],
-			DISPLAY_PALETTE[ info.attribute[i] >> 4 ] );
+		start = info.getOffset() / info.columns * info.columns;
+		if (start == info.textSize - info.columns)
+			start = 0;
+		else
+			start += info.columns;
 	}
+
+	uint32_t totalX = info.columns * glyphW;
+	uint32_t totalY = info.rows * glyphH;
+
+	for (uint32_t y = 0; y < totalY; y += glyphH)
+	{
+		for (uint32_t x = 0; x < totalX; x += glyphW)
+		{
+			size_t index = start % info.textSize;
+			++start;
+
+			draw(info.text[index], x, y,
+				DISPLAY_PALETTE[ info.attribute[index] & 0x0F ],
+				DISPLAY_PALETTE[ info.attribute[index] >> 4 ] );
+		}
+	}
+
 }
 
 

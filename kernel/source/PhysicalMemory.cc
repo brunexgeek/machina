@@ -31,17 +31,18 @@ namespace machina {
 
 static struct
 {
+	const char *symbol;
     const char *name;
-    const char *symbol;
 } PFT_NAMES[PFT_LAST] =
 {
-	{ "Free", "." },
-	{ "Kernel image", "K" },
-	{ "Reserved", "-" },
-	{ "Kernel stack", "S" },
-	{ "Abort stack", "S" },
-	{ "IRQ stack", "S" },
-	{ "Frame table", "P" }
+	{ ".", "Free" },
+	{ "K", "Kernel image" },
+	{ "-", "Reserved" },
+	{ "1", "Kernel stack" },
+	{ "2", "Abort stack" },
+	{ "3", "IRQ stack" },
+	{ "T", "Frame table" },
+	{ "A", "Alocated frame" }
 };
 
 
@@ -122,7 +123,7 @@ void PhysicalMemory::print(
 }
 
 
-int PhysicalMemory::printGrid(
+int PhysicalMemory::printMap(
 	Display &display )
 {
 	static const size_t LINE_SIZE = 64;
@@ -198,11 +199,11 @@ size_t PhysicalMemory::allocate(
 	size_t count,
 	uint8_t tag )
 {
-	if (count == 0) return EINVALID;
-	if (tag == PFT_FREE) return EINVALID;//panic("Can not allocate with tag PFT_FREE");
+	if (count == 0) return (~0x00);
+	if (tag == PFT_FREE) return (~0x00);//panic("Can not allocate with tag PFT_FREE");
 
 	// check if we have enough free memory
-	if (freeCount < count) return EEXHAUSTED;
+	if (freeCount < count) return (~0x00);
 	// find some region with available frames
 	for (size_t i = startIndex; i < frameCount; ++i)
 	{
@@ -227,7 +228,8 @@ size_t PhysicalMemory::allocate(
 
 void PhysicalMemory::free(
 	size_t index,
-	size_t count )
+	size_t count,
+	bool cleaup )
 {
 	if (index >= frameCount || count == 0) return;
 
