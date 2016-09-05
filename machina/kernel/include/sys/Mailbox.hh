@@ -22,6 +22,14 @@ struct MailboxTag
 };
 
 
+struct MemoryTag
+{
+	MailboxTag header;
+	uint32_t base;
+	uint32_t size;
+};
+
+
 class Mailbox
 {
 	public:

@@ -11,26 +11,27 @@
 namespace machina {
 
 
-// This struct is shared between GPU and ARM side
-// Must be 16 byte aligned in memory
-struct Bcm2835FrameBufferInfo
+struct FrameBufferInfo
 {
-	uint32_t Width;		// Physical width of display in pixel
-	uint32_t Height;		// Physical height of display in pixel
-	uint32_t VirtWidth;		// always as physical width so far
-	uint32_t VirtHeight;		// always as physical height so far
-	uint32_t Pitch;		// Should be init with 0
-	uint32_t Depth;		// Number of bits per pixel
-	uint32_t OffsetX;		// Normally zero
-	uint32_t OffsetY;		// Normally zero
-	uint32_t BufferPtr;		// Address of frame buffer (init with 0, set by GPU)
-	uint32_t BufferSize;		// Size of frame buffer (init with 0, set by GPU)
-
-	uint16_t Palette[0];		// with Depth <= 8 only (256 entries)
-#define PALETTE_ENTRIES		256
+	uint32_t width;          // width of the physical display
+	uint32_t height;         // height of the physical display
+	uint32_t virtualWidth;   // width of the virtual framebuffer
+	uint32_t virtualHeight;  // height of the virtual framebuffer
+	uint32_t pitch;          // pitch (bytes per line, filled by GPU)
+	uint32_t depth;          // depth (bits per pixel)
+	uint32_t offsetX;        // X offset of the virtual framebuffer
+	uint32_t offsetY;        // Y offset of the virtual framebuffer
+	uint32_t bufferPtr;      // framebuffer address (filled by GPU)
+	uint32_t bufferSize;     // framebuffer size (in bytes, filled by GPU)
 };
 
-Bcm2835FrameBufferInfo req __attribute((aligned (16)));
+/*
+ * We use a global variable because we need a 16-bytes aligned storage.
+ *
+ * PS: 'aligned' attribute should/could not work in local variables.
+ */
+FrameBufferInfo req __attribute((aligned (16)));
+
 
 enum AnsiEscapeState
 {
@@ -77,22 +78,21 @@ Display::Display (
 
 	memset(info.lineMask, 1, sizeof(info.lineMask));
 #if __arm__
-	req.Width = width;
-	req.Height = height;
-	req.VirtWidth = req.Width;
-	req.VirtHeight = req.Height;
-	req.Pitch = 0;
-	req.Depth = 16;
-	req.OffsetX = 0;
-	req.OffsetY = 0;
-	req.BufferPtr = 0;
-	req.BufferSize = 0;
-
+	req.width = width;
+	req.height = height;
+	req.virtualWidth = req.width;
+	req.virtualHeight = req.height;
+	req.pitch = 0;
+	req.depth = DISPLAY_DEPTH;
+	req.offsetX = 0;
+	req.offsetY = 0;
+	req.bufferPtr = 0;
+	req.bufferSize = 0;
 	// https://github.com/raspberrypi/firmware/wiki/Mailbox-framebuffer-interface
-	Mailbox::send(MAILBOX_CHANNEL_DISPLAY, GPU_MEM_BASE + (uint32_t) &req);
+	Mailbox::send(MAILBOX_CHANNEL_DISPLAY, GPU_MEMORY_BASE + (uint32_t) &req);
 
-	info.buffer = (Color*) ( req.BufferPtr & 0x3FFFFFFF );
-	info.bufferSize = req.BufferSize;
+	info.buffer = (Color*) ( req.bufferPtr & 0x3FFFFFFF );
+	info.bufferSize = req.bufferSize;
 #else
 	info.bufferSize = width * height * (DISPLAY_DEPTH / 8);
 	info.buffer = (Color*) calloc(1, info.bufferSize);
@@ -111,8 +111,10 @@ Display::Display (
 	info.textOffset = 0;
 
 	memset(info.attribute, 0, sizeof(info.attribute));
-	/*for (size_t i = 0; i < info.bufferSize / sizeof(Color); ++i)
-		info.buffer[i] = DISPLAY_PALETTE[1];*/
+
+	print("Video memory mapped to ");
+	printHex( (uint32_t) info.bufferSize );
+	print("\n");
 }
 
 

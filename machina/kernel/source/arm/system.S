@@ -1,4 +1,4 @@
-#include <sys/System.hh>
+#include <sys/system.h>
 #include <sys/soc.h>
 
 	.macro changeToSVC
@@ -38,19 +38,19 @@ system_entryPoint:
 
 	// enters IRQ mode and set it stack base [B1-1140]
 	cps #CPU_IRQ_MODE
-	mov sp, #SYS_IRQ_STACK
+	mov sp, #SYS_IRQ_STACK_END
 
 	// enters Abort mode and set it stack base [B1-1140]
 	cps #CPU_ABORT_MODE
-	mov sp, #SYS_ABORT_STACK
+	mov sp, #SYS_ABORT_STACK_END
 
 	// enters Undefined mode and set it stack base [B1-1140]
 	cps #CPU_UNDEF_MODE
-	mov sp, #SYS_ABORT_STACK
+	mov sp, #SYS_ABORT_STACK_END
 
 	// enters System mode and set it stack base [B1-1139]
 	cps #CPU_SYSTEM_MODE
-	mov sp, #SYS_KERNEL_STACK
+	mov sp, #SYS_KERNEL_STACK_END
 
 	b system_initialize
 

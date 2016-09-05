@@ -107,6 +107,19 @@ class Display : public Device
 		void print(
 			char symbol );
 
+
+		template <typename T>
+		void printHex(
+			T value )
+		{
+			static const char TEXT[] = "0123456789abcdef";
+
+			print("0x");
+
+			for (int shift = sizeof(T) * 8 - 4; shift >= 0; shift -= 4)
+				print( TEXT[ (value >> shift) & 0x0F ] );
+		}
+
 	private:
 		DisplayInfo info;
 

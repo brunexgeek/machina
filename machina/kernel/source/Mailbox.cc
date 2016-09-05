@@ -134,7 +134,7 @@ bool Mailbox::getProperty(
 
 	*((uint32_t*) (buffer->tags + alignedDataSize)) = 0;
 
-	uint32_t address = GPU_MEM_BASE + (uint32_t) buffer;
+	uint32_t address = GPU_MEMORY_BASE + (uint32_t) buffer;
 	if (send(channel, address) != address)
 	{
 		return false;

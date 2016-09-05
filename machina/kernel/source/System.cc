@@ -1,10 +1,11 @@
-#include <sys/System.hh>
+#include <sys/system.h>
 #include <sys/sysio.hh>
 #include <sys/errors.h>
 #include <sys/soc.h>
 #include <sys/types.h>
 #include <sys/sync.h>
 #include <sys/Timer.hh>
+#include <sys/PhysicalMemory.hh>
 #include <sys/Display.hh>
 #include <sys/Mailbox.hh>
 
@@ -31,7 +32,11 @@ extern void (*__begin_init_array) (void);
 extern void (*__end_init_array) (void);
 
 
+namespace machina {
+
+
 static volatile bool DISABLED_CORES[SYS_CPU_CORES];
+
 
 struct MacAddressProperty
 {
@@ -44,7 +49,26 @@ struct MacAddressProperty
 int kernel_main()
 {
 	char HEXS[] = "0123456789abcdef";
-	machina::Display display;
+	Display display;
+
+	machina::PhysicalMemory phys;
+	phys.print(display);
+
+	MemoryTag split;
+
+	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &split, sizeof(split));
+	display.print("CPU memory start at ");
+	display.printHex(split.base);
+	display.print(" with ");
+	display.printHex(split.size);
+	display.print(" bytes\n");
+
+	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &split, sizeof(split));
+	display.print("GPU memory start at ");
+	display.printHex(split.base);
+	display.print(" with ");
+	display.printHex(split.size);
+	display.print(" bytes\n");
 
 	MacAddressProperty bla;
 	machina::Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010003, &bla, sizeof(bla));
@@ -54,7 +78,8 @@ int kernel_main()
 	{
 		display.print( HEXS[bla.address[i] >> 4] );
 		display.print( HEXS[bla.address[i] & 0x0F] );
-		display.print(':');
+		if (i + 1 < sizeof(bla.address))
+			display.print(':');
 	}
 	display.refresh();
 
@@ -220,3 +245,4 @@ extern "C" void system_enableCoreEx (void)
 #endif
 
 
+} // machina
