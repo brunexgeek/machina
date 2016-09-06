@@ -3,7 +3,8 @@ file(GLOB SOURCE
     "source/arm/*.S")
 
 include_directories(
-    "include")
+    "include"
+    "${MACHINA_ROOT}/libs/libmc/include")
 
 set(CMAKE_EXE_LINKER_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/kernel.ld")
 

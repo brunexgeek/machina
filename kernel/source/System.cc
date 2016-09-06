@@ -7,6 +7,7 @@
 #include <sys/Timer.hh>
 #include <sys/PhysicalMemory.hh>
 #include <sys/Display.hh>
+#include <sys/Screen.hh>
 #include <sys/Mailbox.hh>
 
 
@@ -48,9 +49,20 @@ struct MacAddressProperty
 
 int kernel_main()
 {
-	char HEXS[] = "0123456789abcdef";
-	Display display;
+	Display &display = Display::getInstance();
+	//display.draw('B', 0, 0, Font::getMonospaceFont(), 0xffff, 0x0000);
+	//display.draw('A', 30, 0, Font::getMonospaceFont(), 0xffff, 0x0000);
 
+	TextScreen *ts = TextScreen::create(display.getWidth(), display.getHeight(), display.getDepth());
+	PhysicalMemory::getInstance().print(*ts);
+	ts->refresh();
+	display.draw(*ts);
+
+	do
+	{
+		asm volatile ("wfi");
+	} while (true);
+/*
 	machina::PhysicalMemory phys;
 	phys.print(display);
 	size_t index = phys.allocate(3);
@@ -85,7 +97,7 @@ int kernel_main()
 		if (i + 1 < sizeof(bla.address))
 			display.print(':');
 	}
-	display.refresh();
+	display.refresh();*/
 
 	do
 	{
@@ -198,15 +210,13 @@ extern "C" void system_initialize()
 	for (size_t i = 0; i < SYS_CPU_CORES; ++i)
 		DISABLED_CORES[i] = false;
 
-#if (RPIGEN > 1)
-	// L1 data cache may contain random entries after reset, delete them
-	//InvalidateDataCacheL1Only ();
+#if (RPIGEN != 1)
 #ifdef ENABLE_MULTI_CORE
-	// put all secondary SYS_CPU_cores to sleep
-	for (unsigned nCore = 1; nCore < SYS_CPU_CORES; nCore++)
+	// put all other CPU cores to sleep
+	for (unsigned i = 1; i < SYS_CPU_CORES; i++)
 	{
 		// https://www.raspberrypi.org/forums/viewtopic.php?f=72&t=98904&start=25#p700528
-		PUT32(0x4000008C + 0x10 * nCore, (uint32_t) &system_disableCore);
+		PUT32(0x4000008C + 0x10 * i, (uint32_t) &system_disableCore);
 	}
 #endif
 #endif
@@ -217,6 +227,11 @@ extern "C" void system_initialize()
 	// we don't have a library loader to clear the BBS area,
 	// so we need to do that manually
 	for (uint8_t *p = &__begin_bss; p < &__end_bss; ++p) *p = 0;
+
+	// Note: The next loop will initialize our physical memory manager. It's
+	//       crucial that no dynamic memory allocation is attempted before
+	//       that point. The the 'new' and 'delete' C++ operators use the
+	//       physical memory manager.
 
 	// we also need to call the C/C++ static construtors manually
 	void (**p) (void) = 0;

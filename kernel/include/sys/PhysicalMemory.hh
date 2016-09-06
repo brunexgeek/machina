@@ -22,7 +22,7 @@ enum PageTag
 };
 
 
-class Display;
+class TextScreen;
 
 
 class PhysicalMemory
@@ -31,6 +31,8 @@ class PhysicalMemory
 		PhysicalMemory();
 
 		~PhysicalMemory();
+
+		static PhysicalMemory &getInstance();
 
 		size_t allocate(
 			size_t count,
@@ -42,10 +44,10 @@ class PhysicalMemory
 			bool cleanup = false );
 
 		void print(
-			Display &display );
+			TextScreen &screen );
 
 		int printMap(
-			Display &display );
+			TextScreen &screen );
 
 	private:
 		/**

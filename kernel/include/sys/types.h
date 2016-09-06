@@ -29,8 +29,11 @@ typedef __INT64_TYPE__   ssize_t;
 #endif
 
 
-#ifndef NULL
-#define NULL ((void*)0)
-#endif
+// TODO: not the best place for this
+typedef uint16_t Color;
+#define MAKE_COLOR(r, g, b) \
+	( ( ( (r) >> 3 ) << 11) | ( ( (g) >> 2 ) << 5) | ( (b) >> 3 ) )
+
+
 
 #endif // MACHINA_TYPES_H

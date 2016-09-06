@@ -1,6 +1,6 @@
 #include <sys/PhysicalMemory.hh>
 #include <sys/Mailbox.hh>
-#include <sys/Display.hh>
+#include <sys/Screen.hh>
 #include <sys/soc.h>
 #include <sys/system.h>
 #include <sys/errors.h>
@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #else
-#include <sys/stdlib.hh>
+#include <mc/string.h>
 #endif
 
 /*#define PFRAME_GET_TAG(index) \
@@ -46,6 +46,9 @@ static struct
 };
 
 
+static PhysicalMemory instance;
+
+
 
 PhysicalMemory::PhysicalMemory()
 {
@@ -72,9 +75,9 @@ PhysicalMemory::PhysicalMemory()
 
 	memset(pageTable, PFT_FREE, frameCount);
 
-	const void *bla = (uint8_t*) SYS_HEAP_START - temp;
+	const void *tableStart = (uint8_t*) SYS_HEAP_START - temp;
 	// reserve the pages used by physical memory table
-	for (size_t i = (size_t) bla; i < SYS_HEAP_START; i += SYS_PAGE_SIZE)
+	for (size_t i = (size_t) tableStart; i < SYS_HEAP_START; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_PHYS );
 
 	// reserve everything before the kernel
@@ -95,27 +98,33 @@ PhysicalMemory::PhysicalMemory()
 }
 
 
+PhysicalMemory &PhysicalMemory::getInstance()
+{
+	return instance;
+}
+
+
 void PhysicalMemory::print(
-	Display &display )
+	TextScreen &screen )
 {
 	size_t type = pageTable[0];
 	size_t start = 0;
 
- 	display.print("Start       End         Frames       Description\n");
-	display.print("----------  ----------  ----------  ---------------------------------------\n");
+ 	screen.print("Start       End         Frames       Description\n");
+	screen.print("----------  ----------  ----------  ---------------------------------------\n");
 
 	for (size_t i = 0; i < frameCount; ++i)
 	{
 		if (pageTable[i] != type || i + 1 == frameCount)
 		{
-			display.printHex( (uint32_t) (start * SYS_PAGE_SIZE) );
-			display.print("  ");
-			display.printHex( (uint32_t) (i * SYS_PAGE_SIZE - 1) );
-			display.print("  ");
-			display.printHex( (uint32_t)(i - start) );
-			display.print("  ");
-			display.print( PFT_NAMES[type].name );
-			display.print("\n");
+			screen.printHex( (uint32_t) (start * SYS_PAGE_SIZE) );
+			screen.print("  ");
+			screen.printHex( (uint32_t) (i * SYS_PAGE_SIZE - 1) );
+			screen.print("  ");
+			screen.printHex( (uint32_t)(i - start) );
+			screen.print("  ");
+			screen.print( PFT_NAMES[type].name );
+			screen.print("\n");
 			type = pageTable[i];
 			start = i;
 		}
@@ -124,22 +133,22 @@ void PhysicalMemory::print(
 
 
 int PhysicalMemory::printMap(
-	Display &display )
+	TextScreen &screen )
 {
 	static const size_t LINE_SIZE = 64;
 
 	for (size_t n = 0, tag = 0; n < PFT_LAST; ++n)
 	{
-		if (PFT_NAMES[n].name == NULL) continue;
-		if (tag != 0 && (tag % 6) == 0) display.print("\n");
-		display.print(PFT_NAMES[n].symbol);
-		display.print(" = ");
-		display.print(PFT_NAMES[n].name);
-		display.print("  ");
+		if (PFT_NAMES[n].name == nullptr) continue;
+		if (tag != 0 && (tag % 6) == 0) screen.print("\n");
+		screen.print(PFT_NAMES[n].symbol);
+		screen.print(" = ");
+		screen.print(PFT_NAMES[n].name);
+		screen.print("  ");
 		++tag;
 	}
 
-	display.print("\n\n");
+	screen.print("\n\n");
 
 	size_t current = 0;
 	bool skip = false;
@@ -162,29 +171,29 @@ int PhysicalMemory::printMap(
 		}
 		if (freeLine && skip) continue;
 
-		display.printHex( current * 4096 );
-		display.print(": ");
+		screen.printHex( current * 4096 );
+		screen.print(": ");
 
 		for (size_t i = current; i < max; ++i)
 		{
 			uint8_t tag = (uint8_t) PFRAME_GET_TAG(i);
 
-			if (tag > PFT_LAST || PFT_NAMES[tag].symbol == NULL)
-				display.print("?");
+			if (tag > PFT_LAST || PFT_NAMES[tag].symbol == nullptr)
+				screen.print("?");
 			else
-				display.print(PFT_NAMES[tag].symbol);
+				screen.print(PFT_NAMES[tag].symbol);
 		}
 
 		if (freeLine && current + LINE_SIZE < frameCount)
-			display.print("\n ...\n");
+			screen.print("\n ...\n");
 		else
-			display.print('\n');
+			screen.print('\n');
 		skip = freeLine;
 
 		current += LINE_SIZE;
 	}
 
-	display.print("\n");
+	screen.print("\n");
 	return 0;
 }
 

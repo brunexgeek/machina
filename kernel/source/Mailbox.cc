@@ -3,7 +3,7 @@
 #include <sys/sync.h>
 #include <sys/soc.h>
 #include <sys/sysio.hh>
-#include <sys/stdlib.hh>
+#include <mc/string.h>
 
 
 namespace machina {
@@ -143,7 +143,7 @@ bool Mailbox::getProperty(
 	sync_dataMemBarrier();
 
 	// returns the expected value buffer size
-	if (expectedSize != NULL)
+	if (expectedSize != nullptr)
 		*expectedSize = tag->valueLength & ~MAILBOX_RESPONSE_BIT;
 
 	// if the property is invalid, we fail (and expected size is probably zero)
