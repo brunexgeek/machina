@@ -19,10 +19,10 @@
 	{ this->frameTable[index] = (this->frameTable[index] & (~0xff)) | (value & 0xFF); }*/
 
 #define PFRAME_GET_TAG(index) \
-	( this->pageTable[index] )
+	( this->frameTable[index] )
 
 #define PFRAME_SET_TAG(index,value) \
-	{ this->pageTable[index] = value; }
+	{ this->frameTable[index] = value; }
 
 
 namespace machina {
@@ -36,18 +36,19 @@ static struct
 } PFT_NAMES[PFT_LAST] =
 {
 	{ ".", "Free" },
+	{ ".", "Free (dirty)" },
 	{ "K", "Kernel image" },
 	{ "-", "Reserved" },
 	{ "1", "Kernel stack" },
 	{ "2", "Abort stack" },
 	{ "3", "IRQ stack" },
 	{ "T", "Frame table" },
-	{ "A", "Alocated frame" }
+	{ "A", "Alocated (physical frame)" },
+	{ "H", "Alocated (kernel heap)" }
 };
 
 
 static PhysicalMemory instance;
-
 
 
 PhysicalMemory::PhysicalMemory()
@@ -68,12 +69,11 @@ PhysicalMemory::PhysicalMemory()
 
 	size_t temp = (frameCount + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
 #ifdef __arm__
-	pageTable = (uint8_t*) SYS_HEAP_START - temp;
+	frameTable = (uint8_t*) SYS_HEAP_START - temp;
+	memset(frameTable, PFT_FREE, frameCount);
 #else
-	pageTable = (uint8_t*) calloc(1, temp);
+	frameTable = (uint8_t*) calloc(1, temp);
 #endif
-
-	memset(pageTable, PFT_FREE, frameCount);
 
 	const void *tableStart = (uint8_t*) SYS_HEAP_START - temp;
 	// reserve the pages used by physical memory table
@@ -107,7 +107,7 @@ PhysicalMemory &PhysicalMemory::getInstance()
 void PhysicalMemory::print(
 	TextScreen &screen )
 {
-	size_t type = pageTable[0];
+	size_t type = frameTable[0];
 	size_t start = 0;
 
  	screen.print("Start       End         Frames       Description\n");
@@ -115,7 +115,7 @@ void PhysicalMemory::print(
 
 	for (size_t i = 0; i < frameCount; ++i)
 	{
-		if (pageTable[i] != type || i + 1 == frameCount)
+		if (frameTable[i] != type || i + 1 == frameCount)
 		{
 			screen.printHex( (uint32_t) (start * SYS_PAGE_SIZE) );
 			screen.print("  ");
@@ -125,76 +125,10 @@ void PhysicalMemory::print(
 			screen.print("  ");
 			screen.print( PFT_NAMES[type].name );
 			screen.print("\n");
-			type = pageTable[i];
+			type = frameTable[i];
 			start = i;
 		}
 	}
-}
-
-
-int PhysicalMemory::printMap(
-	TextScreen &screen )
-{
-	static const size_t LINE_SIZE = 64;
-
-	for (size_t n = 0, tag = 0; n < PFT_LAST; ++n)
-	{
-		if (PFT_NAMES[n].name == nullptr) continue;
-		if (tag != 0 && (tag % 6) == 0) screen.print("\n");
-		screen.print(PFT_NAMES[n].symbol);
-		screen.print(" = ");
-		screen.print(PFT_NAMES[n].name);
-		screen.print("  ");
-		++tag;
-	}
-
-	screen.print("\n\n");
-
-	size_t current = 0;
-	bool skip = false;
-
-	for (; current < frameCount; current += LINE_SIZE)
-	{
-
-		size_t max = current + LINE_SIZE;
-		if (max >= frameCount)
-		{
-			max = frameCount;
-			skip = false;
-		}
-
-		bool freeLine = true;
-		for (size_t i = current; i < max; ++i)
-		{
-			uint8_t tag = (uint8_t) PFRAME_GET_TAG(i);
-			freeLine &= (tag == PFT_FREE);
-		}
-		if (freeLine && skip) continue;
-
-		screen.printHex( current * 4096 );
-		screen.print(": ");
-
-		for (size_t i = current; i < max; ++i)
-		{
-			uint8_t tag = (uint8_t) PFRAME_GET_TAG(i);
-
-			if (tag > PFT_LAST || PFT_NAMES[tag].symbol == nullptr)
-				screen.print("?");
-			else
-				screen.print(PFT_NAMES[tag].symbol);
-		}
-
-		if (freeLine && current + LINE_SIZE < frameCount)
-			screen.print("\n ...\n");
-		else
-			screen.print('\n');
-		skip = freeLine;
-
-		current += LINE_SIZE;
-	}
-
-	screen.print("\n");
-	return 0;
 }
 
 
@@ -204,15 +138,15 @@ PhysicalMemory::~PhysicalMemory()
 }
 
 
-size_t PhysicalMemory::allocate(
+void *PhysicalMemory::allocate(
 	size_t count,
 	uint8_t tag )
 {
-	if (count == 0) return (~0x00);
-	if (tag == PFT_FREE) return (~0x00);//panic("Can not allocate with tag PFT_FREE");
+	if (count == 0) return nullptr;
+	if (tag == PFT_FREE) return nullptr;//panic("Can not allocate with tag PFT_FREE");
 
 	// check if we have enough free memory
-	if (freeCount < count) return (~0x00);
+	if (freeCount < count) return nullptr;
 	// find some region with available frames
 	for (size_t i = startIndex; i < frameCount; ++i)
 	{
@@ -227,19 +161,22 @@ size_t PhysicalMemory::allocate(
 				PFRAME_SET_TAG(i+j, tag);
 			// decrease the used frames counter
 			freeCount -= count;
-			return i;
+			return FRAME_TO_ADDRESS(i);
 		}
+		/*else
+			i += j;*/
 	}
 
-	return (~0x00);
+	return nullptr;
 }
 
 
 void PhysicalMemory::free(
-	size_t index,
+	void *address,
 	size_t count,
 	bool cleaup )
 {
+	size_t index = ADDRESS_TOFRAME(address);
 	if (index >= frameCount || count == 0) return;
 
 	for (size_t i = index, t = index + count; i < t; ++i)

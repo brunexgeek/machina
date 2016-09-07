@@ -1,10 +1,10 @@
-#include <sys/PhysicalMemory.hh>
+#include <sys/Memory.hh>
 #include <sys/system.h>
 
 
-using machina::PhysicalMemory;
+using machina::Memory;
 
-
+/*
 static void *__allocate(
 	size_t size )
 {
@@ -15,49 +15,48 @@ static void *__allocate(
 	size_t frames = (size + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
 	frames /= SYS_PAGE_SIZE;
 	// allocate contiguous frames
-	size_t index = PhysicalMemory::getInstance().allocate(frames);
-	if (index == ~((size_t)0x00)) return nullptr;
+	size_t *address = (size_t*) PhysicalMemory::getInstance().allocate(frames);
+	if (address == nullptr) return nullptr;
 
-	// store the size
-	size_t *ptr = (size_t*) (index * SYS_PAGE_SIZE);
-	*ptr = frames;
+	// store the amount of allocated pages
+	*address = frames;
+	++address;
 
-	return ptr + 1;
+	return address;
 }
 
 
 static void __free(
 	void *ptr )
 {
-	size_t size = *((size_t*) ptr);
-	size_t frame = (size_t) ptr / SYS_PAGE_SIZE;
-	PhysicalMemory::getInstance().free(frame, size);
+	ptr = (size_t*) ptr - 1;
+	PhysicalMemory::getInstance().free( ptr, *((size_t*) ptr) );
 }
-
+*/
 
 void *operator new(
 	size_t size )
 {
-	return __allocate(size);
+	return Memory::getInstance().allocate(size);
 }
 
 
 void *operator new[](
 	size_t size )
 {
-	return __allocate(size);
+	return Memory::getInstance().allocate(size);
 }
 
 
 void operator delete (
 	void *ptr ) noexcept
 {
-	if (ptr != nullptr) __free(ptr);
+	return Memory::getInstance().free(ptr);
 }
 
 
 void operator delete[] (
 	void *ptr ) noexcept
 {
-	if (ptr != nullptr) __free(ptr);
+	return Memory::getInstance().free(ptr);
 }

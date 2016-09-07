@@ -5,19 +5,28 @@
 #include <sys/types.h>
 
 
+#define FRAME_TO_ADDRESS(frame) \
+	(void*) ( (frame) * SYS_PAGE_SIZE )
+//	(void*) ( ( (frame) + (SYS_PAGE_SIZE - 1) ) & ~(SYS_PAGE_SIZE - 1) )
+
+#define ADDRESS_TOFRAME(address) \
+	( (size_t) (address) / SYS_PAGE_SIZE )
+
 namespace machina {
 
 
-enum PageTag
+enum PhysicalFrameTag
 {
-	PFT_FREE,      // Available for allocation
+	PFT_FREE = 0x00, // Available for allocation
+	PFT_DIRTY,       // Available for allocation (but dirty)
 	PFT_KERNEL,
-	PFT_RESERVED,  // Reserved by system (according BIOS)
-	PFT_KSTACK,    // kernel stack
-	PFT_ASTACK,    // Abort stack
-	PFT_ISTACK,    // IRQ stack
-	PFT_PHYS,      // Physical memory table
-	PFT_ALLOCATED, // Allocated frame
+	PFT_RESERVED,    // Reserved by system (according BIOS)
+	PFT_KSTACK,      // kernel stack
+	PFT_ASTACK,      // Abort stack
+	PFT_ISTACK,      // IRQ stack
+	PFT_PHYS,        // Physical memory table
+	PFT_ALLOCATED,   // Allocated frame
+	PFT_KHEAP,       // Allocated frame
 	PFT_LAST
 };
 
@@ -34,12 +43,12 @@ class PhysicalMemory
 
 		static PhysicalMemory &getInstance();
 
-		size_t allocate(
+		void *allocate(
 			size_t count,
 			uint8_t tag = PFT_ALLOCATED );
 
 		void free(
-			size_t index,
+			void *address,
 			size_t count,
 			bool cleanup = false );
 
@@ -72,7 +81,7 @@ class PhysicalMemory
 		* @brief Pointer to the table containing information
 		* about all physical frames.
 		*/
-		uint8_t *pageTable;
+		uint8_t *frameTable;
 };
 
 

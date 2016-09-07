@@ -35,22 +35,36 @@ int sprintf(
 	... );
 
 void *memcpy16(
-    void *output,
-    const void *input,
-    size_t size );
+	void *output,
+	const void *input,
+	size_t size );
+
+#if (RPIGEN != 1)
+
+void *memcpy64(
+	void *output,
+	const void *input,
+	size_t size );
+
+#endif
+
+void *fmemcpy(
+	void *output,
+	const void *input,
+	size_t size );
 
 void *memcpy(
-    void *output,
-    const void *input,
-    size_t size );
+	void *output,
+	const void *input,
+	size_t size );
 
 void memset(
-    void *output,
-    uint8_t value,
-    size_t size );
+	void *output,
+	uint8_t value,
+	size_t size );
 
 size_t strlen(
-    const char *text );
+	const char *text );
 
 
 #ifdef __cplusplus

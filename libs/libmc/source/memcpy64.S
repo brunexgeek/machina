@@ -18,23 +18,28 @@
  * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13544.html
  */
 
+#if (RPIGEN != 1)
+
 
 /**
  * @brief Copy @c r2 bytes from @c r1 to @c r0.
  *
  * The input address, output address and must be word aligned. The size must be
- * 16-bytes aligned.
+ * 64-bytes aligned. This function uses NEON to perform fast copy without
+ * trashing ARM registers.
  *
  * This function follows the ABI and can be called from C code.
  */
 
-	.global memcpy16
-memcpy16:
-	push {r0, r4-r6}
-1:	pld [r1, #64]
-	ldmia r1!, {r3-r6}
-	stmia r0!, {r3-r6}
-	subs r2, #16
-	bne	1b
-	pop {r0, r4-r6}
+	.global memcpy64
+memcpy64:
+	mov r3, r0
+1:  pld [r1, #0xC0]
+	vldm r1!, {d0-d7}
+	vstm r0!, {d0-d7}
+	subs r2, r2, #0x40
+	bge 1b
+	mov r0, r3
 	bx lr
+
+#endif

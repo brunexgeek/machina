@@ -16,19 +16,45 @@
 #include <mc/string.h>
 
 
-static void __memcpy_neon(
+void *fmemcpy(
 	void *output,
 	const void *input,
 	size_t size )
 {
-	asm ("NEONCopyPLD:\n"
-	    "PLD [%0,  #0xC0]\n"
-	    "VLDM %0!, {d0-d7}\n"
-	    "VSTM %1!, {d0-d7}\n"
-	    "SUBS %2,  %2,#0x40\n"
-	    "BGE NEONCopyPLD\n" : "=r" (input), "=r" (output), "=r" (size) );
-}
+	size_t aligned;
+	void *out = output;
 
+#if (RPIGEN > 1)
+	// check if we can copy in blocks of 64-bytes (and
+	// we have at least 128 bytes to copy)
+	aligned = size & ~0x3FU;
+	if (aligned > 127)
+	{
+		memcpy64(output, input, aligned);
+		output = (uint8_t*) output + aligned;
+		input  = (uint8_t*) input + aligned;
+		size &= 0x3FU;
+	}
+
+#else
+	// check if we can copy in blocks of 16-bytes
+	aligned = size & ~0x0FU;
+	if (aligned != 0)
+	{
+		memcpy16(output, input, aligned);
+		output = (uint8_t*) output + aligned;
+		input  = (uint8_t*) input + aligned;
+		size &= 0x0FU;
+	}
+#endif
+
+	if (size == 0) return out;
+
+	for (; size != 0; --size)
+		*(uint8_t*)output++ = *(uint8_t*)input++;
+
+	return out;
+}
 
 
 void *memcpy(
@@ -36,11 +62,13 @@ void *memcpy(
 	const void *input,
 	size_t size )
 {
-	const uint8_t *from = (const uint8_t*) input;
-	uint8_t *to = (uint8_t*) output;
+	if ( (size_t) output % sizeof(size_t) == 0 &&
+	     (size_t) input  % sizeof(size_t) == 0 &&
+	     size > 16 )
+		 return fmemcpy(output, input, size);
 
-	for (size_t i = 0; i < size; ++i)
-		*to++ = *from++;
+	for (; size != 0; --size)
+		*(uint8_t*)output++ = *(uint8_t*)input++;
 
 	return output;
 }

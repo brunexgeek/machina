@@ -6,6 +6,7 @@
 #include <sys/sync.h>
 #include <sys/Timer.hh>
 #include <sys/PhysicalMemory.hh>
+#include <sys/Memory.hh>
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
 #include <sys/Mailbox.hh>
@@ -55,7 +56,12 @@ int kernel_main()
 
 	TextScreen *ts = TextScreen::create(display.getWidth(), display.getHeight(), display.getDepth());
 	PhysicalMemory::getInstance().print(*ts);
+	//ts->refresh();
+
+	void *ptr = machina::Memory::getInstance().allocate(4 * 1024 * 1024);
+	ts->printHex( (size_t) ptr);
 	ts->refresh();
+
 	display.draw(*ts);
 
 	do

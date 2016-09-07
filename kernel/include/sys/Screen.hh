@@ -114,9 +114,9 @@ class TextScreen
 			Color foreground,
 			Color background );
 
-	private:
+	public:
 		ScreenInfo info;
-
+	private:
 		TextScreen();
 };
 

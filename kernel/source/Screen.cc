@@ -1,8 +1,11 @@
 #include <sys/Screen.hh>
-
 #include <sys/PhysicalMemory.hh>
 #include <sys/system.h>
+#ifdef __arm__
 #include <mc/string.h>
+#else
+#include <cstring>
+#endif
 
 
 namespace machina {
