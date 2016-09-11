@@ -12,7 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-#ifndef MACHINA_LIBMC_STDLIB_H
+#if defined(__arm__) && !defined(MACHINA_LIBMC_STDLIB_H)
 #define MACHINA_LIBMC_STDLIB_H
 
 
@@ -25,24 +25,6 @@
 
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-
-
-void memmove(
-    void *output,
-    const void *input,
-    size_t size );
-
-
-#ifdef __cplusplus
-}
 #endif
 
 

@@ -59,7 +59,8 @@ int kernel_main()
 	//ts->refresh();
 
 	void *ptr = machina::Memory::getInstance().allocate(4 * 1024 * 1024);
-	ts->printHex( (size_t) ptr);
+
+	machina::Memory::getInstance().print(*ts);
 	ts->refresh();
 
 	display.draw(*ts);

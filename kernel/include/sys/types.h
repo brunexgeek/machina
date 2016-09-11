@@ -11,6 +11,9 @@ typedef __INT16_TYPE__   int16_t;
 typedef __INT32_TYPE__   int32_t;
 typedef __INT64_TYPE__   int64_t;
 
+#ifndef __cplusplus
+typedef __UINT_LEAST16_TYPE__ char16_t;
+#endif
 
 #if (__SIZEOF_POINTER__ == 4)
 

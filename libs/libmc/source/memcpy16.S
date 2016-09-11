@@ -1,17 +1,18 @@
-//
-//    Copyright 2016 Bruno Ribeiro
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
+/*
+ *    Copyright 2016 Bruno Ribeiro
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
 
 /*
  * For more details, check the article "What is the fastest way to copy memory on a Cortex-A8?"
@@ -28,8 +29,8 @@
  * This function follows the ABI and can be called from C code.
  */
 
-	.global memcpy16
-memcpy16:
+	.global mc_memcpy16
+mc_memcpy16:
 	push {r0, r4-r6}
 1:	pld [r1, #64]
 	ldmia r1!, {r3-r6}

@@ -46,6 +46,13 @@
  */
 #define SYS_KERNEL_STACK_SIZE     (32 * SYS_PAGE_SIZE) // 128 KiB
 
+/*
+ * @brief Maximum amount of memory available for dynamic allocation.
+ *
+ * This memory is subtracted from the heap region (staring at @ref SYS_HEAP_START).
+ */
+#define SYS_KERNEL_HEAP_SIZE       (64 * 1024 * 1024) // 64 MiB
+
 /**
  * @brief Memory offset of the kernel stack.
  *

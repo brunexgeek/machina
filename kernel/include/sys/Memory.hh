@@ -3,6 +3,7 @@
 
 
 #include <sys/types.h>
+#include <sys/Screen.hh>
 
 
 namespace machina {
@@ -20,6 +21,9 @@ class Memory
 
 		void free(
 			void * address );
+
+		void print(
+			TextScreen &screen );
 
 	private:
 		static Memory instance;

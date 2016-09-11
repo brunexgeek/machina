@@ -1,22 +1,23 @@
-//
-//    Copyright 2016 Bruno Ribeiro
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
+/*
+ *    Copyright 2016 Bruno Ribeiro
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
 
 #include <mc/string.h>
 
 
-void *fmemcpy(
+void *mc_fmemcpy(
 	void *output,
 	const void *input,
 	size_t size )
@@ -30,7 +31,7 @@ void *fmemcpy(
 	aligned = size & ~0x3FU;
 	if (aligned > 127)
 	{
-		memcpy64(output, input, aligned);
+		mc_memcpy64(output, input, aligned);
 		output = (uint8_t*) output + aligned;
 		input  = (uint8_t*) input + aligned;
 		size &= 0x3FU;
@@ -41,7 +42,7 @@ void *fmemcpy(
 	aligned = size & ~0x0FU;
 	if (aligned != 0)
 	{
-		memcpy16(output, input, aligned);
+		mc_memcpy16(output, input, aligned);
 		output = (uint8_t*) output + aligned;
 		input  = (uint8_t*) input + aligned;
 		size &= 0x0FU;
@@ -57,7 +58,7 @@ void *fmemcpy(
 }
 
 
-void *memcpy(
+void *mc_memcpy(
 	void *output,
 	const void *input,
 	size_t size )
@@ -65,7 +66,7 @@ void *memcpy(
 	if ( (size_t) output % sizeof(size_t) == 0 &&
 	     (size_t) input  % sizeof(size_t) == 0 &&
 	     size > 16 )
-		 return fmemcpy(output, input, size);
+		 return mc_fmemcpy(output, input, size);
 
 	for (; size != 0; --size)
 		*(uint8_t*)output++ = *(uint8_t*)input++;

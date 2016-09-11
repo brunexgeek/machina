@@ -1,12 +1,11 @@
 #include <sys/Screen.hh>
 #include <sys/PhysicalMemory.hh>
 #include <sys/system.h>
-#ifdef __arm__
 #include <mc/string.h>
-#else
-#include <cstring>
-#endif
+#include <mc/stdarg.h>
+#include <mc/string.h>
 
+//#include <sys/Display.hh>
 
 namespace machina {
 
@@ -76,9 +75,9 @@ TextScreen *TextScreen::create(
 	info.text = (uint8_t*) info.buffer + info.bufferSize;
 	info.attribute = info.text + info.textSize;
 
-	memset(info.attribute, 0, info.textSize);
-	memset(info.text, 0, info.textSize);
-	memset(info.buffer, 0, info.bufferSize);
+	mc_memset(info.attribute, 0, info.textSize);
+	mc_memset(info.text, 0, info.textSize);
+	mc_memset(info.buffer, 0, info.bufferSize);
 
 	info.setOffset(0);
 
@@ -92,20 +91,19 @@ TextScreen::~TextScreen()
 }
 
 
-void TextScreen::print(
-	const char *text,
+void TextScreen::write(
+	const char16_t *text,
+	size_t size,
 	bool )
 {
 	// acquire lock
 
-	size_t length = strlen(text);
-
-	for (size_t i = 0; i < length; ++i)
+	for (; size > 0; --size, ++text)
 	{
-		if (text[i] == '\t')
-			print("    ");
+		if (*text == '\t')
+			print(u"    ");
 		else
-			print(text[i]);
+			print(*text);
 	}
 
 	// release lock
@@ -113,7 +111,7 @@ void TextScreen::print(
 
 
 void TextScreen::print(
-	char symbol )
+	char16_t symbol )
 {
 	static AnsiEscapeState state = AES_NONE;
 	static size_t param = AES_NONE;
@@ -130,7 +128,7 @@ void TextScreen::print(
 			case '\n':
 				info.setOffset( info.getOffset() + info.columns );
 				info.setOffset( info.getOffset() / info.columns * info.columns );
-				memset(info.text + info.getOffset(), ' ', info.columns);
+				mc_memset(info.text + info.getOffset(), ' ', info.columns);
 				break;
 
 			case '\r':
@@ -138,7 +136,7 @@ void TextScreen::print(
 				break;
 
 			default:
-				info.text[ info.getOffset() ] = symbol;
+				info.text[ info.getOffset() ] = (char) symbol;
 				info.attribute[ info.getOffset() ] = (uint8_t) (info.foreground | (info.background << 4));
 				info.setOffset( info.getOffset() + 1 );
 				break;
@@ -206,6 +204,23 @@ void TextScreen::print(
 }
 
 
+void TextScreen::print(
+	const char16_t *format,
+	... )
+{
+	va_list args;
+	char16_t buffer[128];
+	int n;
+
+	va_start(args, format);
+	n = mc_vsnprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
+
+	write(buffer, n);
+}
+
+
+
 void TextScreen::refresh()
 {
 	uint32_t glyphW = info.font->getGlyphWidth();
@@ -216,8 +231,10 @@ void TextScreen::refresh()
 	#ifdef ARM_64
 	color |= (color << 32);
 	#endif
+
 	for (size_t i = 0; i < info.bufferSize / sizeof(size_t); ++i)
 		ptr[i] = color;
+
 
 	size_t start = 0;
 	if (info.scroll)
@@ -232,11 +249,13 @@ void TextScreen::refresh()
 	uint32_t totalX = info.columns * glyphW;
 	uint32_t totalY = info.rows * glyphH;
 
-	for (uint32_t y = 0; y < totalY; y += glyphH)
+	for (register uint32_t y = 0; y < totalY; y += glyphH)
 	{
-		for (uint32_t x = 0; x < totalX; x += glyphW)
+		//machina::Display::getInstance().draw( (uint8_t)('0' + (y % 10)), 10, 210, Font::getMonospaceFont(), 0xffff, 0x0000);
+
+		for (register uint32_t x = 0; x < totalX; x += glyphW)
 		{
-			size_t index = start % info.textSize;
+			register size_t index = start % info.textSize;
 			++start;
 
 			draw(info.text[index], x, y,
@@ -260,13 +279,15 @@ void TextScreen::draw(
 
 	const uint16_t *glyph = info.font->getGlyph(symbol);
 
-	for (uint32_t y = 0; y < glyphH; ++y)
+	for (register uint32_t y = 0; y < glyphH; ++y)
 	{
-		uint32_t offsetY = y + posY;
-		for (uint32_t x = 0, bit = 1 << 15; x < glyphW; ++x, bit >>= 1)
+		register uint16_t glyphV = glyph[y];
+		uint32_t offset = (y + posY) * info.width + posX;
+
+		for (register uint32_t x = 0, bit = 1 << 15; x < glyphW; ++x, bit >>= 1)
 		{
-			Color current = ( glyph[y] & bit ) ? foreground : background;
-			info.buffer[ offsetY * info.width + x + posX ] = current;
+			if (glyphV & bit)
+				info.buffer[ offset+ x ] = foreground;
 		}
 	}
 }

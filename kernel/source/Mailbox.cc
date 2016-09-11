@@ -114,7 +114,7 @@ bool Mailbox::getProperty(
 	MailboxBuffer *buffer = (MailboxBuffer*) (((uint32_t) temp + 15) & ~(15));
 	buffer->size = bufferSize;
 	buffer->code = MAILBOX_CODE_REQUEST;
-	memcpy(buffer->tags, data, dataSize);
+	mc_memcpy(buffer->tags, data, dataSize);
 	// prepare the mailbox tag
 	MailboxTag *tag = (MailboxTag *) buffer->tags;
 	tag->tag         = tagId;
@@ -150,7 +150,7 @@ bool Mailbox::getProperty(
 	if ((tag->valueLength & MAILBOX_RESPONSE_BIT) == 0)
 		return false;
 
-	memcpy(data, buffer->tags, dataSize);
+	mc_memcpy(data, buffer->tags, dataSize);
 
 	// if the response is partial, we kind a fail
 	return (buffer->code != MAILBOX_CODE_RESPONSE_OK);

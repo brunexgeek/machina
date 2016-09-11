@@ -60,8 +60,6 @@ class Display : public Device
 			return depth;
 		}
 
-		void refresh();
-
 		void print(
 			const char *text,
 			bool overwrite = true );

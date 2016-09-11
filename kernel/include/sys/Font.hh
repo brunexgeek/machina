@@ -31,11 +31,22 @@ class Font
 		static Font &getConsoleFont();
 
 		const uint16_t *getGlyph(
-			uint32_t code ) const;
+			uint32_t code ) const
+		{
+			if (code > 0xFF) code = 0;
 
-		size_t getGlyphHeight() const;
+			return info->glyphData[code];
+		}
 
-		size_t getGlyphWidth() const;
+		size_t getGlyphHeight() const
+		{
+			return info->glyphHeight;
+		}
+
+		size_t getGlyphWidth() const
+		{
+			return info->glyphWidth;
+		}
 
 	private:
 		const FontInformation *info;

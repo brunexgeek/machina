@@ -1,0 +1,97 @@
+/*
+ *    Copyright 2016 Bruno Ribeiro
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+/*
+ * For more details, check the article "What is the fastest way to copy memory on a Cortex-A8?"
+ * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13544.html
+ */
+
+
+#include <sys/arm.h>
+
+/**
+ * @brief Set @c r2 bytes pointed by @c r1 with the byte value in @c r0.
+ *
+ * The input address must be word aligned. The size must be 64-bytes aligned.
+ * This function uses NEON to perform fast copy without trashing ARM registers.
+ *
+ * This function follows the ABI and can be called from C code.
+ */
+BEGIN_ASM_FUNCTION(mc_memset)
+	/* compute the offset to align the destination
+		* offset = (4-(src&3))&3 = -src & 3
+		*/
+	push       {r0, r4-r7, fp, lr}
+	rsb         r3, r0, #0
+	ands        r3, r3, #3
+	cmp         r3, r2
+	movhi       r3, r2
+	// fill r1 with the byte to fill
+	orr         r1, r1, r1, lsl #16
+	orr         r1, r1, r1, lsl #8
+	// copy bytes untile reach the aligned region (or finish)
+	movs        r12, r3, lsl #31
+	strcsb      r1, [r0], #1    /* can't use strh (alignment unknown) */
+	strcsb      r1, [r0], #1
+	strmib      r1, [r0], #1
+	subs        r2, r2, r3
+	ldmlsfd     sp!, {r0, r4-r7, fp, lr}
+	bxls        lr
+	// align the destination to a cache-line
+	mov         r12, r1
+	mov         lr, r1
+	mov         r4, r1
+	mov         r5, r1
+	mov         r6, r1
+	mov         r7, r1
+	rsb         r3, r0, #0
+	ands        r3, r3, #0x1C
+	beq         3f
+	cmp         r3, r2
+	andhi       r3, r2, #0x1C
+	sub         r2, r2, r3
+	// conditionally writes 0 to 7 words (length in r3)
+	movs        r3, r3, lsl #28
+	stmcsia     r0!, {r1, lr}
+	stmcsia     r0!, {r1, lr}
+	stmmiia     r0!, {r1, lr}
+	movs        r3, r3, lsl #2
+	strcs       r1, [r0], #4
+3:
+	subs        r2, r2, #32
+	mov         r3, r1
+	bmi         2f
+1:
+	subs        r2, r2, #32
+	stmia       r0!, {r1,r3,r4,r5,r6,r7,r12,lr}
+	bhs         1b
+2:
+	add         r2, r2, #32
+	// conditionally stores 0 to 31 bytes
+	movs        r2, r2, lsl #28
+	stmcsia     r0!, {r1,r3,r12,lr}
+	stmmiia     r0!, {r1, lr}
+	movs        r2, r2, lsl #2
+	strcs       r1, [r0], #4
+	strmih      r1, [r0], #2
+	movs        r2, r2, lsl #2
+	strcsb      r1, [r0]
+
+	pop         {r0, r4-r7, fp, lr}
+	bx          lr
+END_ASM_FUNCTION(mc_memset)
+
+

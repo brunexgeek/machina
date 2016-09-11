@@ -31,20 +31,20 @@ namespace machina {
 
 static struct
 {
-	const char *symbol;
-    const char *name;
+	const char16_t *symbol;
+    const char16_t *name;
 } PFT_NAMES[PFT_LAST] =
 {
-	{ ".", "Free" },
-	{ ".", "Free (dirty)" },
-	{ "K", "Kernel image" },
-	{ "-", "Reserved" },
-	{ "1", "Kernel stack" },
-	{ "2", "Abort stack" },
-	{ "3", "IRQ stack" },
-	{ "T", "Frame table" },
-	{ "A", "Alocated (physical frame)" },
-	{ "H", "Alocated (kernel heap)" }
+	{ u".", u"Free" },
+	{ u".", u"Free (dirty)" },
+	{ u"K", u"Kernel image" },
+	{ u"-", u"Reserved" },
+	{ u"1", u"Kernel stack" },
+	{ u"2", u"Abort stack" },
+	{ u"3", u"IRQ stack" },
+	{ u"T", u"Frame table" },
+	{ u"A", u"Alocated (physical frame)" },
+	{ u"H", u"Alocated (kernel heap)" }
 };
 
 
@@ -70,7 +70,7 @@ PhysicalMemory::PhysicalMemory()
 	size_t temp = (frameCount + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
 #ifdef __arm__
 	frameTable = (uint8_t*) SYS_HEAP_START - temp;
-	memset(frameTable, PFT_FREE, frameCount);
+	mc_memset(frameTable, PFT_FREE, frameCount);
 #else
 	frameTable = (uint8_t*) calloc(1, temp);
 #endif
@@ -110,21 +110,18 @@ void PhysicalMemory::print(
 	size_t type = frameTable[0];
 	size_t start = 0;
 
- 	screen.print("Start       End         Frames       Description\n");
-	screen.print("----------  ----------  ----------  ---------------------------------------\n");
+ 	screen.print(u"Start       End         Frames      Description\n");
+	screen.print(u"----------  ----------  ----------  ---------------------------------------\n");
 
 	for (size_t i = 0; i < frameCount; ++i)
 	{
 		if (frameTable[i] != type || i + 1 == frameCount)
 		{
-			screen.printHex( (uint32_t) (start * SYS_PAGE_SIZE) );
-			screen.print("  ");
-			screen.printHex( (uint32_t) (i * SYS_PAGE_SIZE - 1) );
-			screen.print("  ");
-			screen.printHex( (uint32_t)(i - start) );
-			screen.print("  ");
-			screen.print( PFT_NAMES[type].name );
-			screen.print("\n");
+			screen.print(u"0x%08p  0x%08p  %-10d  %s\n",
+				(uint32_t) (start * SYS_PAGE_SIZE),
+				(uint32_t) (i * SYS_PAGE_SIZE - 1),
+				(uint32_t)(i - start),
+				PFT_NAMES[type].name );
 			type = frameTable[i];
 			start = i;
 		}
@@ -161,10 +158,14 @@ void *PhysicalMemory::allocate(
 				PFRAME_SET_TAG(i+j, tag);
 			// decrease the used frames counter
 			freeCount -= count;
+#ifdef __arm__
 			return FRAME_TO_ADDRESS(i);
+#else
+			return calloc(1, count * SYS_PAGE_SIZE);
+#endif
 		}
-		/*else
-			i += j;*/
+		else
+			i += j;
 	}
 
 	return nullptr;
@@ -178,6 +179,10 @@ void PhysicalMemory::free(
 {
 	size_t index = ADDRESS_TOFRAME(address);
 	if (index >= frameCount || count == 0) return;
+
+#ifndef __arm__
+	::free(address);
+#endif
 
 	for (size_t i = index, t = index + count; i < t; ++i)
 	{

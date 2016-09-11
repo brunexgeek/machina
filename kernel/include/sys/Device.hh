@@ -9,10 +9,10 @@ namespace machina {
 
 class Device
 {
-    public:
-        virtual const char *getName() const = 0;
+	public:
+		virtual const char *getName() const = 0;
 
-        virtual const char *getFileName() const = 0;
+		virtual const char *getFileName() const = 0;
 };
 
 

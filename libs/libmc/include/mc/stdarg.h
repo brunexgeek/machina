@@ -45,6 +45,12 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+#ifndef __arm__
+
+#include <stdarg.h>
+
+#else
+
 #ifndef MACHINA_LIBMC_STDARG_H
 #define MACHINA_LIBMC_STDARG_H
 
@@ -64,3 +70,5 @@ typedef char *va_list;
 #define va_end(ap)       (ap = (va_list) 0)
 
 #endif // MACHINA_LIBMC_STDARG_H
+
+#endif

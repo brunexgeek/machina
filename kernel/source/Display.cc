@@ -141,7 +141,7 @@ void Display::draw(
 	const TextScreen &screen )
 {
 	size_t size = min( screen.info.bufferSize, bufferSize );
-	fmemcpy(buffer, screen.info.buffer, size);
+	mc_fmemcpy(buffer, screen.info.buffer, size);
 }
 
 

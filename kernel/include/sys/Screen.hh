@@ -71,24 +71,17 @@ class TextScreen
 
 		~TextScreen();
 
-		template <typename T>
-		void printHex(
-			T value )
-		{
-			static const char TEXT[] = "0123456789abcdef";
-
-			print("0x");
-
-			for (int shift = sizeof(T) * 8 - 4; shift >= 0; shift -= 4)
-				print( TEXT[ (value >> shift) & 0x0F ] );
-		}
-
-		void print(
-			const char *text,
+		void write(
+			const char16_t *text,
+			size_t size,
 			bool overwrite = true );
 
 		void print(
-			char text );
+			char16_t text );
+
+		void print(
+			const char16_t *format,
+			... );
 
 		uint32_t getColumns () const
 		{

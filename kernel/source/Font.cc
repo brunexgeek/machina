@@ -37,7 +37,7 @@ Font &Font::getConsoleFont()
 	return console;
 }
 
-
+/*
 const uint16_t *Font::getGlyph(
 	uint32_t code ) const
 {
@@ -56,7 +56,7 @@ size_t Font::getGlyphHeight() const
 size_t Font::getGlyphWidth() const
 {
 	return info->glyphWidth;
-}
+}*/
 
 
 

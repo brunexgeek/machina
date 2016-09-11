@@ -12,11 +12,13 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+
 #ifndef MACHINA_LIBMC_STRING_H
 #define MACHINA_LIBMC_STRING_H
 
 
 #include <mc/stdarg.h>
+#include <sys/types.h>
 
 
 #ifdef __cplusplus
@@ -24,47 +26,53 @@ extern "C" {
 #endif
 
 
-int vsprintf(
-	char *buffer,
-	const char *format,
-	va_list args );
-
-int sprintf(
-	char *buffer,
-	const char *format,
-	... );
-
-void *memcpy16(
+void *mc_memcpy16(
 	void *output,
 	const void *input,
 	size_t size );
 
 #if (RPIGEN != 1)
 
-void *memcpy64(
+void *mc_memcpy64(
 	void *output,
 	const void *input,
 	size_t size );
 
 #endif
 
-void *fmemcpy(
+void *mc_fmemcpy(
 	void *output,
 	const void *input,
 	size_t size );
 
-void *memcpy(
+void *mc_memcpy(
 	void *output,
 	const void *input,
 	size_t size );
 
-void memset(
+void *mc_memset(
 	void *output,
-	uint8_t value,
+	int value,
 	size_t size );
 
-size_t strlen(
-	const char *text );
+size_t mc_strnlen(
+	const char16_t *text,
+	size_t size );
+
+size_t mc_strlen(
+	const char16_t *text );
+
+int mc_vsnprintf(
+	char16_t *output,
+	size_t outputSize,
+	const char16_t *format,
+	va_list args );
+
+int mc_snprintf(
+	char16_t *buffer,
+	size_t size,
+	const char16_t *format,
+	... );
 
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 file(GLOB SOURCE
-    "source/*.c"
+    "source/*.c*"
     "source/*.S")
 
 include_directories(
