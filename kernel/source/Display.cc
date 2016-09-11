@@ -118,20 +118,22 @@ void Display::draw(
 	uint32_t posY,
 	const Font &font,
 	Color foreground,
-	Color background )
+	Color /* background */ )
 {
 	uint32_t glyphW = font.getGlyphWidth();
 	uint32_t glyphH = font.getGlyphHeight();
 
-	const uint16_t *glyph = font.getGlyph(symbol);
+	const uint8_t *glyph = font.getGlyph(symbol);
 
-	for (uint32_t y = 0; y < glyphH; ++y)
+	for (register uint32_t y = 0; y < glyphH; ++y)
 	{
-		uint32_t offsetY = y + posY;
-		for (uint32_t x = 0, bit = 1 << 15; x < glyphW; ++x, bit >>= 1)
+		uint32_t offset = (y + posY) * width + posX;
+		uint32_t glyphIndex = y *glyphW;
+
+		for (register uint32_t x = 0; x < glyphW; ++x)
 		{
-			Color current = ( glyph[y] & bit ) ? foreground : background;
-			buffer[ offsetY * width + x + posX ] = current;
+			if (glyph[glyphIndex + x] != 0)
+				buffer[ offset+ x ] = foreground;
 		}
 	}
 }

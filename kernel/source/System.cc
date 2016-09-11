@@ -47,14 +47,20 @@ struct MacAddressProperty
 	uint8_t padding[2];
 };
 
+#include "tamzen-10x20.c"
+
 
 int kernel_main()
 {
 	Display &display = Display::getInstance();
-	//display.draw('B', 0, 0, Font::getMonospaceFont(), 0xffff, 0x0000);
-	//display.draw('A', 30, 0, Font::getMonospaceFont(), 0xffff, 0x0000);
 
-	TextScreen *ts = TextScreen::create(display.getWidth(), display.getHeight(), display.getDepth());
+	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);
+
+	TextScreen *ts = TextScreen::create(
+		display.getWidth(),
+		display.getHeight(),
+		display.getDepth(),
+		*font);
 	PhysicalMemory::getInstance().print(*ts);
 	//ts->refresh();
 

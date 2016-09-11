@@ -13,7 +13,7 @@ struct FontInformation
 	uint32_t glyphWidth;
 	uint32_t glyphHeight;
 	uint32_t glyphCount;
-	uint16_t glyphData[256][16];
+	const uint8_t *glyphData;
 };
 
 
@@ -21,35 +21,46 @@ struct FontInformation
 class Font
 {
 	public:
-		Font(
-			const FontInformation *info );
-
 		~Font();
 
-		static Font &getMonospaceFont();
-
-		static Font &getConsoleFont();
-
-		const uint16_t *getGlyph(
+		const uint8_t *getGlyph(
 			uint32_t code ) const
 		{
 			if (code > 0xFF) code = 0;
 
-			return info->glyphData[code];
+			return glyphData + code * glyphSize;
 		}
 
 		size_t getGlyphHeight() const
 		{
-			return info->glyphHeight;
+			return glyphHeight;
 		}
 
 		size_t getGlyphWidth() const
 		{
-			return info->glyphWidth;
+			return glyphWidth;
 		}
 
+		static const Font *load(
+			const uint8_t *buffer,
+			size_t size );
+
 	private:
-		const FontInformation *info;
+		uint32_t glyphWidth;
+		uint32_t glyphHeight;
+		uint32_t glyphCount;
+		uint32_t glyphSize;
+		uint8_t *glyphData;
+
+		Font();
+
+		static const Font *loadPsf1(
+			const uint8_t *buffer,
+			size_t size );
+
+		static const Font *loadPsf2(
+			const uint8_t *buffer,
+			size_t size );
 };
 
 

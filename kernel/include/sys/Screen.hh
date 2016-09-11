@@ -67,7 +67,8 @@ class TextScreen
 		static TextScreen *create(
 			uint32_t width,
 			uint32_t height,
-			uint32_t depth );
+			uint32_t depth,
+			const Font &font );
 
 		~TextScreen();
 

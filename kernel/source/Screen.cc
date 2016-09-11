@@ -52,7 +52,8 @@ TextScreen::TextScreen()
 TextScreen *TextScreen::create(
 	uint32_t width,
 	uint32_t height,
-	uint32_t depth )
+	uint32_t depth,
+	const Font &font )
 {
 	TextScreen *object = new TextScreen();
 
@@ -63,7 +64,7 @@ TextScreen *TextScreen::create(
 	info.depth      = depth;
 	info.foreground = 9;
 	info.background = 0;
-	info.font       = &Font::getMonospaceFont();
+	info.font       = &font;
 	info.scroll     = false;
 	info.columns    = width / info.font->getGlyphWidth();
 	info.rows       = height / info.font->getGlyphHeight();
@@ -272,21 +273,21 @@ void TextScreen::draw(
 	uint32_t posX,
 	uint32_t posY,
 	Color foreground,
-	Color background )
+	Color /* background */ )
 {
 	uint32_t glyphW = info.font->getGlyphWidth();
 	uint32_t glyphH = info.font->getGlyphHeight();
 
-	const uint16_t *glyph = info.font->getGlyph(symbol);
+	const uint8_t *glyph = info.font->getGlyph(symbol);
 
 	for (register uint32_t y = 0; y < glyphH; ++y)
 	{
-		register uint16_t glyphV = glyph[y];
 		uint32_t offset = (y + posY) * info.width + posX;
+		uint32_t glyphIndex = y *glyphW;
 
-		for (register uint32_t x = 0, bit = 1 << 15; x < glyphW; ++x, bit >>= 1)
+		for (register uint32_t x = 0; x < glyphW; ++x)
 		{
-			if (glyphV & bit)
+			if (glyph[glyphIndex + x] != 0)
 				info.buffer[ offset+ x ] = foreground;
 		}
 	}
