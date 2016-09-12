@@ -38,8 +38,8 @@ static struct
 	{ u"2", u"Abort stack" },
 	{ u"3", u"IRQ stack" },
 	{ u"T", u"Frame table" },
-	{ u"A", u"Alocated (physical frame)" },
-	{ u"H", u"Alocated (kernel heap)" }
+	{ u"A", u"Allocated (physical frame)" },
+	{ u"H", u"Allocated (kernel heap)" }
 };
 
 
