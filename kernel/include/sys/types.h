@@ -34,8 +34,14 @@ typedef __INT64_TYPE__   ssize_t;
 
 // TODO: not the best place for this
 typedef uint16_t Color;
-#define MAKE_COLOR(r, g, b) \
-	( ( ( (r) >> 3 ) << 11) | ( ( (g) >> 2 ) << 5) | ( (b) >> 3 ) )
+
+/**
+ * @brief Computes the RGB565 color from individual RGB components.
+ */
+#define RGB565_COLOR(rgb) \
+	( ( ( (rgb >> 16) >> 3 ) << 11 ) | \
+	  ( ( (rgb >> 8 & 0xFF) >> 2 ) << 5 ) | \
+	  ( (rgb & 0xFF) >> 3 ) )
 
 
 

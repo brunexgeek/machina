@@ -9,15 +9,12 @@
 #include <iostream>
 #endif
 
-#define MAKE_COLOR(r, g, b) \
-	( ( ( (r) >> 3 ) << 11) | ( ( (g) >> 2 ) << 5) | ( (b) >> 3 ) )
-
 
 namespace machina {
 
 
-#define DISPLAY_WIDTH        (1920)
-#define DISPLAY_HEIGHT       (1080)
+#define DISPLAY_WIDTH        (800)
+#define DISPLAY_HEIGHT       (600)
 #define DISPLAY_DEPTH        (sizeof(Color) * 8)
 
 

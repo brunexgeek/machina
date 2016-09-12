@@ -38,7 +38,7 @@ int __aeabi_idiv0(
 
 
 int __aeabi_atexit (
-	void *object,
+	void * object,
 	void (*destroyer)(void*),
 	void *dsoHandle )
 {

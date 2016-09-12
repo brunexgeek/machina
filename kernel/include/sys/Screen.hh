@@ -21,6 +21,7 @@ struct ScreenInfo
 	uint32_t rows;
 	uint32_t foreground;
 	uint32_t background;
+	bool bold;
 	const Font *font;
 	uint8_t *text;
 	uint32_t textSize;
@@ -136,6 +137,8 @@ class TextScreen
 			uint32_t posY,
 			Color foreground,
 			Color background );
+
+		void colorTest();
 
 	private:
 		ScreenInfo info;

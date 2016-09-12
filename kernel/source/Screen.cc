@@ -4,6 +4,7 @@
 #include <mc/string.h>
 #include <mc/stdarg.h>
 #include <mc/string.h>
+#include <sys/types.h>
 
 //#include <sys/Display.hh>
 
@@ -12,26 +13,27 @@ namespace machina {
 
 Color DISPLAY_PALETTE[] =
 {
-	MAKE_COLOR(0x0E, 0x14, 0x16),
-	MAKE_COLOR(0xCC, 0x00, 0x00),
-	MAKE_COLOR(0x4E, 0x9A, 0x06),
-	MAKE_COLOR(0xC4, 0xA0, 0x00),
-	MAKE_COLOR(0x34, 0x65, 0xA4),
-	MAKE_COLOR(0x75, 0x50, 0x7B),
-	MAKE_COLOR(0x06, 0x20, 0x9A),
-	MAKE_COLOR(0xD3, 0xD7, 0xCF),
-	MAKE_COLOR(0x00, 0x00, 0x00), // not used
-	MAKE_COLOR(0xD3, 0xD7, 0xCF), // default color
-	MAKE_COLOR(0x55, 0x57, 0x53),
-	MAKE_COLOR(0xEF, 0x29, 0x29),
-	MAKE_COLOR(0x8A, 0xE2, 0x34),
-	MAKE_COLOR(0xFC, 0xE9, 0x4F),
-	MAKE_COLOR(0x72, 0x9F, 0xCF),
-	MAKE_COLOR(0xAD, 0x7F, 0xA8),
-	MAKE_COLOR(0x34, 0xE2, 0xE2),
-	MAKE_COLOR(0xEE, 0xEE, 0xEC),
-	MAKE_COLOR(0x00, 0x00, 0x00), // not used
-	MAKE_COLOR(0xEE, 0xEE, 0xEC), // default color
+	RGB565_COLOR(0x242728), // black
+	RGB565_COLOR(0xe94783), // red
+	RGB565_COLOR(0x92bc18), // green
+	RGB565_COLOR(0xf3a633), // brown
+	RGB565_COLOR(0x5b94cd), // blue
+	RGB565_COLOR(0x9f71fd), // magenta
+	RGB565_COLOR(0x65cdde), // cyan
+	RGB565_COLOR(0xd5d6d0), // gray
+	0,
+	RGB565_COLOR(0xd5d6d0), // default color (gray)
+
+	RGB565_COLOR(0x484e50), // strong black
+	RGB565_COLOR(0xe980a7), // strong red
+	RGB565_COLOR(0xbfdb6d), // strong green
+	RGB565_COLOR(0xf3db33), // strong brown
+	RGB565_COLOR(0x8eb6ed), // strong blue
+	RGB565_COLOR(0xbfa0fd), // strong magenta
+	RGB565_COLOR(0x8ee9f8), // strong cyan
+	RGB565_COLOR(0xf5f5f5), // strong gray
+	0,
+	RGB565_COLOR(0xf5f5f5), // default color (gray)
 };
 
 
@@ -65,6 +67,7 @@ TextScreen *TextScreen::create(
 	info.pitch      = width * (depth / 8);
 	info.foreground = 9;
 	info.background = 0;
+	info.bold       = false;
 	info.font       = &font;
 	info.scroll     = false;
 	info.columns    = width / info.font->getGlyphWidth();
@@ -139,7 +142,7 @@ void TextScreen::print(
 
 			default:
 				info.text[ info.getOffset() ] = (char) symbol;
-				info.attribute[ info.getOffset() ] = (uint8_t) (info.foreground | (info.background << 4));
+				info.attribute[ info.getOffset() ] = (uint8_t) (info.foreground | (info.background << 5));
 				info.setOffset( info.getOffset() + 1 );
 				break;
 		}
@@ -174,15 +177,27 @@ void TextScreen::print(
 				{
 					info.foreground = 9;
 					info.background = 0;
+					info.bold = false;
+				}
+				else
+				if (param == 1)
+				{
+					info.bold = true;
 				}
 				if (param >= 30 && param <= 39)
 				{
 					info.foreground = param - 30;
+					if (info.bold) info.foreground += 10;
 				}
 				else
 				if (param >= 40 && param <= 49)
 				{
-					info.background = param - 40;
+					// we are ignoring the 'default color' (49) in the background because
+					// background colors are encoded with 3 bits (don't fit!)
+					if (param > 47)
+						info.background = 0;
+					else
+						info.background = param - 40;
 				}
 				param = 0;
 				break;
@@ -260,11 +275,11 @@ void TextScreen::refresh()
 
 			// the screen is already cleaned, so we could just ignore
 			// whitespace characters
-			if (info.text[index] == ' ') continue;
+			//if (info.text[index] == ' ') continue;
 
 			draw(info.text[index], x, y,
-				DISPLAY_PALETTE[ info.attribute[index] & 0x0F ],
-				DISPLAY_PALETTE[ info.attribute[index] >> 4 ] );
+				DISPLAY_PALETTE[ info.attribute[index] & 0x1F ],
+				DISPLAY_PALETTE[ info.attribute[index] >> 5 ] );
 		}
 	}
 
@@ -276,7 +291,7 @@ void TextScreen::draw(
 	uint32_t posX,
 	uint32_t posY,
 	Color foreground,
-	Color /* background */ )
+	Color background )
 {
 	uint32_t glyphW = info.font->getGlyphWidth();
 	uint32_t glyphH = info.font->getGlyphHeight();
@@ -292,7 +307,33 @@ void TextScreen::draw(
 		{
 			if (glyph[glyphIndex + x] != 0)
 				info.buffer[ offset+ x ] = foreground;
+			else
+				info.buffer[ offset+ x ] = background;
 		}
+	}
+}
+
+
+void TextScreen::colorTest()
+{
+	static const char16_t HEADER[] = u"\e[0m         40m   41m   42m   43m   44m   45m   46m   47m\n";
+
+	write(HEADER, (sizeof(HEADER) - 1) / sizeof(char16_t));
+
+	for (int foreColor = 0; foreColor < 8; ++foreColor)
+	{
+		print(u"\e[0m    3%dm ", foreColor);
+		for (int backColor = 0; backColor < 8; ++backColor)
+		{
+			print(u"\e[3%d;4%dm AbC \e[0m ", foreColor, backColor);
+		}
+
+		print(u"\n\e[0m  1;3%dm ", foreColor);
+		for (int backColor = 0; backColor < 8; ++backColor)
+		{
+			print(u"\e[1;3%d;4%dm AbC \e[0m ", foreColor, backColor);
+		}
+		print('\n');
 	}
 }
 

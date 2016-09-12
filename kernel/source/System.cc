@@ -57,20 +57,19 @@ int kernel_main()
 	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);
 
 	TextScreen *ts = TextScreen::create(
-		800,//display.getWidth(),
-		600,//display.getHeight(),
+		display.getWidth(),
+		display.getHeight(),
 		display.getDepth(),
 		*font);
 	PhysicalMemory::getInstance().print(*ts);
 
-	void *ptr = machina::Memory::getInstance().allocate(4 * 1024 * 1024);
-	ts->print(u"Video memory at 0x%08p with %d bytes\n",
+	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
 		display.getBuffer(), display.getBufferSize() );
-	machina::Memory::getInstance().print(*ts);
 
+	ts->colorTest();
 	ts->refresh();
 
-	display.draw(*ts, 100, 100);
+	display.draw(*ts);
 
 	do
 	{

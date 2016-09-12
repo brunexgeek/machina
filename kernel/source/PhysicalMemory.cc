@@ -12,11 +12,6 @@
 #include <mc/string.h>
 #endif
 
-/*#define PFRAME_GET_TAG(index) \
-	( this->frameTable[index] & 0xFF )
-
-#define PFRAME_SET_TAG(index,value) \
-	{ this->frameTable[index] = (this->frameTable[index] & (~0xff)) | (value & 0xFF); }*/
 
 #define PFRAME_GET_TAG(index) \
 	( this->frameTable[index] )
@@ -175,7 +170,7 @@ void *PhysicalMemory::allocate(
 void PhysicalMemory::free(
 	void *address,
 	size_t count,
-	bool cleaup )
+	bool /* cleaup */ )
 {
 	size_t index = ADDRESS_TOFRAME(address);
 	if (index >= frameCount || count == 0) return;
