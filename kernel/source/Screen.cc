@@ -62,6 +62,7 @@ TextScreen *TextScreen::create(
 	info.width      = width;
 	info.height     = height;
 	info.depth      = depth;
+	info.pitch      = width * (depth / 8);
 	info.foreground = 9;
 	info.background = 0;
 	info.font       = &font;
@@ -233,9 +234,9 @@ void TextScreen::refresh()
 	color |= (color << 32);
 	#endif
 
+	// clean the screen
 	for (size_t i = 0; i < info.bufferSize / sizeof(size_t); ++i)
 		ptr[i] = color;
-
 
 	size_t start = 0;
 	if (info.scroll)
@@ -252,12 +253,14 @@ void TextScreen::refresh()
 
 	for (register uint32_t y = 0; y < totalY; y += glyphH)
 	{
-		//machina::Display::getInstance().draw( (uint8_t)('0' + (y % 10)), 10, 210, Font::getMonospaceFont(), 0xffff, 0x0000);
-
 		for (register uint32_t x = 0; x < totalX; x += glyphW)
 		{
 			register size_t index = start % info.textSize;
 			++start;
+
+			// the screen is already cleaned, so we could just ignore
+			// whitespace characters
+			if (info.text[index] == ' ') continue;
 
 			draw(info.text[index], x, y,
 				DISPLAY_PALETTE[ info.attribute[index] & 0x0F ],

@@ -16,6 +16,7 @@ struct ScreenInfo
 	uint32_t width;
 	uint32_t height;
 	uint32_t depth;
+	uint32_t pitch;
 	uint32_t columns;
 	uint32_t rows;
 	uint32_t foreground;
@@ -61,8 +62,6 @@ struct ScreenInfo
 
 class TextScreen
 {
-	friend class Display;
-
 	public:
 		static TextScreen *create(
 			uint32_t width,
@@ -94,9 +93,39 @@ class TextScreen
 			return info.rows;
 		}
 
+		uint32_t getWidth() const
+		{
+			return info.width;
+		}
+
+		uint32_t getHeight() const
+		{
+			return info.height;
+		}
+
+		uint32_t getDepth() const
+		{
+			return info.depth;
+		}
+
+		uint32_t getPitch() const
+		{
+			return info.pitch;
+		}
+
 		const Font &getFont() const
 		{
 			return *info.font;
+		}
+
+		size_t getBufferSize() const
+		{
+			return info.bufferSize;
+		}
+
+		const Color *getBuffer() const
+		{
+			return info.buffer;
 		}
 
 		void refresh();
@@ -108,9 +137,9 @@ class TextScreen
 			Color foreground,
 			Color background );
 
-	public:
-		ScreenInfo info;
 	private:
+		ScreenInfo info;
+
 		TextScreen();
 };
 

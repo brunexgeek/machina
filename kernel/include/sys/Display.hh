@@ -16,8 +16,8 @@
 namespace machina {
 
 
-#define DISPLAY_WIDTH        (800)
-#define DISPLAY_HEIGHT       (600)
+#define DISPLAY_WIDTH        (1920)
+#define DISPLAY_HEIGHT       (1080)
 #define DISPLAY_DEPTH        (sizeof(Color) * 8)
 
 
@@ -30,20 +30,19 @@ class TextScreen;
 class Display : public Device
 {
 	public:
-		Display (
-			uint32_t width = DISPLAY_WIDTH,
-			uint32_t height = DISPLAY_HEIGHT,
-			uint32_t depth = DISPLAY_DEPTH );
-
 		~Display();
 
-		const char* getName() const;
+		const char* getName() const
+		{
+			return "VideoCore IV";
+		}
 
-		const char* getFileName() const;
+		const char*getFileName() const
+		{
+			return "display";
+		}
 
 		static Display &getInstance();
-
-		bool Initialize (void);
 
 		uint32_t getWidth () const
 		{
@@ -60,22 +59,22 @@ class Display : public Device
 			return depth;
 		}
 
+		const void *getBuffer() const
+		{
+			return buffer;
+		}
+
+		uint32_t getBufferSize() const
+		{
+			return bufferSize;
+		}
+
 		void print(
 			const char *text,
 			bool overwrite = true );
 
-		void clearLine();
-
 		void print(
 			char symbol );
-
-		void draw(
-			const char *text,
-			uint32_t posX,
-			uint32_t posY,
-			const Font &font,
-			Color foreground,
-			Color background );
 
 		void draw(
 			char symbol,
@@ -86,7 +85,9 @@ class Display : public Device
 			Color background );
 
 		void draw(
-			const TextScreen &screen );
+			const TextScreen &screen,
+			int32_t x = 0,
+			int32_t y = 0 );
 
 	private:
 		Color *buffer;
@@ -94,8 +95,12 @@ class Display : public Device
 		uint32_t width;
 		uint32_t height;
 		uint32_t depth;   // only 16-bits for now
+		uint32_t pitch;
 
-
+		Display (
+			uint32_t width = DISPLAY_WIDTH,
+			uint32_t height = DISPLAY_HEIGHT,
+			uint32_t depth = DISPLAY_DEPTH );
 };
 
 

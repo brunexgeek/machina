@@ -17,13 +17,34 @@
 #include <mc/string.h>
 
 
-void *mc_fmemcpy(
+void *mc_memcpy(
 	void *output,
 	const void *input,
 	size_t size )
 {
 	size_t aligned;
 	void *out = output;
+
+	// deals with unaligned buffers
+	if ( (size_t) output % sizeof(size_t) != 0 ||
+	     (size_t) input  % sizeof(size_t) != 0)
+	{
+		// check if the buffers are equally unaligned
+		if ( (size_t) output % sizeof(size_t) == (size_t) input  % sizeof(size_t))
+		{
+			aligned = ( ( (size_t) output + 0x03 ) & ~0x03U ) - (size_t) output;
+			// align the buffers
+			for (; aligned > 0; --size, --aligned)
+				*(uint8_t*)output++ = *(uint8_t*)input++;
+		}
+		else
+		{
+			// performs a slow byte copy
+			for (; size != 0; --size)
+				*(uint8_t*)output++ = *(uint8_t*)input++;
+			return out;
+		}
+	}
 
 #if (RPIGEN > 1)
 	// check if we can copy in blocks of 64-bytes (and
@@ -37,7 +58,8 @@ void *mc_fmemcpy(
 		size &= 0x3FU;
 	}
 
-#else
+#endif
+
 	// check if we can copy in blocks of 16-bytes
 	aligned = size & ~0x0FU;
 	if (aligned != 0)
@@ -47,29 +69,12 @@ void *mc_fmemcpy(
 		input  = (uint8_t*) input + aligned;
 		size &= 0x0FU;
 	}
-#endif
 
 	if (size == 0) return out;
 
+	// copy the trailing unaligned bytes
 	for (; size != 0; --size)
 		*(uint8_t*)output++ = *(uint8_t*)input++;
 
 	return out;
-}
-
-
-void *mc_memcpy(
-	void *output,
-	const void *input,
-	size_t size )
-{
-	if ( (size_t) output % sizeof(size_t) == 0 &&
-	     (size_t) input  % sizeof(size_t) == 0 &&
-	     size > 16 )
-		 return mc_fmemcpy(output, input, size);
-
-	for (; size != 0; --size)
-		*(uint8_t*)output++ = *(uint8_t*)input++;
-
-	return output;
 }

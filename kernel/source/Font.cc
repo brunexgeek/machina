@@ -143,6 +143,8 @@ const Font *Font::loadPsf2(
 	psf2_header *header = (psf2_header*) buffer;
 	Font *font = new Font();
 
+	if (header->width > 16) return nullptr;
+
 	font->glyphWidth  = header->width;
 	font->glyphHeight = header->height;
 	font->glyphCount  = header->length;

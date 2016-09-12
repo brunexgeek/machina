@@ -15,18 +15,37 @@
  */
 
 /*
- * For more details, check the article "What is the fastest way to copy memory on a Cortex-A8?"
- * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13544.html
+ * Copyright (C) 2008 The Android Open Source Project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
-
 
 #include <sys/arm.h>
 
 /**
  * @brief Set @c r2 bytes pointed by @c r1 with the byte value in @c r0.
- *
- * The input address must be word aligned. The size must be 64-bytes aligned.
- * This function uses NEON to perform fast copy without trashing ARM registers.
  *
  * This function follows the ABI and can be called from C code.
  */
@@ -40,8 +59,9 @@ BEGIN_ASM_FUNCTION(mc_memset)
 	cmp         r3, r2
 	movhi       r3, r2
 	// fill r1 with the byte to fill
-	orr         r1, r1, r1, lsl #16
-	orr         r1, r1, r1, lsl #8
+	mov         r1, r1, lsl #24
+	orr         r1, r1, r1, lsr #8
+	orr         r1, r1, r1, lsr #16
 	// copy bytes untile reach the aligned region (or finish)
 	movs        r12, r3, lsl #31
 	strcsb      r1, [r0], #1    /* can't use strh (alignment unknown) */

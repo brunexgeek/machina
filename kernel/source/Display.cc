@@ -35,14 +35,16 @@ struct FrameBufferInfo
 static FrameBufferInfo req __attribute((aligned (16)));
 
 
-static Display instance;
+static Display *instance;
 
 
 Display::Display (
 	uint32_t width,
 	uint32_t height,
-	uint32_t depth ) : width(width), height(height), depth(DISPLAY_DEPTH)
+	uint32_t depth ) : width(width), height(height), depth(DISPLAY_DEPTH),
+		pitch(width * (depth / 8))
 {
+
 #if __arm__
 	req.width = width;
 	req.height = height;
@@ -59,11 +61,11 @@ Display::Display (
 
 	buffer = (Color*) ( req.bufferPtr & 0x3FFFFFFF );
 	bufferSize = req.bufferSize;
+	pitch = req.pitch;
 #else
 	bufferSize = width * height * (DISPLAY_DEPTH / 8);
 	buffer = (Color*) calloc(1, info.bufferSize);
 #endif
-	//memset(buffer, 0xff, bufferSize);
 }
 
 
@@ -75,40 +77,9 @@ Display::~Display ()
 
 Display &Display::getInstance()
 {
-	return instance;
-}
-
-
-const char* Display::getName() const
-{
-	return "Display";
-}
-
-
-const char* Display::getFileName() const
-{
-	return "display";
-}
-
-
-void Display::clearLine()
-{
-	/*size_t offset = (info.textOffset / info.columns) * info.columns;
-	memset(info.text + offset, ' ', info.columns);*/
-}
-
-
-
-void Display::draw(
-	const char *text,
-	uint32_t posX,
-	uint32_t posY,
-	const Font &font,
-	Color foreground,
-	Color background )
-{
-	for (; *text != 0; ++text);
-		draw(*text, posX, posY, font, foreground, background);
+	if (instance == nullptr)
+		instance = new Display();
+	return *instance;
 }
 
 
@@ -140,10 +111,33 @@ void Display::draw(
 
 
 void Display::draw(
-	const TextScreen &screen )
+	const TextScreen &screen,
+	int32_t x,
+	int32_t y )
 {
-	size_t size = min( screen.info.bufferSize, bufferSize );
-	mc_fmemcpy(buffer, screen.info.buffer, size);
+	if (screen.getDepth() != depth) return;
+
+	if (x + (int32_t) screen.getWidth() < 0 || x >= (int32_t) width)
+		return;
+	if (y + (int32_t) screen.getHeight() < 0 || y >= (int32_t) width)
+		return;
+
+	size_t srcOffBeg = ( sizeof(Color) * (x < 0) ? -x : 0 ) +
+		( (y < 0) ? -y : 0 ) * screen.getPitch();
+	size_t srcPitch  = min( screen.getPitch(), pitch ) - sizeof(Color) * ( (x < 0) ? -x : x );
+
+	size_t dstOffBeg = sizeof(Color) * ( (srcOffBeg == 0) ? x : 0 ) +
+		( (srcOffBeg == 0) ? y : 0 ) * pitch;
+
+	uint8_t *src = (uint8_t*) screen.getBuffer();
+	uint8_t *dst = (uint8_t*) buffer + dstOffBeg;
+	size_t cy = min( height, screen.getHeight() ) - y;
+	for (; cy > 0; --cy)
+	{
+		mc_memcpy(dst, src, srcPitch);
+		src += screen.getPitch();
+		dst += pitch;
+	}
 }
 
 
