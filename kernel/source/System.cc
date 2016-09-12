@@ -47,77 +47,8 @@ struct MacAddressProperty
 	uint8_t padding[2];
 };
 
-#include "tamzen-10x20.c"
 
-
-int kernel_main()
-{
-	Display &display = Display::getInstance();
-
-	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);
-
-	TextScreen *ts = TextScreen::create(
-		display.getWidth(),
-		display.getHeight(),
-		display.getDepth(),
-		*font);
-	PhysicalMemory::getInstance().print(*ts);
-
-	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
-		display.getBuffer(), display.getBufferSize() );
-
-	ts->colorTest();
-	ts->refresh();
-
-	display.draw(*ts);
-
-	do
-	{
-		asm volatile ("wfi");
-	} while (true);
-/*
-	machina::PhysicalMemory phys;
-	phys.print(display);
-	size_t index = phys.allocate(3);
-	phys.print(display);
-	phys.free(index + 1, 1);
-	phys.print(display);
-
-	MemoryTag split;
-
-	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &split, sizeof(split));
-	display.print("CPU memory start at ");
-	display.printHex(split.base);
-	display.print(" with ");
-	display.printHex(split.size);
-	display.print(" bytes\n");
-
-	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &split, sizeof(split));
-	display.print("GPU memory start at ");
-	display.printHex(split.base);
-	display.print(" with ");
-	display.printHex(split.size);
-	display.print(" bytes\n");
-
-	MacAddressProperty bla;
-	machina::Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010003, &bla, sizeof(bla));
-	display.print("This board MAC address is: ");
-
-	for (size_t i = 0; i < sizeof(bla.address); ++i)
-	{
-		display.print( HEXS[bla.address[i] >> 4] );
-		display.print( HEXS[bla.address[i] & 0x0F] );
-		if (i + 1 < sizeof(bla.address))
-			display.print(':');
-	}
-	display.refresh();*/
-
-	do
-	{
-		asm volatile ("wfi");
-	} while (true);
-	return 0;
-};
+int kernel_main();
 
 
 /*
@@ -275,6 +206,36 @@ extern "C" void system_enableCoreEx (void)
 }
 
 #endif
+
+
+#include "tamzen-10x20.c"
+
+
+int kernel_main()
+{
+	Display &display = Display::getInstance();
+
+	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);
+
+	TextScreen *ts = TextScreen::create(
+		display.getWidth(),
+		display.getHeight(),
+		display.getDepth(),
+		*font);
+	PhysicalMemory::getInstance().print(*ts);
+
+	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
+		display.getBuffer(), display.getBufferSize() );
+
+	ts->colorTest();
+	ts->refresh();
+
+	display.draw(*ts);
+
+	system_disableCore();
+
+	return 0;
+};
 
 
 } // machina

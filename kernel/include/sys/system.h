@@ -77,28 +77,15 @@
  */
 #define SYS_CPU_CORES            1
 
-/**
- * @brief Memory offset of the exception handler stack.
- *
- * The stack grows downward.
- */
-#define SYS_ABORT_STACK \
-	(SYS_KERNEL_STACK + SYS_EXCEPT_STACK_SIZE)
-
-/**
- * @brief Memory offset of the IRQ handler stack.
- *
- * The stack grows downward.
- */
-#define SYS_IRQ_STACK \
-	(SYS_ABORT_STACK + SYS_EXCEPT_STACK_SIZE)
-
 #else
 
 /**
  * @brief Amount of CPU cores.
  */
 #define SYS_CPU_CORES            4
+
+#endif // RPIGEN
+
 
 /**
  * @brief Memory offset of the exception handler stack.
@@ -109,7 +96,7 @@
 	(SYS_KERNEL_STACK_END)
 
 #define SYS_ABORT_STACK_END \
-	(SYS_ABORT_STACK_START + SYS_EXCEPT_STACK_SIZE * (SYS_CPU_CORES-1))
+	(SYS_ABORT_STACK_START + SYS_EXCEPT_STACK_SIZE * (SYS_CPU_CORES))
 
 /**
  * @brief Memory offset of the IRQ handler stack.
@@ -120,9 +107,7 @@
 	(SYS_ABORT_STACK_END)
 
 #define SYS_IRQ_STACK_END \
-	(SYS_IRQ_STACK_START + SYS_EXCEPT_STACK_SIZE * (SYS_CPU_CORES-1))
-
-#endif
+	(SYS_IRQ_STACK_START + SYS_EXCEPT_STACK_SIZE * (SYS_CPU_CORES))
 
 
 #define SYS_HEAP_START            (0x00200000)
