@@ -13,8 +13,8 @@
 namespace machina {
 
 
-#define DISPLAY_WIDTH        (800)
-#define DISPLAY_HEIGHT       (600)
+#define DISPLAY_WIDTH        (1024)
+#define DISPLAY_HEIGHT       (768)
 #define DISPLAY_DEPTH        (sizeof(Color) * 8)
 
 

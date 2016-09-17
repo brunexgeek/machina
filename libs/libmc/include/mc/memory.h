@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-#ifndef MACHINA_LIBMC_STRING_H
-#define MACHINA_LIBMC_STRING_H
+
+#ifndef MACHINA_LIBMC_MEMORY_H
+#define MACHINA_LIBMC_MEMORY_H
 
 
 #include <mc/stdarg.h>
@@ -27,24 +28,33 @@ extern "C" {
 #endif
 
 
-size_t StringLengthEx(
-	const char16_t *text,
+void *CopyMemory16(
+	void *output,
+	const void *input,
 	size_t size );
 
-size_t StringLength(
-	const char16_t *text );
+#if (RPIGEN != 1)
 
-int FormatStringEx(
-	char16_t *output,
-	size_t outputSize,
-	const char16_t *format,
-	va_list args );
+void *CopyMemory64(
+	void *output,
+	const void *input,
+	size_t size );
 
-int FormatString(
-	char16_t *buffer,
-	size_t size,
-	const char16_t *format,
-	... );
+#endif
+
+void *CopyMemory(
+	void *output,
+	const void *input,
+	size_t size );
+
+void *FillMemory(
+	void *output,
+	int value,
+	size_t size );
+
+inline void *ZeroMemory(
+	void *output,
+	size_t size );
 
 
 #ifdef __cplusplus
@@ -52,4 +62,4 @@ int FormatString(
 #endif
 
 
-#endif // MACHINA_LIBMC_STRING_H
+#endif // MACHINA_LIBMC_MEMORY_H

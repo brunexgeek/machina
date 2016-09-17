@@ -49,11 +49,11 @@
  *
  * This function follows the ABI and can be called from C code.
  */
-BEGIN_ASM_FUNCTION(mc_memset)
+BEGIN_ASM_FUNCTION(FillMemory)
 	/* compute the offset to align the destination
 		* offset = (4-(src&3))&3 = -src & 3
 		*/
-	push       {r0, r4-r7, fp, lr}
+	push        {r0, r4-r7, fp, lr}
 	rsb         r3, r0, #0
 	ands        r3, r3, #3
 	cmp         r3, r2
@@ -112,6 +112,4 @@ BEGIN_ASM_FUNCTION(mc_memset)
 
 	pop         {r0, r4-r7, fp, lr}
 	bx          lr
-END_ASM_FUNCTION(mc_memset)
-
-
+END_ASM_FUNCTION(FillMemory)

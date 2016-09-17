@@ -14,42 +14,32 @@
  *    limitations under the License.
  */
 
-#ifndef MACHINA_LIBMC_STRING_H
-#define MACHINA_LIBMC_STRING_H
+
+#include <sys/arm.h>
 
 
-#include <mc/stdarg.h>
-#include <sys/types.h>
+#if (RPIGEN != 1)
 
 
-#ifdef __cplusplus
-extern "C" {
+/**
+ * @brief Copy @c r2 bytes from @c r1 to @c r0.
+ *
+ * The input address, output address and must be word aligned. The size must be
+ * 64-bytes aligned. This function uses NEON to perform fast copy without
+ * trashing ARM registers.
+ *
+ * This function follows the ABI and can be called from C code.
+ */
+
+BEGIN_ASM_FUNCTION(CopyMemory64)
+	mov         r3, r0
+1:  pld         [r1, #0xC0]
+	vldm        r1!, {d0-d7}
+	vstm        r0!, {d0-d7}
+	subs        r2, r2, #0x40
+	bge         1b
+	mov         r0, r3
+	bx          lr
+END_ASM_FUNCTION(CopyMemory64)
+
 #endif
-
-
-size_t StringLengthEx(
-	const char16_t *text,
-	size_t size );
-
-size_t StringLength(
-	const char16_t *text );
-
-int FormatStringEx(
-	char16_t *output,
-	size_t outputSize,
-	const char16_t *format,
-	va_list args );
-
-int FormatString(
-	char16_t *buffer,
-	size_t size,
-	const char16_t *format,
-	... );
-
-
-#ifdef __cplusplus
-}
-#endif
-
-
-#endif // MACHINA_LIBMC_STRING_H

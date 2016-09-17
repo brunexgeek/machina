@@ -14,28 +14,27 @@
  *    limitations under the License.
  */
 
-/*
- * For more details, check the article "What is the fastest way to copy memory on a Cortex-A8?"
- * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13544.html
- */
+#include <mc/string.h>
 
 
-/**
- * @brief Copy @c r2 bytes from @c r1 to @c r0.
- *
- * The input address, output address and must be word aligned. The size must be
- * 16-bytes aligned.
- *
- * This function follows the ABI and can be called from C code.
- */
+size_t StringLengthEx(
+	const char16_t *text,
+	size_t size )
+{
+	const char16_t *ptr = text;
 
-	.global mc_memcpy16
-mc_memcpy16:
-	push {r0, r4-r6}
-1:	pld [r1, #64]
-	ldmia r1!, {r3-r6}
-	stmia r0!, {r3-r6}
-	subs r2, #16
-	bne	1b
-	pop {r0, r4-r6}
-	bx lr
+	for (; *ptr != 0 && size--; ++ptr);
+
+	return (size_t) (ptr - text);
+}
+
+
+size_t StringLength(
+	const char16_t *text )
+{
+	size_t length = 0;
+
+	for (; *(text + length) != 0; ++length);
+
+	return length;
+}

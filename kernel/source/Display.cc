@@ -5,6 +5,7 @@
 #include <sys/soc.h>
 #include <mc/stdlib.h>
 #include <mc/string.h>
+#include <mc/memory.h>
 #ifndef __arm__
 #include <iostream>
 #include <cstdlib>
@@ -134,7 +135,7 @@ void Display::draw(
 	size_t cy = min( height, screen.getHeight() ) - y;
 	for (; cy > 0; --cy)
 	{
-		mc_memcpy(dst, src, srcPitch);
+		CopyMemory(dst, src, srcPitch);
 		src += screen.getPitch();
 		dst += pitch;
 	}

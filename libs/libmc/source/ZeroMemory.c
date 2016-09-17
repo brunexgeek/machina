@@ -14,27 +14,12 @@
  *    limitations under the License.
  */
 
-#include <mc/string.h>
+#include <mc/memory.h>
 
 
-size_t mc_strnlen(
-	const char16_t *text,
+void *ZeroMemory(
+	void *output,
 	size_t size )
 {
-	const char16_t *ptr = text;
-
-	for (; *ptr != 0 && size--; ++ptr);
-
-	return (size_t) (ptr - text);
-}
-
-
-size_t mc_strlen(
-	const char16_t *text )
-{
-	size_t length = 0;
-
-	for (; *(text + length) != 0; ++length);
-
-	return length;
+	FillMemory(output, 0, size);
 }

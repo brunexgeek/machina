@@ -4,9 +4,9 @@
 #include <mc/string.h>
 #include <mc/stdarg.h>
 #include <mc/string.h>
+#include <mc/memory.h>
 #include <sys/types.h>
 
-//#include <sys/Display.hh>
 
 namespace machina {
 
@@ -80,9 +80,9 @@ TextScreen *TextScreen::create(
 	info.text = (uint8_t*) info.buffer + info.bufferSize;
 	info.attribute = info.text + info.textSize;
 
-	mc_memset(info.attribute, 0, info.textSize);
-	mc_memset(info.text, 0, info.textSize);
-	mc_memset(info.buffer, 0, info.bufferSize);
+	FillMemory(info.attribute, 0, info.textSize);
+	FillMemory(info.text, 0, info.textSize);
+	FillMemory(info.buffer, 0, info.bufferSize);
 
 	info.setOffset(0);
 
@@ -133,7 +133,7 @@ void TextScreen::print(
 			case '\n':
 				info.setOffset( info.getOffset() + info.columns );
 				info.setOffset( info.getOffset() / info.columns * info.columns );
-				mc_memset(info.text + info.getOffset(), ' ', info.columns);
+				FillMemory(info.text + info.getOffset(), ' ', info.columns);
 				break;
 
 			case '\r':
@@ -230,7 +230,7 @@ void TextScreen::print(
 	int n;
 
 	va_start(args, format);
-	n = mc_vsnprintf(buffer, sizeof(buffer), format, args);
+	n = FormatStringEx(buffer, sizeof(buffer), format, args);
 	va_end(args);
 
 	write(buffer, n);

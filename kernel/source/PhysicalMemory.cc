@@ -10,6 +10,7 @@
 #include <cstring>
 #else
 #include <mc/string.h>
+#include <mc/memory.h>
 #endif
 
 
@@ -65,7 +66,7 @@ PhysicalMemory::PhysicalMemory()
 	size_t temp = (frameCount + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
 #ifdef __arm__
 	frameTable = (uint8_t*) SYS_HEAP_START - temp;
-	mc_memset(frameTable, PFT_FREE, frameCount);
+	FillMemory(frameTable, PFT_FREE, frameCount);
 #else
 	frameTable = (uint8_t*) calloc(1, temp);
 #endif
