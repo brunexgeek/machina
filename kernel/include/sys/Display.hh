@@ -67,11 +67,12 @@ class Display : public Device
 		}
 
 		void print(
-			const char *text,
-			bool overwrite = true );
-
-		void print(
 			char symbol );
+
+		void drawSomething(
+			uint32_t posX,
+			uint32_t posY,
+			Color color );
 
 		void draw(
 			char symbol,
@@ -93,7 +94,7 @@ class Display : public Device
 		uint32_t height;
 		uint32_t depth;   // only 16-bits for now
 		uint32_t pitch;
-
+	public:
 		Display (
 			uint32_t width = DISPLAY_WIDTH,
 			uint32_t height = DISPLAY_HEIGHT,

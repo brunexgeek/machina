@@ -36,7 +36,8 @@ struct FrameBufferInfo
 static FrameBufferInfo req __attribute((aligned (16)));
 
 
-static Display *instance;
+//static Display *instance;
+static Display instance;
 
 
 Display::Display (
@@ -78,9 +79,21 @@ Display::~Display ()
 
 Display &Display::getInstance()
 {
-	if (instance == nullptr)
+	/*if (instance == nullptr)
 		instance = new Display();
-	return *instance;
+	return *instance;*/
+	return instance;
+}
+
+
+void Display::drawSomething(
+	uint32_t posX,
+	uint32_t posY,
+	Color color )
+{
+	size_t offset = posY * pitch + posX;
+	for (size_t i = 0; i < 20; ++i)
+		buffer[offset + i] = color;
 }
 
 

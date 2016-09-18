@@ -20,6 +20,8 @@
     #define CPU_IO_BASE          (0x3F000000U)
 #endif
 
+#define CPU_IO_END               (CPU_IO_BASE + 0x01000000)
+
 /*
  * The GPU physical address 0x7E00000 is mapped to the ARM physical address
  * given by CPU_IO_BASE.

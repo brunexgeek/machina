@@ -6,16 +6,16 @@
  * Raspberry Pi 2/3 multi-core
  *
  *
- * Start       End         Pages   Description
- * ----------  ----------  ------  ---------------------------------------------
- * 0x00000000  0x00007FFF  8       Unused, video memory, SOC stuff
- * 0x00008000  0x00107fff  256     Kernel
- * 0x00108000  0x00127fff  128     SVC stack (kernel stack)
- * 0x00128000  0x00187FFF  8       Abort stack
- * 0x00140000  0x00157fff  8       IRQ stack
- * 0x00198000  0x001BFFFF  40      Unused
- * 0x001C8000  0x001FFFFF  64      Physical memory table
- * 0x00200000  0xXXXXXXXX  ?       Heap
+ * Start       Pages   Description
+ * ----------  ------  ---------------------------------------------
+ * 0x00000000  8       Reserved
+ * 0x00008000  256     Kernel
+ * 0x00108000  128     SVC stack (kernel stack)
+ * 0x00128000  8       Abort stack
+ * 0x00140000  8       IRQ stack
+ * 0x00198000  40      Unused
+ * 0x001C8000  64      Physical memory table
+ * 0x00200000  ?       Heap
  */
 
 
@@ -110,7 +110,17 @@
 	(SYS_IRQ_STACK_START + SYS_EXCEPT_STACK_SIZE * (SYS_CPU_CORES))
 
 
-#define SYS_HEAP_START            (0x00200000)
+#define SYS_BITMAP_START          (0x00300000)
+#define SYS_BITMAP_SIZE           ((1U << 31) / SYS_PAGE_SIZE * 2) // 1MB using 4KB pages
+#define SYS_BITMAP_END            (SYS_BITMAP_START + SYS_BITMAP_SIZE)
+
+
+/**
+ * @brief Memory offset of the heap space.
+ *
+ * This offset must be 1MB aligned because of the MMU logic.
+ */
+#define SYS_HEAP_START            (0x00400000)
 
 
 

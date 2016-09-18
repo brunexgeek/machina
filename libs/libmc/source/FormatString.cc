@@ -81,7 +81,7 @@ static const char16_t *stringToNumber(
 
 static char16_t *numberToString(
 	char16_t *output,
-	ssize_t value,
+	size_t value,
 	int base,
 	int size,
 	int precision,
@@ -102,10 +102,10 @@ static char16_t *numberToString(
 	// checks if we need to print the sign
 	if (type & FLAG_SIGNED)
 	{
-		if (value < 0)
+		if ( (ssize_t) value < 0)
 		{
 			sign = u'-';
-			value = -value;
+			value =  (size_t) -( (ssize_t) value );
 			size--;
 		}
 		else if (type & FLAG_SIGNAL)
@@ -141,8 +141,8 @@ static char16_t *numberToString(
 	{
 		while (value != 0)
 		{
-			tmp[i++] = digits[ (size_t) value % base ];
-			value = (size_t) value / base;
+			tmp[i++] = digits[ value % base ];
+			value = value / base;
 		}
 	}
 	else

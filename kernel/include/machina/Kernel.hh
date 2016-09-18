@@ -14,12 +14,30 @@
  *    limitations under the License.
  */
 
-#include <mc/memory.h>
+#ifndef MACHINA_KERNEL_HH
+#define MACHINA_KERNEL_HH
 
 
-void *ZeroMemory(
-	void *output,
-	size_t size )
+#include <sys/types.h>
+#include <machina/VMM.hh>
+
+
+namespace machina {
+
+
+class Kernel
 {
-	return FillMemory(output, 0, size);
-}
+	public:
+		Kernel(
+			PageTable pageTable );
+
+		~Kernel();
+};
+
+
+void KernelPanic();
+
+
+} // machina
+
+#endif // MACHINA_KERNEL_HH

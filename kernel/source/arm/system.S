@@ -1,5 +1,7 @@
 #include <sys/system.h>
 #include <sys/soc.h>
+#include <sys/arm.h>
+
 
 	.macro changeToSVC
 #if (RPIGEN > 1)
@@ -35,22 +37,50 @@
 	.global	system_entryPoint
 system_entryPoint:
 	changeToSVC
+/*
+	// tell to MMU the location of our L1 table
+	ldr         r0, =kernelL1
+	mcr         p15, 0, r0, c2, c0, 0
 
-	// enters IRQ mode and set it stack base [B1-1140]
-	cps #CPU_IRQ_MODE
-	mov sp, #SYS_IRQ_STACK_END
+	// fill the L1 table to create an identity map (ignoring the
+	// amount of available memory)
+	mov         r1, #4096
+	mov         r2, #0x02     //  section entry
+1:	str         r2, [r0]
+	add         r0, r0, #4
+	add         r2, #0x00100000
+	subs        r1, #1
+	bne         1b
 
-	// enters Abort mode and set it stack base [B1-1140]
-	cps #CPU_ABORT_MODE
-	mov sp, #SYS_ABORT_STACK_END
+	// disable permissions check
+	mov         r1, #0x3
+	mcr         p15, 0, r1, c3, c0, 0
 
-	// enters Undefined mode and set it stack base [B1-1140]
-	cps #CPU_UNDEF_MODE
-	mov sp, #SYS_ABORT_STACK_END
+	// enable MMU
+	mrc         p15, 0, r0, c1, c0, 0
+	orr         r0, r0, #0x1
+	mcr         p15, 0, r0, c1, c0, 0
+*/
+	// Note: From this point we have the MMU enabled with an
+	//       identity mapping (which means that physical address ==
+	//       virtual address). The virtual memory mapping will be
+	//       changed later by the MMU class.
 
-	// enters System mode and set it stack base [B1-1139]
-	cps #CPU_SYSTEM_MODE
-	mov sp, #SYS_KERNEL_STACK_END
+	// enters IRQ mode and set its stack base [B1-1140]
+	cps         #CPU_IRQ_MODE
+	mov         sp, #SYS_IRQ_STACK_END
+
+	// enters Abort mode and set its stack base [B1-1140]
+	cps         #CPU_ABORT_MODE
+	mov         sp, #SYS_ABORT_STACK_END
+
+	// enters Undefined mode and set its stack base [B1-1140]
+	cps         #CPU_UNDEF_MODE
+	mov         sp, #SYS_ABORT_STACK_END
+
+	// enters System mode and set its stack base [B1-1139]
+	cps         #CPU_SYSTEM_MODE
+	mov         sp, #SYS_KERNEL_STACK_END
 
 	b system_initialize
 

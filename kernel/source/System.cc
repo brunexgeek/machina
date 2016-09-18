@@ -5,8 +5,9 @@
 #include <sys/types.h>
 #include <sys/sync.h>
 #include <sys/Timer.hh>
-#include <sys/PhysicalMemory.hh>
-#include <sys/Memory.hh>
+#include <machina/Heap.hh>
+#include <machina/PMM.hh>
+#include <machina/VMM.hh>
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
 #include <sys/Mailbox.hh>
@@ -132,20 +133,30 @@ static void system_reboot(void)
 }
 
 
-static void system_initializeVFP (void)
+static void system_initializeVFP()
 {
-	// Coprocessor Access Control Register
-	unsigned cacr;
-	asm volatile ("mrc p15, 0, %0, c1, c0, 2" : "=r" (cacr));
+	size_t cacr;
+
+	asm volatile (
+		"mrc p15, 0, %0, c1, c0, 2"
+		: "=r" (cacr) );
+
 	cacr |= 3 << 20;	// cp10 (single precision)
 	cacr |= 3 << 22;	// cp11 (double precision)
-	asm volatile ("mcr p15, 0, %0, c1, c0, 2" : : "r" (cacr));
+
+	asm volatile (
+		"mcr p15, 0, %0, c1, c0, 2"
+		:: "r" (cacr) );
+
 	sync_instSyncBarrier();
 
-#define VFP_FPEXC_EN	(1 << 30)
-	asm volatile ("fmxr fpexc, %0" : : "r" (VFP_FPEXC_EN));
+	asm volatile (
+		"fmxr fpexc, %0"
+		:: "r" (1 << 30) );
 
-	asm volatile ("fmxr fpscr, %0" : : "r" (0));
+	asm volatile (
+		"fmxr fpscr, %0"
+		:: "r" (0) );
 }
 
 
@@ -168,19 +179,25 @@ extern "C" void system_initialize()
 	// initializes the VFP
 	system_initializeVFP();
 
-	// we don't have a library loader to clear the BBS area,
-	// so we need to do that manually
+	// clear the BBS area
 	for (uint8_t *p = &__begin_bss; p < &__end_bss; ++p) *p = 0;
-
-	// Note: The next loop will initialize our physical memory manager. It's
-	//       crucial that no dynamic memory allocation is attempted before
-	//       that point. The the 'new' and 'delete' C++ operators use the
-	//       physical memory manager.
 
 	// we also need to call the C/C++ static construtors manually
 	void (**p) (void) = 0;
 	for (p = &__begin_init_array; p < &__end_init_array; ++p) (**p) ();
 
+	// Note: The next calls will initialize our memory managers. It's
+	//       crucial that no dynamic memory allocation is attempted before
+	//       that point. This includes using 'new' and 'delete' C++ operators.
+Display::getInstance().drawSomething(0, 0, 0xffff);
+	// initializes the physical memory manager
+	PMM::getInstance().initialize();
+Display::getInstance().drawSomething(0, 10, 0x0ff);
+	// initializes the MMU
+	//VMM::getInstance().initialize();
+	// initializes the dynamic memory manager
+	Heap::getInstance().initialize();
+Display::getInstance().drawSomething(0, 20, 0xf0ff);
 	switch ( kernel_main () )
 	{
 		case EREBOOT:
@@ -222,12 +239,15 @@ int kernel_main()
 		display.getHeight(),
 		display.getDepth(),
 		*font);
-	PhysicalMemory::getInstance().print(*ts);
+	PMM::getInstance().print(*ts);
+	Heap::getInstance().print(*ts);
 
 	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
 		display.getBuffer(), display.getBufferSize() );
 
 	ts->colorTest();
+
+	//VMM::printL1(*ts);
 	ts->refresh();
 
 	display.draw(*ts);

@@ -14,12 +14,43 @@
  *    limitations under the License.
  */
 
-#include <mc/memory.h>
+#ifndef MACHINA_HEAP_HH
+#define MACHINA_HEAP_HH
 
 
-void *ZeroMemory(
-	void *output,
-	size_t size )
+#include <sys/types.h>
+#include <sys/Screen.hh>
+
+
+namespace machina {
+
+
+class Heap
 {
-	return FillMemory(output, 0, size);
-}
+	public:
+		~Heap();
+
+		static Heap &getInstance();
+
+		void *allocate(
+			size_t size );
+
+		void free(
+			void * address );
+
+		void print(
+			TextScreen &screen );
+
+		void initialize();
+
+	private:
+		static Heap instance;
+
+		Heap();
+};
+
+
+} //machina
+
+
+#endif // MACHINA_HEAP_HH

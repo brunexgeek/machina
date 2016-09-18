@@ -14,12 +14,18 @@
  *    limitations under the License.
  */
 
-#include <mc/memory.h>
+#include <machina/Kernel.hh>
+#include <sys/Display.hh>
 
 
-void *ZeroMemory(
-	void *output,
-	size_t size )
+namespace machina {
+
+void KernelPanic()
 {
-	return FillMemory(output, 0, size);
+	Display::getInstance().drawSomething(0, 0, 0xf800);
+	Display::getInstance().drawSomething(0, 1, 0xf800);
+	Display::getInstance().drawSomething(0, 2, 0xf800);
+	asm volatile("wfi");
 }
+
+} // machina

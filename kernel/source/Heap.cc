@@ -1,5 +1,22 @@
-#include <sys/Memory.hh>
-#include <sys/PhysicalMemory.hh>
+/*
+ *    Copyright 2016 Bruno Ribeiro
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+#include <machina/Heap.hh>
+#include <machina/PMM.hh>
+#include <machina/Kernel.hh>
 #include <sys/system.h>
 #ifndef __arm__
 #include <cstdlib>
@@ -10,13 +27,13 @@
 
 #define BLOCK_HEADER_SIZE    ( sizeof(BlockInformation) - sizeof(void*) )
 
-#define MEMORY_KB(x)         ( (x) * 1024 )
-#define MEMORY_MB(x)         ( (x) * 1024 * 1024 )
+#define Heap_KB(x)         ( (x) * 1024 )
+#define Heap_MB(x)         ( (x) * 1024 * 1024 )
 
 /*
- * @brief Maximum amount of memory available for dynamic allocation.
+ * @brief Maximum amount of Heap available for dynamic allocation.
  */
-#define MEMORY_SIZE          (SYS_KERNEL_HEAP_SIZE)
+#define Heap_SIZE          (SYS_KERNEL_HEAP_SIZE)
 
 /**
  * @brief Size of the invalid bucket.
@@ -65,7 +82,7 @@ struct BucketInformation
  * so we have more granularity in the smallest buckets. Granularity
  * means less waste of space (to some extent).
  */
-static BucketInformation memoryBuckets[] =
+static BucketInformation HeapBuckets[] =
 {
 	{ 32            , 0, 0, nullptr }, //  32 bytes
 	{ 64            , 0, 0, nullptr }, //  64 bytes
@@ -73,77 +90,77 @@ static BucketInformation memoryBuckets[] =
 	{ 128           , 0, 0, nullptr }, // 128 bytes
 	{ 256           , 0, 0, nullptr }, // 256 bytes
 	{ 512           , 0, 0, nullptr }, // 512 bytes
-	{ MEMORY_KB(1)  , 0, 0, nullptr }, //   1 KiB
-	{ MEMORY_KB(4)  , 0, 0, nullptr }, //   4 KiB
-	{ MEMORY_KB(16) , 0, 0, nullptr }, //  16 KiB
-	{ MEMORY_KB(64) , 0, 0, nullptr }, //  64 KiB
-	{ MEMORY_KB(128), 0, 0, nullptr }, // 128 KiB
-	{ MEMORY_KB(256), 0, 0, nullptr }, // 256 KiB
-	{ MEMORY_KB(512), 0, 0, nullptr }, // 512 KiB
-	{ MEMORY_MB(1)  , 0, 0, nullptr }, //   1 MiB
-	{ MEMORY_MB(2)  , 0, 0, nullptr }, //   2 MiB
-	{ MEMORY_MB(4)  , 0, 0, nullptr }, //   4 MiB
-	{ MEMORY_MB(16) , 0, 0, nullptr }, //  16 MiB
-	{ MEMORY_MB(32) , 0, 0, nullptr }, //  32 MiB
-	{ MEMORY_MB(64) , 0, 0, nullptr }, //  64 MiB
+	{ Heap_KB(1)  , 0, 0, nullptr }, //   1 KiB
+	{ Heap_KB(4)  , 0, 0, nullptr }, //   4 KiB
+	{ Heap_KB(16) , 0, 0, nullptr }, //  16 KiB
+	{ Heap_KB(64) , 0, 0, nullptr }, //  64 KiB
+	{ Heap_KB(128), 0, 0, nullptr }, // 128 KiB
+	{ Heap_KB(256), 0, 0, nullptr }, // 256 KiB
+	{ Heap_KB(512), 0, 0, nullptr }, // 512 KiB
+	{ Heap_MB(1)  , 0, 0, nullptr }, //   1 MiB
+	{ Heap_MB(2)  , 0, 0, nullptr }, //   2 MiB
+	{ Heap_MB(4)  , 0, 0, nullptr }, //   4 MiB
+	{ Heap_MB(16) , 0, 0, nullptr }, //  16 MiB
+	{ Heap_MB(32) , 0, 0, nullptr }, //  32 MiB
+	{ Heap_MB(64) , 0, 0, nullptr }, //  64 MiB
 	{ INVALID_BUCKET, 0, 0, nullptr }
 };
 
 
 /**
- * @brief Start address of the dynamic memory region.
+ * @brief Start address of the dynamic Heap region.
  */
 static size_t heapStart;
 
 /**
- * @brief Current offset of the dynamic memory region.
+ * @brief Current offset of the dynamic Heap region.
  */
 static size_t heapOffset;
 
 /**
- * @brief End address of the dynamic memory region.
+ * @brief End address of the dynamic Heap region.
  */
 static size_t heapEnd;
 
 
-Memory Memory::instance;
+Heap Heap::instance;
 
 
-Memory::Memory()
+Heap::Heap()
 {
 	// nothing to do
 }
 
 
-Memory::~Memory()
+Heap::~Heap()
 {
 	// nothing to do
 }
 
 
-Memory &Memory::getInstance()
+Heap &Heap::getInstance()
 {
 	return instance;
 }
 
 
-void Memory::initialize()
+void Heap::initialize()
 {
-	PhysicalMemory &phys = PhysicalMemory::getInstance();
-	heapStart = heapOffset = (size_t) phys.allocate(MEMORY_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
-	if (heapStart == 0) return; // TODO: should panic
+	PMM &phys = PMM::getInstance();
+	heapStart = heapOffset = (size_t) phys.allocate(Heap_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
+	if (heapStart == 0) KernelPanic();
 
-	heapEnd = heapOffset + MEMORY_SIZE;
+	heapEnd = heapOffset + Heap_SIZE;
 }
 
 
-void *Memory::allocate(
+void *Heap::allocate(
 	size_t size )
 {
 	if (heapOffset == 0) initialize();
 
 	// find out in which bucket the allocation goes
-	BucketInformation *bucket = memoryBuckets;
+	BucketInformation *bucket = HeapBuckets;
 	for (; size > bucket->size; ++bucket);
 	if (bucket->size == INVALID_BUCKET)
 		return nullptr;
@@ -167,7 +184,7 @@ void *Memory::allocate(
 		// a new block in the bucket
 		block = (BlockInformation *) heapOffset;
 		block->signature = BLOCK_SIGNATURE;
-		block->bucket = (uint8_t) (bucket - memoryBuckets); // bucket index
+		block->bucket = (uint8_t) (bucket - HeapBuckets); // bucket index
 		heapOffset += sizeof(BlockInformation) + bucket->size;
 	}
 
@@ -179,7 +196,7 @@ void *Memory::allocate(
 }
 
 
-void Memory::free(
+void Heap::free(
 	void *address )
 {
 	// we need to be sure that the given address is
@@ -189,24 +206,24 @@ void Memory::free(
 	// check the block information (more validations :)
 	BlockInformation *block = (BlockInformation*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
 	if (block->signature != BLOCK_SIGNATURE ||
-		block->bucket >= sizeof(memoryBuckets) - 1)
+		block->bucket >= sizeof(HeapBuckets) - 1)
 		return;
 
 	// put the block in the free list of the corresponding bucket
-	BucketInformation *bucket = memoryBuckets + block->bucket;
+	BucketInformation *bucket = HeapBuckets + block->bucket;
 	block->content = bucket->entries;
 	bucket->entries = block;
 }
 
 
-void Memory::print(
+void Heap::print(
 	TextScreen &screen )
 {
 	static const char16_t *UNITS[] = { u"B ", u"kB", u"MB" };
 
 	screen.print(u"Size     Count   Peak\n");
 	screen.print(u"-------  ------  --------\n");
-	BucketInformation *bucket = memoryBuckets;
+	BucketInformation *bucket = HeapBuckets;
 	for (; bucket->size != INVALID_BUCKET; ++bucket)
 	{
 		int unit = 0;

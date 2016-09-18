@@ -1,5 +1,5 @@
 #include <sys/Screen.hh>
-#include <sys/PhysicalMemory.hh>
+#include <machina/PMM.hh>
 #include <sys/system.h>
 #include <mc/string.h>
 #include <mc/stdarg.h>
@@ -13,7 +13,7 @@ namespace machina {
 
 Color DISPLAY_PALETTE[] =
 {
-	RGB565_COLOR(0x242728), // black
+	RGB565_COLOR(0x202324), // black
 	RGB565_COLOR(0xe94783), // red
 	RGB565_COLOR(0x92bc18), // green
 	RGB565_COLOR(0xf3a633), // brown
