@@ -276,16 +276,4 @@ void PMM::free(
 }
 
 
-size_t PMM::getMemorySize() const
-{
-	return frameCount;
-}
-
-
-size_t PMM::getFreeMemory() const
-{
-	return freeCount;
-}
-
-
 } // machina

@@ -3,6 +3,7 @@
 
 
 #include <sys/types.h>
+#include <sys/compiler.h>
 #include <sys/Font.hh>
 
 
@@ -84,50 +85,23 @@ class TextScreen
 			const char16_t *format,
 			... );
 
-		uint32_t getColumns () const
-		{
-			return info.columns;
-		}
+		uint32_t getColumns() const INLINE_ALWAYS;
 
-		uint32_t getRows () const
-		{
-			return info.rows;
-		}
+		uint32_t getRows() const INLINE_ALWAYS;
 
-		uint32_t getWidth() const
-		{
-			return info.width;
-		}
+		uint32_t getWidth() const INLINE_ALWAYS;
 
-		uint32_t getHeight() const
-		{
-			return info.height;
-		}
+		uint32_t getHeight() const INLINE_ALWAYS;
 
-		uint32_t getDepth() const
-		{
-			return info.depth;
-		}
+		uint32_t getDepth() const INLINE_ALWAYS;
 
-		uint32_t getPitch() const
-		{
-			return info.pitch;
-		}
+		uint32_t getPitch() const INLINE_ALWAYS;
 
-		const Font &getFont() const
-		{
-			return *info.font;
-		}
+		const Font &getFont() const INLINE_ALWAYS;
 
-		size_t getBufferSize() const
-		{
-			return info.bufferSize;
-		}
+		size_t getBufferSize() const INLINE_ALWAYS;
 
-		const Color *getBuffer() const
-		{
-			return info.buffer;
-		}
+		const Color *getBuffer() const INLINE_ALWAYS;
 
 		void refresh();
 
@@ -138,13 +112,74 @@ class TextScreen
 			Color foreground,
 			Color background );
 
-		void colorTest();
+		void draw(
+			uint32_t posX,
+			uint32_t posY,
+			Color background );
+
+		void colorTest() INLINE_NEVER;
 
 	private:
 		ScreenInfo info;
 
 		TextScreen();
 };
+
+
+
+inline uint32_t TextScreen::getColumns() const
+{
+	return info.columns;
+}
+
+
+inline uint32_t TextScreen::getRows() const
+{
+	return info.rows;
+}
+
+
+inline uint32_t TextScreen::getWidth() const
+{
+	return info.width;
+}
+
+
+inline uint32_t TextScreen::getHeight() const
+{
+	return info.height;
+}
+
+
+inline uint32_t TextScreen::getDepth() const
+{
+	return info.depth;
+}
+
+
+inline uint32_t TextScreen::getPitch() const
+{
+	return info.pitch;
+}
+
+
+inline const Font &TextScreen::getFont() const
+{
+	return *info.font;
+}
+
+
+inline size_t TextScreen::getBufferSize() const
+{
+	return info.bufferSize;
+}
+
+
+inline const Color *TextScreen::getBuffer() const
+{
+	return info.buffer;
+}
+
 
 
 } // machina

@@ -345,7 +345,7 @@ int FormatStringEx(
 						info.width = 2 * sizeof(void *);
 						info.flags |= FLAG_ZERO;
 					}
-					current = numberToString(current, (long) va_arg(args, void *), 16, info.width, info.precision, info.flags);
+					current = numberToString(current, (size_t) va_arg(args, void *), 16, info.width, info.precision, info.flags);
 					continue;
 
 				case 'o':
@@ -379,7 +379,7 @@ int FormatStringEx(
 					continue;
 			}
 
-			unsigned int value;
+			size_t value;
 			if (info.flags & FLAG_SIGNAL)
 				value = va_arg(args, ssize_t);
 			else

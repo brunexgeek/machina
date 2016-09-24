@@ -19,6 +19,7 @@
 
 
 #include <sys/types.h>
+#include <sys/compiler.h>
 
 
 #define FRAME_TO_ADDRESS(frame) \
@@ -27,6 +28,7 @@
 
 #define ADDRESS_TOFRAME(address) \
 	( (size_t) (address) / SYS_PAGE_SIZE )
+
 
 namespace machina {
 
@@ -96,9 +98,9 @@ class PMM
 		int printMap(
 			TextScreen &screen );
 
-		inline size_t getMemorySize() const;
+		size_t getMemorySize() const INLINE_ALWAYS;
 
-		inline size_t getFreeMemory() const;
+		size_t getFreeMemory() const INLINE_ALWAYS;
 
 	private:
 		/**
@@ -125,6 +127,19 @@ class PMM
 		*/
 		uint8_t *frameTable;
 };
+
+
+
+inline size_t PMM::getMemorySize() const
+{
+	return frameCount;
+}
+
+
+inline size_t PMM::getFreeMemory() const
+{
+	return freeCount;
+}
 
 
 }

@@ -20,6 +20,7 @@
 
 #include <mc/stdarg.h>
 #include <sys/types.h>
+#include <sys/compiler.h>
 
 
 #ifdef __cplusplus

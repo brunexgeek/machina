@@ -13,7 +13,7 @@ namespace machina {
 
 Color DISPLAY_PALETTE[] =
 {
-	RGB565_COLOR(0x202324), // black
+	RGB565_COLOR(0x212429), // black
 	RGB565_COLOR(0xe94783), // red
 	RGB565_COLOR(0x92bc18), // green
 	RGB565_COLOR(0xf3a633), // brown
@@ -227,7 +227,7 @@ void TextScreen::print(
 {
 	va_list args;
 	char16_t buffer[128];
-	int n;
+	int n = 0;
 
 	va_start(args, format);
 	n = FormatStringEx(buffer, sizeof(buffer), format, args);
@@ -273,13 +273,12 @@ void TextScreen::refresh()
 			register size_t index = start % info.textSize;
 			++start;
 
-			// the screen is already cleaned, so we could just ignore
-			// whitespace characters
-			//if (info.text[index] == ' ') continue;
-
-			draw(info.text[index], x, y,
-				DISPLAY_PALETTE[ info.attribute[index] & 0x1F ],
-				DISPLAY_PALETTE[ info.attribute[index] >> 5 ] );
+			if (info.text[index] == ' ')
+				draw(x, y, DISPLAY_PALETTE[ info.attribute[index] >> 5 ] );
+			else
+				draw(info.text[index], x, y,
+					DISPLAY_PALETTE[ info.attribute[index] & 0x1F ],
+					DISPLAY_PALETTE[ info.attribute[index] >> 5 ] );
 		}
 	}
 
@@ -314,7 +313,27 @@ void TextScreen::draw(
 }
 
 
-void TextScreen::colorTest()
+void TextScreen::draw(
+	uint32_t posX,
+	uint32_t posY,
+	Color background )
+{
+	uint32_t glyphW = info.font->getGlyphWidth();
+	uint32_t glyphH = info.font->getGlyphHeight();
+
+	for (register uint32_t y = 0; y < glyphH; ++y)
+	{
+		uint32_t offset = (y + posY) * info.width + posX;
+
+		for (register uint32_t x = 0; x < glyphW; ++x)
+		{
+			info.buffer[ offset + x ] = background;
+		}
+	}
+}
+
+
+OPTIMIZE_0 void TextScreen::colorTest()
 {
 	static const char16_t HEADER[] = u"\e[0m         40m   41m   42m   43m   44m   45m   46m   47m\n";
 

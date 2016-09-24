@@ -189,15 +189,14 @@ extern "C" void system_initialize()
 	// Note: The next calls will initialize our memory managers. It's
 	//       crucial that no dynamic memory allocation is attempted before
 	//       that point. This includes using 'new' and 'delete' C++ operators.
-Display::getInstance().drawSomething(0, 0, 0xffff);
+
 	// initializes the physical memory manager
 	PMM::getInstance().initialize();
-Display::getInstance().drawSomething(0, 10, 0x0ff);
 	// initializes the MMU
 	//VMM::getInstance().initialize();
 	// initializes the dynamic memory manager
 	Heap::getInstance().initialize();
-Display::getInstance().drawSomething(0, 20, 0xf0ff);
+Display::getInstance().drawSomething(0, 100, 0xffff);
 	switch ( kernel_main () )
 	{
 		case EREBOOT:
@@ -233,12 +232,13 @@ int kernel_main()
 	Display &display = Display::getInstance();
 
 	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);
-
+Display::getInstance().drawSomething(0, 110, 0xffff);
 	TextScreen *ts = TextScreen::create(
 		display.getWidth(),
 		display.getHeight(),
 		display.getDepth(),
 		*font);
+Display::getInstance().drawSomething(0, 120, 0xffff);
 	PMM::getInstance().print(*ts);
 	Heap::getInstance().print(*ts);
 
@@ -246,10 +246,10 @@ int kernel_main()
 		display.getBuffer(), display.getBufferSize() );
 
 	ts->colorTest();
-
+Display::getInstance().drawSomething(0, 130, 0xffff);
 	//VMM::printL1(*ts);
 	ts->refresh();
-
+Display::getInstance().drawSomething(0, 130, 0xffff);
 	display.draw(*ts);
 
 	system_disableCore();
