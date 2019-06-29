@@ -92,11 +92,9 @@ class PMM
 			size_t count,
 			bool cleanup = false );
 
-		void print(
-			TextScreen &screen );
+		void print();
 
-		int printMap(
-			TextScreen &screen );
+		int printMap();
 
 		size_t getMemorySize() const INLINE_ALWAYS;
 

@@ -11,6 +11,7 @@
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
 #include <sys/Mailbox.hh>
+#include <sys/uart.hh>
 
 
 /*
@@ -159,21 +160,20 @@ static void system_initializeVFP()
 		:: "r" (0) );
 }
 
-
 extern "C" void system_initialize()
 {
+	uart_init();
+
 	for (size_t i = 0; i < SYS_CPU_CORES; ++i)
 		DISABLED_CORES[i] = false;
 
-#if (RPIGEN != 1)
-#ifdef ENABLE_MULTI_CORE
+#if (RPIGEN != 1) && defined(ENABLE_MULTI_CORE)
 	// put all other CPU cores to sleep
 	for (unsigned i = 1; i < SYS_CPU_CORES; i++)
 	{
 		// https://www.raspberrypi.org/forums/viewtopic.php?f=72&t=98904&start=25#p700528
 		PUT32(0x4000008C + 0x10 * i, (uint32_t) &system_disableCore);
 	}
-#endif
 #endif
 
 	// initializes the VFP
@@ -196,7 +196,9 @@ extern "C" void system_initialize()
 	//VMM::getInstance().initialize();
 	// initializes the dynamic memory manager
 	Heap::getInstance().initialize();
-Display::getInstance().drawSomething(0, 100, 0xffff);
+
+	Display::getInstance().drawSomething(0, 100, 0xffff);
+
 	switch ( kernel_main () )
 	{
 		case EREBOOT:
@@ -239,8 +241,8 @@ Display::getInstance().drawSomething(0, 110, 0xffff);
 		display.getDepth(),
 		*font);
 Display::getInstance().drawSomething(0, 120, 0xffff);
-	PMM::getInstance().print(*ts);
-	Heap::getInstance().print(*ts);
+	PMM::getInstance().print();
+	Heap::getInstance().print();
 
 	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
 		display.getBuffer(), display.getBufferSize() );

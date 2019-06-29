@@ -17,4 +17,5 @@ set_target_properties(kernel PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 add_custom_target(kernel.img
-    ${CMAKE_OBJCOPY} ${CMAKE_BINARY_DIR}/kernel.elf -O binary ${CMAKE_BINARY_DIR}/kernel.img)
+    ${CMAKE_OBJCOPY} ${CMAKE_BINARY_DIR}/kernel.elf -O binary ${CMAKE_BINARY_DIR}/kernel.img
+    DEPENDS kernel "./kernel.ld")

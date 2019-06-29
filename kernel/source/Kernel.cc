@@ -25,7 +25,7 @@ void KernelPanic()
 	Display::getInstance().drawSomething(0, 0, 0xf800);
 	Display::getInstance().drawSomething(0, 1, 0xf800);
 	Display::getInstance().drawSomething(0, 2, 0xf800);
-	asm volatile("wfi");
+	//asm volatile("wfi");
 }
 
 } // machina

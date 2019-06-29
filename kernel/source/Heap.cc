@@ -18,6 +18,7 @@
 #include <machina/PMM.hh>
 #include <machina/Kernel.hh>
 #include <sys/system.h>
+#include <sys/uart.hh>
 #ifndef __arm__
 #include <cstdlib>
 #endif
@@ -216,13 +217,12 @@ void Heap::free(
 }
 
 
-void Heap::print(
-	TextScreen &screen )
+void Heap::print()
 {
 	static const char16_t *UNITS[] = { u"B ", u"kB", u"MB" };
 
-	screen.print(u"Size     Count   Peak\n");
-	screen.print(u"-------  ------  --------\n");
+	uart_print(u"Size     Count   Peak\n");
+	uart_print(u"-------  ------  --------\n");
 	BucketInformation *bucket = HeapBuckets;
 	for (; bucket->size != INVALID_BUCKET; ++bucket)
 	{
@@ -232,7 +232,7 @@ void Heap::print(
 		for (; size >= 1024; ++unit, size /= 1024);
 
 		if (bucket->count == 0 && bucket->peak == 0) continue;
-		screen.print(u"%4d %s  %-6d  %-8d\n",
+		uart_print(u"%4d %s  %-6d  %-8d\n",
 			size,
 			UNITS[unit],
 			bucket->count,

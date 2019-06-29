@@ -36,6 +36,10 @@
 
 	.global	system_entryPoint
 system_entryPoint:
+
+	// ensure the kernel is loaded at 0x8000
+
+
 	changeToSVC
 /*
 	// tell to MMU the location of our L1 table

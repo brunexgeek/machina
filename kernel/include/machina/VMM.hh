@@ -82,7 +82,7 @@ class VMM
 
 		void initialize();
 
-		static void printL1( TextScreen &screen );
+		static void printL1();
 
 	private:
 		void setDomainPerm(

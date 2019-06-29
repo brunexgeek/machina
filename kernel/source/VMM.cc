@@ -2,8 +2,8 @@
 #include <sys/system.h>
 #include <sys/soc.h>
 #include <machina/PMM.hh>
-#include <sys/Screen.hh>
 #include <sys/Mailbox.hh>
+#include <sys/uart.hh>
 
 
 #define COARSE_BASE_ADDRESS(x) \
@@ -156,8 +156,7 @@ void VMM::setDomainPerm(
 }
 
 
-void VMM::printL1(
-	TextScreen &screen )
+void VMM::printL1()
 {
 	size_t domain = 0;
 	size_t perm = VMM_DP_CLIENT;
@@ -167,10 +166,10 @@ void VMM::printL1(
 	asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (value) :: "memory");
 	value &= ~(0x03 << shift);
 	value |= perm << shift;
-	screen.print(u"%08x\n", value);
+	uart_print(u"%08x\n", value);
 
 	for (size_t i = 0; i < 4; ++i)
-		screen.print(u"Entry %d = %08x\n", i, *((uint32_t*)kernelL1 + i));
+		uart_print(u"Entry %d = %08x\n", i, *((uint32_t*)kernelL1 + i));
 }
 
 

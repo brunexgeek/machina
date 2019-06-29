@@ -26,7 +26,7 @@
 /**
  * @brief Copy @c r2 bytes from @c r1 to @c r0.
  *
- * The input address, output address and must be word aligned. The size must be
+ * The input address and output address must be word aligned. The size must be
  * 16-bytes aligned.
  *
  * This function follows the ABI and can be called from C code.

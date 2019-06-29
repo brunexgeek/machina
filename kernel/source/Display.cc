@@ -6,6 +6,7 @@
 #include <mc/stdlib.h>
 #include <mc/string.h>
 #include <mc/memory.h>
+#include <sys/uart.hh>
 #ifndef __arm__
 #include <iostream>
 #include <cstdlib>
@@ -46,8 +47,8 @@ Display::Display (
 	uint32_t depth ) : width(width), height(height), depth(DISPLAY_DEPTH),
 		pitch(width * (depth / 8))
 {
+	uart_puts("Initializing display... ");
 
-#if __arm__
 	req.width = width;
 	req.height = height;
 	req.virtualWidth = width;
@@ -64,10 +65,8 @@ Display::Display (
 	buffer = (Color*) ( req.bufferPtr & 0x3FFFFFFF );
 	bufferSize = req.bufferSize;
 	pitch = req.pitch;
-#else
-	bufferSize = width * height * (DISPLAY_DEPTH / 8);
-	buffer = (Color*) calloc(1, info.bufferSize);
-#endif
+
+	uart_print(u"%s %dx%d at 0x%08x\n", getName(), req.width, req.height, buffer);
 }
 
 

@@ -2,7 +2,7 @@
 
 # Machina
 
-[Machina](https://brunexgeek.github.io/machina/) is a minimalist kernel and operating system for Raspberry Pi. The project is just beginning, but intents to provide a simple and extensible operating system able to run in every Raspberry Pi board.
+[Machina](https://brunexgeek.github.io/machina/) (pronounced _MAH-kih-nah_) is a minimalist kernel and operating system for Raspberry Pi. The project is just beginning, but intents to provide a simple and extensible operating system able to run in every Raspberry Pi board.
 
 Current features:
 

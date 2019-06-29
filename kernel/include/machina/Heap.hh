@@ -19,7 +19,6 @@
 
 
 #include <sys/types.h>
-#include <sys/Screen.hh>
 
 
 namespace machina {
@@ -38,8 +37,7 @@ class Heap
 		void free(
 			void * address );
 
-		void print(
-			TextScreen &screen );
+		void print();
 
 		void initialize();
 

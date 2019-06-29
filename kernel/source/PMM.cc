@@ -16,7 +16,7 @@
 
 #include <machina/PMM.hh>
 #include <sys/Mailbox.hh>
-#include <sys/Screen.hh>
+#include <sys/uart.hh>
 #include <sys/soc.h>
 #include <sys/system.h>
 #include <sys/errors.h>
@@ -143,20 +143,19 @@ PMM &PMM::getInstance()
 }
 
 
-void PMM::print(
-	TextScreen &screen )
+void PMM::print()
 {
 	size_t type = frameTable[0];
 	size_t start = 0;
 
- 	screen.print(u"Start       End         Frames      Description\n");
-	screen.print(u"----------  ----------  ----------  ---------------------------------------\n");
+ 	uart_print(u"Start       End         Frames      Description\n");
+	uart_print(u"----------  ----------  ----------  ---------------------------------------\n");
 
 	for (size_t i = 0; i <= SYS_BITMAP_SIZE; ++i)
 	{
 		if (i == SYS_BITMAP_SIZE || frameTable[i] != type)
 		{
-			screen.print(u"0x%08x  0x%08x  %-10d  %s\n",
+			uart_print(u"0x%08x  0x%08x  %-10d  %s\n",
 				(uint32_t) (start * SYS_PAGE_SIZE),
 				(uint32_t) ( (i - 1) * SYS_PAGE_SIZE + (SYS_PAGE_SIZE - 1) ), // to avoid overflow
 				(uint32_t) (i - start),
