@@ -12,6 +12,7 @@
 #include <sys/Screen.hh>
 #include <sys/Mailbox.hh>
 #include <sys/uart.hh>
+#include <mc/memory.h>
 
 
 /*
@@ -159,6 +160,7 @@ static void system_initializeVFP()
 		"fmxr fpscr, %0"
 		:: "r" (0) );
 }
+
 
 extern "C" void system_initialize()
 {

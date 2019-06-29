@@ -2,23 +2,6 @@
 #define MACHINA_SYSTEM_H
 
 
-/*
- * Raspberry Pi 2/3 multi-core
- *
- *
- * Start       Pages   Description
- * ----------  ------  ---------------------------------------------
- * 0x00000000  8       Reserved
- * 0x00008000  256     Kernel
- * 0x00108000  128     SVC stack (kernel stack)
- * 0x00128000  8       Abort stack
- * 0x00140000  8       IRQ stack
- * 0x00198000  40      Unused
- * 0x001C8000  64      Physical memory table
- * 0x00200000  ?       Heap
- */
-
-
 /**
  * @brief Size for virtual memory pages.
  */
@@ -27,7 +10,7 @@
 /**
  * @brief Memory offset of the kernel start.
  */
-#define SYS_KERNEL_START          (0x8000)
+#define SYS_KERNEL_START          (0x10000)
 
 /**
  * @brief Maximum size for kernel binary.

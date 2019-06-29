@@ -5,10 +5,19 @@
 SECTIONS
 {
 	/*
-	 * The third stage bootloader (start.elf) loads the kernel image
+	 * The RPI third stage bootloader (start.elf) loads the kernel image
 	 * at 0x8000 and runs it.
 	 */
-	.text 0x8000:
+	.jumper 0x8000:
+	{
+		*(.jumperPoint)
+	}
+
+	/*
+	 * We use 0x10000 as entry point address because QEMU is unable to use
+	 * 0x8000. The real hardware will jump to here.
+	 */
+	.text 0x10000:
 	{
 		/*
 		 * Kernel entry point function (written in assembly) which

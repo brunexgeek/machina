@@ -31,14 +31,20 @@
 	.endm
 
 
+/*
+ * Used by real hardware to jump to the kernel entrypoint
+ */
+	.section jumperPoint
+	.global rpi_entryPoint
+rpi_entryPoint:
+	b 0x10000
+
+
+
 	// we create this special section to be used in the linker script
 	.section .entryPoint
-
 	.global	system_entryPoint
 system_entryPoint:
-
-	// ensure the kernel is loaded at 0x8000
-
 
 	changeToSVC
 /*
@@ -87,6 +93,7 @@ system_entryPoint:
 	mov         sp, #SYS_KERNEL_STACK_END
 
 	b system_initialize
+
 
 
 #if (RPIGEN > 1 && defined(ENABLE_MULTI_CORE))
