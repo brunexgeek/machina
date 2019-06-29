@@ -62,8 +62,10 @@ int kernel_main();
  */
 static void system_disableCore()
 {
+
 	while (true)
 	{
+		uart_puts(u"Disabling CPU core");
 		#if (RPIGEN == 1)
 
 		size_t value = 0;
@@ -199,7 +201,7 @@ extern "C" void system_initialize()
 	// initializes the dynamic memory manager
 	Heap::getInstance().initialize();
 
-	Display::getInstance().drawSomething(0, 100, 0xffff);
+	uart_puts(u"Starting kernel main...");
 
 	switch ( kernel_main () )
 	{
@@ -236,13 +238,13 @@ int kernel_main()
 	Display &display = Display::getInstance();
 
 	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);
-Display::getInstance().drawSomething(0, 110, 0xffff);
+
 	TextScreen *ts = TextScreen::create(
 		display.getWidth(),
 		display.getHeight(),
 		display.getDepth(),
 		*font);
-Display::getInstance().drawSomething(0, 120, 0xffff);
+
 	PMM::getInstance().print();
 	Heap::getInstance().print();
 
@@ -250,10 +252,8 @@ Display::getInstance().drawSomething(0, 120, 0xffff);
 		display.getBuffer(), display.getBufferSize() );
 
 	ts->colorTest();
-Display::getInstance().drawSomething(0, 130, 0xffff);
 	//VMM::printL1(*ts);
 	ts->refresh();
-Display::getInstance().drawSomething(0, 130, 0xffff);
 	display.draw(*ts);
 
 	system_disableCore();

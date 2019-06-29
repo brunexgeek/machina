@@ -16,15 +16,14 @@
 
 #include <machina/Kernel.hh>
 #include <sys/Display.hh>
+#include <sys/uart.hh>
 
 
 namespace machina {
 
 void KernelPanic()
 {
-	Display::getInstance().drawSomething(0, 0, 0xf800);
-	Display::getInstance().drawSomething(0, 1, 0xf800);
-	Display::getInstance().drawSomething(0, 2, 0xf800);
+	uart_puts(u"PANIC");
 	//asm volatile("wfi");
 }
 

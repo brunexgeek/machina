@@ -74,6 +74,7 @@ PMM::PMM()
 
 void PMM::initialize()
 {
+	uart_puts(u"Initializing physical memory manager...\n");
 #ifdef __arm__
 	// probe the ARM memory map
 	MemoryTag armSplit;
@@ -148,8 +149,8 @@ void PMM::print()
 	size_t type = frameTable[0];
 	size_t start = 0;
 
- 	uart_print(u"Start       End         Frames      Description\n");
-	uart_print(u"----------  ----------  ----------  ---------------------------------------\n");
+ 	uart_puts(u"Start       End         Frames      Description\n");
+	uart_puts(u"----------  ----------  ----------  ---------------------------------------\n");
 
 	for (size_t i = 0; i <= SYS_BITMAP_SIZE; ++i)
 	{
