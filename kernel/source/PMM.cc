@@ -15,7 +15,7 @@
  */
 
 #include <machina/PMM.hh>
-#include <sys/Mailbox.hh>
+#include <sys/mailbox.hh>
 #include <sys/uart.hh>
 #include <sys/soc.h>
 #include <sys/system.h>
@@ -78,10 +78,10 @@ void PMM::initialize()
 #ifdef __arm__
 	// probe the ARM memory map
 	MemoryTag armSplit;
-	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit));
+	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit));
 	// probe the GPU memory map
 	MemoryTag gpuSplit;
-	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit));
+	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit));
 #else
 	MemoryTag armSplit;
 	armSplit.base = 0;

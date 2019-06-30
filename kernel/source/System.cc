@@ -10,7 +10,7 @@
 #include <machina/VMM.hh>
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
-#include <sys/Mailbox.hh>
+#include <sys/mailbox.hh>
 #include <sys/uart.hh>
 #include <mc/memory.h>
 
@@ -167,6 +167,7 @@ static void system_initializeVFP()
 extern "C" void system_initialize()
 {
 	uart_init();
+	uart_puts(u"Initializing kernel...\nKernel arguments: ");
 
 	for (size_t i = 0; i < SYS_CPU_CORES; ++i)
 		DISABLED_CORES[i] = false;

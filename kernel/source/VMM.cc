@@ -2,7 +2,7 @@
 #include <sys/system.h>
 #include <sys/soc.h>
 #include <machina/PMM.hh>
-#include <sys/Mailbox.hh>
+#include <sys/mailbox.hh>
 #include <sys/uart.hh>
 
 
@@ -80,10 +80,10 @@ void VMM::initialize()
 		MEMORY_KB(16) / SYS_PAGE_SIZE, 16, PFT_PTABLE );
 	// probe the GPU memory map
 	MemoryTag gpuSplit;
-	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit));
+	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit));
 	// probe the ARM memory map
 	MemoryTag armSplit;
-	Mailbox::getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit));
+	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit));
 	// compute the region beyond valid memory
 	size_t begin = (gpuSplit.base + gpuSplit.size);
 	if (armSplit.base > gpuSplit.base)

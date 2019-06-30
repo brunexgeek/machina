@@ -30,34 +30,16 @@ struct MemoryTag
 };
 
 
-class Mailbox
-{
-	public:
-		~Mailbox();
+uint32_t mailbox_send(
+	uint32_t channel,
+	uint32_t request );
 
-		static uint32_t send(
-			uint32_t channel,
-			uint32_t request );
-
-		static bool getProperty(
-			uint32_t channel,
-			uint32_t tag,
-			void *data,
-			uint32_t dataSize,
-			uint32_t *expectedSize = nullptr );
-
-	private:
-		Mailbox();
-
-		static void waitAvailable();
-
-		static uint32_t read(
-			uint32_t channel );
-
-		static void write(
-			uint32_t channel,
-			uint32_t request );
-};
+bool mailbox_getProperty(
+	uint32_t channel,
+	uint32_t tag,
+	void *data,
+	uint32_t dataSize,
+	uint32_t *expectedSize = nullptr );
 
 
 } //machina

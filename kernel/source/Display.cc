@@ -1,5 +1,5 @@
 #include <sys/Display.hh>
-#include <sys/Mailbox.hh>
+#include <sys/mailbox.hh>
 #include <sys/Screen.hh>
 #include <sys/sync.h>
 #include <sys/soc.h>
@@ -60,7 +60,7 @@ Display::Display (
 	req.bufferPtr = 0;
 	req.bufferSize = 0;
 	// https://github.com/raspberrypi/firmware/wiki/Mailbox-framebuffer-interface
-	Mailbox::send(MAILBOX_CHANNEL_DISPLAY, GPU_MEMORY_BASE + (uint32_t) &req);
+	mailbox_send(MAILBOX_CHANNEL_DISPLAY, GPU_MEMORY_BASE + (uint32_t) &req);
 
 	buffer = (Color*) ( req.bufferPtr & 0x3FFFFFFF );
 	bufferSize = req.bufferSize;

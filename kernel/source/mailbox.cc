@@ -1,4 +1,4 @@
-#include <sys/Mailbox.hh>
+#include <sys/mailbox.hh>
 #include <sys/Timer.hh>
 #include <sys/sync.h>
 #include <sys/soc.h>
@@ -17,42 +17,7 @@ struct MailboxBuffer
 };
 
 
-
-Mailbox::Mailbox ()
-{
-	// nothing to do
-}
-
-
-Mailbox::~Mailbox ()
-{
-	// nothing to do
-}
-
-
-uint32_t Mailbox::send(
-	uint32_t channel,
-	uint32_t request )
-{
-	uint32_t result;
-
-	sync_dataMemBarrier();
-
-	// acquire global lock
-
-	// write the request and retrieve the response
-	write(channel, request);
-	result = read(channel);
-
-	// release global lock
-
-	sync_dataMemBarrier();
-
-	return result;
-}
-
-
-uint32_t Mailbox::read(
+static uint32_t mailbox_read(
 	uint32_t channel )
 {
 	uint32_t result;
@@ -70,7 +35,7 @@ uint32_t Mailbox::read(
 }
 
 
-void Mailbox::write(
+static void mailbox_write(
 	uint32_t channel,
 	uint32_t request )
 {
@@ -82,6 +47,29 @@ void Mailbox::write(
 }
 
 
+uint32_t mailbox_send(
+	uint32_t channel,
+	uint32_t request )
+{
+	uint32_t result;
+
+	sync_dataMemBarrier();
+
+	// acquire global lock
+
+	// write the request and retrieve the response
+	mailbox_write(channel, request);
+	result = mailbox_read(channel);
+
+	// release global lock
+
+	sync_dataMemBarrier();
+
+	return result;
+}
+
+
+
 /*
  * Returns the value for a mailbox property (only first tag).
  *
@@ -91,7 +79,7 @@ void Mailbox::write(
  * This function retrieves mailbox properties as specified at
  * https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
  */
-bool Mailbox::getProperty(
+bool mailbox_getProperty(
 	uint32_t channel,
 	uint32_t tagId,
 	void *data,
@@ -135,7 +123,7 @@ bool Mailbox::getProperty(
 	*((uint32_t*) (buffer->tags + alignedDataSize)) = 0;
 
 	uint32_t address = GPU_MEMORY_BASE + (uint32_t) buffer;
-	if (send(channel, address) != address)
+	if (mailbox_send(channel, address) != address)
 	{
 		return false;
 	}
