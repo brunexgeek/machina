@@ -1,5 +1,5 @@
 #include <sys/mailbox.hh>
-#include <sys/Timer.hh>
+#include <sys/timer.hh>
 #include <sys/sync.h>
 #include <sys/soc.h>
 #include <sys/sysio.hh>

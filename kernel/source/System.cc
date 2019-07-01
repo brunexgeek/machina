@@ -4,7 +4,7 @@
 #include <sys/soc.h>
 #include <sys/types.h>
 #include <sys/sync.h>
-#include <sys/Timer.hh>
+#include <sys/timer.hh>
 #include <machina/Heap.hh>
 #include <machina/PMM.hh>
 #include <machina/VMM.hh>
