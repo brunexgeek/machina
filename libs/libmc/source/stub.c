@@ -42,6 +42,9 @@ int __aeabi_atexit (
 	void (*destroyer)(void*),
 	void *dsoHandle )
 {
+	(void) object;
+	(void) destroyer;
+	(void) dsoHandle;
 	//return __cxa_atexit(destroyer, object, dsoHandle);
 	return 0;
 }

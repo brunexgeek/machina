@@ -63,8 +63,8 @@ static const char16_t *UPPER_CHARACTERS = u"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
 struct FormatInfo
 {
 	uint32_t flags;
-	int precision;
-	int width;
+	int32_t precision;
+	int32_t width;
 	char16_t specifier;
 };
 

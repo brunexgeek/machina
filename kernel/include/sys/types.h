@@ -19,8 +19,8 @@ typedef __UINT_LEAST16_TYPE__ char16_t;
 
 #define ARM_32 1
 
-typedef __UINT32_TYPE__  size_t;
-typedef __INT32_TYPE__   ssize_t;
+typedef unsigned int  size_t;
+typedef signed int    ssize_t;
 
 #elif (__SIZEOF_POINTER__ == 8)
 

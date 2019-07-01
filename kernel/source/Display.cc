@@ -85,17 +85,6 @@ Display &Display::getInstance()
 }
 
 
-void Display::drawSomething(
-	uint32_t posX,
-	uint32_t posY,
-	Color color )
-{
-	size_t offset = posY * pitch + posX;
-	for (size_t i = 0; i < 20; ++i)
-		buffer[offset + i] = color;
-}
-
-
 void Display::draw(
 	char symbol,
 	uint32_t posX,
@@ -135,7 +124,7 @@ void Display::draw(
 	if (y + (int32_t) screen.getHeight() < 0 || y >= (int32_t) width)
 		return;
 
-	size_t srcOffBeg = ( sizeof(Color) * (x < 0) ? -x : 0 ) +
+	size_t srcOffBeg = sizeof(Color) * ( (x < 0) ? -x : 0 ) +
 		( (y < 0) ? -y : 0 ) * screen.getPitch();
 	size_t srcPitch  = min( screen.getPitch(), pitch ) - sizeof(Color) * ( (x < 0) ? -x : x );
 
