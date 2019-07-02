@@ -35,7 +35,7 @@
 	( frameTable[index] )
 
 #define PFRAME_SET_TAG(index,value) \
-	{ frameTable[index] = value; }
+	do { frameTable[index] = value; } while(false)
 
 
 /**
@@ -193,11 +193,11 @@ size_t pmm_allocate(
 	// find some region with available frames
 	for (size_t i = startIndex; i < frameCount; ++i)
 	{
-		if (PFRAME_GET_TAG(i) != PFT_FREE) continue;
+		if (!IS_FREE_PFT(PFRAME_GET_TAG(i))) continue;
 
 		// check if current region has enough frames
 		size_t j = 0;
-		for (; j < count && PFRAME_GET_TAG(i+j) == PFT_FREE; ++j);
+		for (; j < count && IS_FREE_PFT( PFRAME_GET_TAG(i+j) ); ++j);
 		if (j == count)
 		{
 			// reserve frames with given tag
@@ -238,11 +238,11 @@ size_t pmm_allocate(
 	size_t i = startIndex + (alignment - (startIndex % (alignment + 1)));
 	for (; i < frameCount; i += alignment)
 	{
-		if (PFRAME_GET_TAG(i) != PFT_FREE) continue;
+		if (!IS_FREE_PFT(PFRAME_GET_TAG(i))) continue;
 
 		// check if current region has enough frames
 		size_t j = 0;
-		for (; j < count && PFRAME_GET_TAG(i+j) == PFT_FREE; ++j);
+		for (; j < count && IS_FREE_PFT(PFRAME_GET_TAG(i+j)); ++j);
 		if (j == count)
 		{
 			// reserve frames with given tag
@@ -273,7 +273,7 @@ void pmm_free(
 
 	for (size_t i = index, t = index + count; i < t; ++i)
 	{
-		PFRAME_SET_TAG(i, PFT_FREE);
+		PFRAME_SET_TAG(i, PFT_DIRTY);
 		freeCount++;
 	}
 

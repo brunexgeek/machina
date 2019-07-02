@@ -35,6 +35,7 @@ namespace machina {
 
 #define SET_FREE_PFT(index)    ( index << 1 | 1 )
 #define SET_USED_PFT(index)    ( index << 1 )
+#define IS_FREE_PFT(index)     ( (index & 0x01) != 0 )
 #define GET_PFT_INDEX(code)    ( code >> 1 )
 
 
