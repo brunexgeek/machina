@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/sync.h>
 #include <sys/timer.hh>
-#include <machina/Heap.hh>
+#include <sys/heap.hh>
 #include <sys/pmm.hh>
 #include <machina/VMM.hh>
 #include <sys/Display.hh>
@@ -200,7 +200,7 @@ extern "C" void system_initialize()
 	// initializes the MMU
 	//VMM::getInstance().initialize();
 	// initializes the dynamic memory manager
-	Heap::getInstance().initialize();
+	heap_initialize();
 
 	uart_puts(u"Starting kernel main...");
 
@@ -247,7 +247,7 @@ int kernel_main()
 		*font);
 
 	pmm_dump();
-	Heap::getInstance().print();
+	heap_dump();
 
 	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
 		display.getBuffer(), display.getBufferSize() );

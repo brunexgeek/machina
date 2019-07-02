@@ -1,33 +1,30 @@
-#include <machina/Heap.hh>
+#include <sys/heap.hh>
 #include <sys/system.h>
-
-
-using machina::Heap;
 
 
 void *operator new(
 	size_t size )
 {
-	return Heap::getInstance().allocate(size);
+	return machina::heap_allocate(size);
 }
 
 
 void *operator new[](
 	size_t size )
 {
-	return Heap::getInstance().allocate(size);
+	return machina::heap_allocate(size);
 }
 
 
 void operator delete (
 	void *ptr ) noexcept
 {
-	return Heap::getInstance().free(ptr);
+	machina::heap_free(ptr);
 }
 
 
 void operator delete[] (
 	void *ptr ) noexcept
 {
-	return Heap::getInstance().free(ptr);
+	machina::heap_free(ptr);
 }

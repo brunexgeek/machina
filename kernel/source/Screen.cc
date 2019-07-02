@@ -170,7 +170,7 @@ void TextScreen::print(
 		{
 			case 'm':
 				state = AES_NONE;
-				// pass through
+				// fall through
 
 			case ';':
 				if (param == 0)

@@ -4,12 +4,12 @@ set(MACHINA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(MACHINA_TARGET "Raspberry Pi Model B" CACHE STRING "Target Raspberry board")
 set_property(CACHE  MACHINA_TARGET PROPERTY STRINGS
-    "Raspberry Pi Model A"
-    "Raspberry Pi Model B"
-    "Raspberry Pi Model A+"
-    "Raspberry Pi Model B+"
-    "Raspberry Pi 2 Model B"
-    "Raspberry Pi 3 Model B" )
+#    "RPI-1A"
+#    "RPI-1B"
+#    "RPI-1A+"
+#    "RPI-1B+"
+    "RPI-2B"
+    "RPI-3B" )
 
 set(TOOLCHAIN_HOME "/opt/arm-rpi-4.9.3-linux-gnueabihf" CACHE STRING "")
 set(TOOLCHAIN_PREFIX "bin/arm-linux-gnueabihf-" CACHE STRING "")
@@ -27,10 +27,14 @@ set(CMAKE_LD           "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ld")
 set(CMAKE_OBJCOPY      "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}objcopy")
 set(CMAKE_RANLIB       "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ranlib")
 
-if (MACHINA_TARGET STREQUAL "Raspberry Pi 3 Model B")
+if (MACHINA_TARGET STREQUAL "")
+    set(MACHINA_TARGET "RPI-2B")
+endif()
+
+if (MACHINA_TARGET STREQUAL "RPI-3B")
 	set(TARGET_ARCH "-march=armv8-a -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard")
     set(RPIGEN 3)
-elseif (MACHINA_TARGET STREQUAL "Raspberry Pi 2 Model B")
+elseif (MACHINA_TARGET STREQUAL "RPI-2B")
     set(TARGET_ARCH "-march=armv7ve -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard")
     set(RPIGEN 2)
 else()

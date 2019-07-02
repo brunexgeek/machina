@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-#include <machina/Heap.hh>
+#include <sys/heap.hh>
 #include <sys/pmm.hh>
 #include <machina/Kernel.hh>
 #include <sys/system.h>
@@ -28,13 +28,13 @@
 
 #define BLOCK_HEADER_SIZE    ( sizeof(BlockInformation) - sizeof(void*) )
 
-#define Heap_KB(x)         ( (x) * 1024 )
-#define Heap_MB(x)         ( (x) * 1024 * 1024 )
+#define HEAP_KB(x)         ( (x) * 1024 )
+#define HEAP_MB(x)         ( (x) * 1024 * 1024 )
 
 /*
  * @brief Maximum amount of Heap available for dynamic allocation.
  */
-#define Heap_SIZE          (SYS_KERNEL_HEAP_SIZE)
+#define HEAP_SIZE          (SYS_KERNEL_HEAP_SIZE)
 
 /**
  * @brief Size of the invalid bucket.
@@ -91,19 +91,19 @@ static BucketInformation HeapBuckets[] =
 	{ 128           , 0, 0, nullptr }, // 128 bytes
 	{ 256           , 0, 0, nullptr }, // 256 bytes
 	{ 512           , 0, 0, nullptr }, // 512 bytes
-	{ Heap_KB(1)  , 0, 0, nullptr }, //   1 KiB
-	{ Heap_KB(4)  , 0, 0, nullptr }, //   4 KiB
-	{ Heap_KB(16) , 0, 0, nullptr }, //  16 KiB
-	{ Heap_KB(64) , 0, 0, nullptr }, //  64 KiB
-	{ Heap_KB(128), 0, 0, nullptr }, // 128 KiB
-	{ Heap_KB(256), 0, 0, nullptr }, // 256 KiB
-	{ Heap_KB(512), 0, 0, nullptr }, // 512 KiB
-	{ Heap_MB(1)  , 0, 0, nullptr }, //   1 MiB
-	{ Heap_MB(2)  , 0, 0, nullptr }, //   2 MiB
-	{ Heap_MB(4)  , 0, 0, nullptr }, //   4 MiB
-	{ Heap_MB(16) , 0, 0, nullptr }, //  16 MiB
-	{ Heap_MB(32) , 0, 0, nullptr }, //  32 MiB
-	{ Heap_MB(64) , 0, 0, nullptr }, //  64 MiB
+	{ HEAP_KB(1)    , 0, 0, nullptr }, //   1 KiB
+	{ HEAP_KB(4)    , 0, 0, nullptr }, //   4 KiB
+	{ HEAP_KB(16)   , 0, 0, nullptr }, //  16 KiB
+	{ HEAP_KB(64)   , 0, 0, nullptr }, //  64 KiB
+	{ HEAP_KB(128)  , 0, 0, nullptr }, // 128 KiB
+	{ HEAP_KB(256)  , 0, 0, nullptr }, // 256 KiB
+	{ HEAP_KB(512)  , 0, 0, nullptr }, // 512 KiB
+	{ HEAP_MB(1)    , 0, 0, nullptr }, //   1 MiB
+	{ HEAP_MB(2)    , 0, 0, nullptr }, //   2 MiB
+	{ HEAP_MB(4)    , 0, 0, nullptr }, //   4 MiB
+	{ HEAP_MB(16)   , 0, 0, nullptr }, //  16 MiB
+	{ HEAP_MB(32)   , 0, 0, nullptr }, //  32 MiB
+	{ HEAP_MB(64)   , 0, 0, nullptr }, //  64 MiB
 	{ INVALID_BUCKET, 0, 0, nullptr }
 };
 
@@ -124,40 +124,19 @@ static size_t heapOffset;
 static size_t heapEnd;
 
 
-Heap Heap::instance;
-
-
-Heap::Heap()
+void heap_initialize()
 {
-	// nothing to do
-}
-
-
-Heap::~Heap()
-{
-	// nothing to do
-}
-
-
-Heap &Heap::getInstance()
-{
-	return instance;
-}
-
-
-void Heap::initialize()
-{
-	heapStart = heapOffset = (size_t) pmm_allocate(Heap_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
+	heapStart = heapOffset = (size_t) pmm_allocate(HEAP_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
 	if (heapStart == 0) KernelPanic();
 
-	heapEnd = heapOffset + Heap_SIZE;
+	heapEnd = heapOffset + HEAP_SIZE;
 }
 
 
-void *Heap::allocate(
+void *heap_allocate(
 	size_t size )
 {
-	if (heapOffset == 0) initialize();
+	if (heapOffset == 0) heap_initialize();
 
 	// find out in which bucket the allocation goes
 	BucketInformation *bucket = HeapBuckets;
@@ -196,7 +175,7 @@ void *Heap::allocate(
 }
 
 
-void Heap::free(
+void heap_free(
 	void *address )
 {
 	// we need to be sure that the given address is
@@ -216,7 +195,7 @@ void Heap::free(
 }
 
 
-void Heap::print()
+void heap_dump()
 {
 	static const char16_t *UNITS[] = { u"B ", u"kB", u"MB" };
 

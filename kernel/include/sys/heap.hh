@@ -24,28 +24,14 @@
 namespace machina {
 
 
-class Heap
-{
-	public:
-		~Heap();
+void *heap_allocate( size_t size );
 
-		static Heap &getInstance();
+void heap_free( void * address );
 
-		void *allocate(
-			size_t size );
+void heap_dump();
 
-		void free(
-			void * address );
+void heap_initialize();
 
-		void print();
-
-		void initialize();
-
-	private:
-		static Heap instance;
-
-		Heap();
-};
 
 
 } //machina
