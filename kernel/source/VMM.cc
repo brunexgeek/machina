@@ -1,7 +1,9 @@
+#if 0
+
 #include <machina/VMM.hh>
 #include <sys/system.h>
 #include <sys/soc.h>
-#include <machina/PMM.hh>
+#include <sys/pmm.hh>
 #include <sys/mailbox.hh>
 #include <sys/uart.hh>
 
@@ -175,8 +177,6 @@ void VMM::printL1()
 
 PageTable *VmCreatePageTable()
 {
-	PMM &phys = PMM::getInstance();
-
 	// computes the amount of frames required to map
 	// the entire memory
 	size_t size = sizeof(uint32_t) * 4096;
@@ -187,3 +187,5 @@ PageTable *VmCreatePageTable()
 
 
 }
+
+#endif

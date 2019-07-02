@@ -15,7 +15,7 @@
  */
 
 #include <machina/Heap.hh>
-#include <machina/PMM.hh>
+#include <sys/pmm.hh>
 #include <machina/Kernel.hh>
 #include <sys/system.h>
 #include <sys/uart.hh>
@@ -147,8 +147,7 @@ Heap &Heap::getInstance()
 
 void Heap::initialize()
 {
-	PMM &phys = PMM::getInstance();
-	heapStart = heapOffset = (size_t) phys.allocate(Heap_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
+	heapStart = heapOffset = (size_t) pmm_allocate(Heap_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
 	if (heapStart == 0) KernelPanic();
 
 	heapEnd = heapOffset + Heap_SIZE;

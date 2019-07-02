@@ -64,81 +64,27 @@ enum PhysicalFrameTag
 };
 
 
-class TextScreen;
+void pmm_initialize();
 
+size_t pmm_allocate(
+	size_t count,
+	PhysicalFrameTag tag = PFT_ALLOCATED );
 
-class PMM
-{
-	public:
-		PMM();
+size_t pmm_allocate(
+	size_t count,
+	size_t alignment,
+	PhysicalFrameTag tag = PFT_ALLOCATED );
 
-		~PMM();
+void pmm_free(
+	size_t address,
+	size_t count,
+	bool cleanup = false );
 
-		static PMM &getInstance();
+void pmm_dump();
 
-		void initialize();
+size_t pmm_size();
 
-		size_t allocate(
-			size_t count,
-			PhysicalFrameTag tag = PFT_ALLOCATED );
-
-		size_t allocate(
-			size_t count,
-			size_t alignment,
-			PhysicalFrameTag tag = PFT_ALLOCATED );
-
-		void free(
-			size_t address,
-			size_t count,
-			bool cleanup = false );
-
-		void print();
-
-		int printMap();
-
-		size_t getMemorySize() const INLINE_ALWAYS;
-
-		size_t getFreeMemory() const INLINE_ALWAYS;
-
-	private:
-		/**
-		* @brief Number of free frames.
-		*/
-		size_t freeCount;
-
-		/**
-		* @brief Number of frames in memory.
-		*/
-		size_t frameCount;
-
-		/**
-		 * @brief Index of the page in which the allocate funcion
-		 * will start to look for free pages.
-		 *
-		 * This should be equals to @ref SYS_HEAP_START.
-		 */
-		size_t startIndex;
-
-		/**
-		* @brief Pointer to the table containing information
-		* about all physical frames.
-		*/
-		uint8_t *frameTable;
-};
-
-
-
-inline size_t PMM::getMemorySize() const
-{
-	return frameCount;
-}
-
-
-inline size_t PMM::getFreeMemory() const
-{
-	return freeCount;
-}
-
+size_t pmm_available();
 
 }
 

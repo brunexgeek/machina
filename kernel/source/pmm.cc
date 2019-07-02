@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-#include <machina/PMM.hh>
+#include <sys/pmm.hh>
 #include <sys/mailbox.hh>
 #include <sys/uart.hh>
 #include <sys/soc.h>
@@ -32,10 +32,35 @@
 
 
 #define PFRAME_GET_TAG(index) \
-	( this->frameTable[index] )
+	( frameTable[index] )
 
 #define PFRAME_SET_TAG(index,value) \
-	{ this->frameTable[index] = value; }
+	{ frameTable[index] = value; }
+
+
+/**
+* @brief Number of free frames.
+*/
+static size_t freeCount;
+
+/**
+* @brief Number of frames in memory.
+*/
+static size_t frameCount;
+
+/**
+ * @brief Index of the page in which the allocate funcion
+ * will start to look for free pages.
+ *
+ * This should be equals to @ref SYS_HEAP_START.
+ */
+static size_t startIndex;
+
+/**
+* @brief Pointer to the table containing information
+* about all physical frames.
+*/
+static uint8_t *frameTable;
 
 
 namespace machina {
@@ -64,15 +89,7 @@ static struct
 };
 
 
-static PMM instance;
-
-
-PMM::PMM()
-{
-}
-
-
-void PMM::initialize()
+void pmm_initialize()
 {
 	uart_puts(u"Initializing physical memory manager...\n");
 #ifdef __arm__
@@ -138,13 +155,7 @@ void PMM::initialize()
 }
 
 
-PMM &PMM::getInstance()
-{
-	return instance;
-}
-
-
-void PMM::print()
+void pmm_dump()
 {
 	size_t type = frameTable[0];
 	size_t start = 0;
@@ -168,13 +179,7 @@ void PMM::print()
 }
 
 
-PMM::~PMM()
-{
-	// nothing to do
-}
-
-
-size_t PMM::allocate(
+size_t pmm_allocate(
 	size_t count,
 	PhysicalFrameTag tag )
 {
@@ -219,7 +224,7 @@ size_t PMM::allocate(
 }
 
 
-size_t PMM::allocate(
+size_t pmm_allocate(
 	size_t count,
 	size_t alignment,
 	PhysicalFrameTag tag )
@@ -258,7 +263,7 @@ size_t PMM::allocate(
 }
 
 
-void PMM::free(
+void pmm_free(
 	size_t address,
 	size_t count,
 	bool /* cleaup */ )
@@ -274,6 +279,18 @@ void PMM::free(
 
 	if (index < startIndex) startIndex = index;
 }
+
+
+size_t pmm_total()
+{
+	return frameCount;
+}
+
+size_t pmm_available()
+{
+	return freeCount;
+}
+
 
 
 } // machina

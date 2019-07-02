@@ -6,7 +6,7 @@
 #include <sys/sync.h>
 #include <sys/timer.hh>
 #include <machina/Heap.hh>
-#include <machina/PMM.hh>
+#include <sys/pmm.hh>
 #include <machina/VMM.hh>
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
@@ -196,7 +196,7 @@ extern "C" void system_initialize()
 	//       that point. This includes using 'new' and 'delete' C++ operators.
 
 	// initializes the physical memory manager
-	PMM::getInstance().initialize();
+	pmm_initialize();
 	// initializes the MMU
 	//VMM::getInstance().initialize();
 	// initializes the dynamic memory manager
@@ -246,7 +246,7 @@ int kernel_main()
 		display.getDepth(),
 		*font);
 
-	PMM::getInstance().print();
+	pmm_dump();
 	Heap::getInstance().print();
 
 	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
