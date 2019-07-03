@@ -19,17 +19,16 @@
 #include <machina/Kernel.hh>
 #include <sys/system.h>
 #include <sys/uart.hh>
+#include <sys/types.h>
 #ifndef __arm__
 #include <cstdlib>
 #endif
 
 
 #define BLOCK_SIGNATURE      (0x5353U)
-
 #define BLOCK_HEADER_SIZE    ( sizeof(BlockInformation) - sizeof(void*) )
-
-#define HEAP_KB(x)         ( (x) * 1024 )
-#define HEAP_MB(x)         ( (x) * 1024 * 1024 )
+#define HEAP_KB(x)           ( (x) * 1024 )
+#define HEAP_MB(x)           ( (x) * 1024 * 1024 )
 
 /*
  * @brief Maximum amount of Heap available for dynamic allocation.
@@ -52,7 +51,7 @@ namespace machina {
  * @brief Structure used to hold information about every
  * allocated block.
  *
- * The field @c content is only used when the block is in the
+ * The field @c next is only used when the block is in the
  * free list, reducing the overhead from 8 bytes to 4 bytes
  * for allocated blocks.
  */
@@ -60,8 +59,10 @@ struct BlockInformation
 {
 	uint16_t signature;
 	uint16_t bucket;
-	void *content;
+	void *next;
 };
+
+#define BLOCK_INFO_SIZE  ((size_t)&(((struct BlockInformation *)0)->next))
 
 
 struct BucketInformation
@@ -107,6 +108,7 @@ static BucketInformation HeapBuckets[] =
 	{ INVALID_BUCKET, 0, 0, nullptr }
 };
 
+#define MAX_BUCKETS   (sizeof(HeapBuckets) / sizeof(struct BucketInformation))
 
 /**
  * @brief Start address of the dynamic Heap region.
@@ -138,11 +140,13 @@ void *heap_allocate(
 {
 	if (heapOffset == 0) heap_initialize();
 
+	// we have to take into account the extra bytes for a block header
+	size += BLOCK_INFO_SIZE;
+
 	// find out in which bucket the allocation goes
 	BucketInformation *bucket = HeapBuckets;
 	for (; size > bucket->size; ++bucket);
-	if (bucket->size == INVALID_BUCKET)
-		return nullptr;
+	if (bucket->size == INVALID_BUCKET) return nullptr;
 
 	size = bucket->size;
 
@@ -151,16 +155,15 @@ void *heap_allocate(
 	if (block != nullptr)
 	{
 		// we can reuse a free entry
-		bucket->entries = (BlockInformation*) block->content;
-		block->content = 0;
+		bucket->entries = (BlockInformation*) block->next;
+		block->next = 0;
 	}
 	else
 	{
-		if ( heapOffset + bucket->size > heapEnd )
-			return nullptr;
+		// check whether we have available memory
+		if ( heapOffset + bucket->size > heapEnd ) return nullptr;
 
-		// we have to take some bytes from the buffer to 'create'
-		// a new block in the bucket
+		// fill the block information
 		block = (BlockInformation *) heapOffset;
 		block->signature = BLOCK_SIGNATURE;
 		block->bucket = (uint8_t) (bucket - HeapBuckets); // bucket index
@@ -171,7 +174,7 @@ void *heap_allocate(
 	if (bucket->count > bucket->peak)
 		bucket->peak = bucket->count;
 
-	return &block->content;
+	return &block->next;
 }
 
 
@@ -180,24 +183,23 @@ void heap_free(
 {
 	// we need to be sure that the given address is
 	// from a valid allocation
-	if (address < (void*) heapStart || address >= (void*) heapEnd)
-		return;
+	if (address < (void*) heapStart || address >= (void*) heapEnd) return;
 	// check the block information (more validations :)
 	BlockInformation *block = (BlockInformation*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
 	if (block->signature != BLOCK_SIGNATURE ||
-		block->bucket >= sizeof(HeapBuckets) - 1)
+		block->bucket >= MAX_BUCKETS)
 		return;
 
 	// put the block in the free list of the corresponding bucket
-	BucketInformation *bucket = HeapBuckets + block->bucket;
-	block->content = bucket->entries;
+	BucketInformation *bucket = &HeapBuckets[block->bucket];
+	block->next = bucket->entries;
 	bucket->entries = block;
 }
 
 
 void heap_dump()
 {
-	static const char16_t *UNITS[] = { u"B ", u"kB", u"MB" };
+	static const char16_t *UNITS[] = { u"B ", u"KB", u"MB" };
 
 	uart_print(u"Size     Count   Peak\n");
 	uart_print(u"-------  ------  --------\n");

@@ -42,7 +42,7 @@ else()
     set(RPIGEN 1)
 endif()
 
-set(COMMOM_FLAGS "-O0 -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type -Werror=implicit-function-declaration -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib")
+set(COMMOM_FLAGS "-Wfatal-errors -O0 -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type -Werror=implicit-function-declaration -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib")
 
 set(CMAKE_C_FLAGS   "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -std=gnu99")
 set(CMAKE_ASM_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN}")

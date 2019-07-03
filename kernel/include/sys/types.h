@@ -19,6 +19,7 @@ typedef __UINT_LEAST16_TYPE__ char16_t;
 
 #define ARM_32 1
 
+// Newer GCC compilers do not accept 'uint32_t' and 'int32_t'
 typedef unsigned int  size_t;
 typedef signed int    ssize_t;
 

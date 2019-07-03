@@ -354,7 +354,7 @@ int FormatStringEx(
 
 				case 'X':
 					info.flags |= FLAG_UPPER;
-					// passthrough
+					// fall through
 
 				case 'x':
 					base = 16;
@@ -363,7 +363,7 @@ int FormatStringEx(
 				case 'd':
 				case 'i':
 					info.flags |= FLAG_SIGNAL;
-					// passthrough
+					// fall through
 
 				case 'u':
 					break;
