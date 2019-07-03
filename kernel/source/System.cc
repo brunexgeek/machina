@@ -45,7 +45,7 @@ static volatile bool DISABLED_CORES[SYS_CPU_CORES];
 
 struct MacAddressProperty
 {
-	machina::MailboxTag tag;
+	mailbox_tag_t tag;
 	uint8_t address[6];
 	uint8_t padding[2];
 };
@@ -166,11 +166,14 @@ static void system_initializeVFP()
 
 extern "C" void system_initialize()
 {
+	timer_initialize();
 	uart_init();
 	uart_puts(u"Initializing kernel...\nKernel arguments: ");
 
 	for (size_t i = 0; i < SYS_CPU_CORES; ++i)
 		DISABLED_CORES[i] = false;
+
+	uart_putc('\n');
 
 #if (RPIGEN != 1) && defined(ENABLE_MULTI_CORE)
 	// put all other CPU cores to sleep
@@ -202,7 +205,7 @@ extern "C" void system_initialize()
 	// initializes the dynamic memory manager
 	heap_initialize();
 
-	uart_puts(u"Starting kernel main...");
+	uart_puts(u"Starting kernel main...\n");
 
 	switch ( kernel_main () )
 	{
@@ -232,6 +235,7 @@ extern "C" void system_enableCoreEx (void)
 
 
 #include "tamzen-10x20.c"
+#include <sys/timer.hh>
 
 
 int kernel_main()
@@ -249,13 +253,22 @@ int kernel_main()
 	pmm_dump();
 	heap_dump();
 
-	ts->print(u"\nVideo memory at 0x%08p with %d bytes\n\n",
+	ts->print(u"\nCompiled on %s\nVideo memory at 0x%08p with %d bytes\n\n", __TIME__,
 		display.getBuffer(), display.getBufferSize() );
+
+	sync_enableInterrupts();
 
 	ts->colorTest();
 	//VMM::printL1(*ts);
-	ts->refresh();
-	display.draw(*ts);
+	int i = 0;
+	ts->print(u"Now is %d\n", (uint32_t) timer_tick());
+	while (true)
+	{
+		ts->print(u"Counter is %d\n", i++);
+		ts->refresh();
+		display.draw(*ts);
+		timer_wait(1000);
+	}
 
 	system_disableCore();
 

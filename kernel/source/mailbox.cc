@@ -6,9 +6,6 @@
 #include <mc/memory.h>
 
 
-namespace machina {
-
-
 struct MailboxBuffer
 {
 	uint32_t size;
@@ -104,9 +101,9 @@ bool mailbox_getProperty(
 	buffer->code = MAILBOX_CODE_REQUEST;
 	CopyMemory(buffer->tags, data, dataSize);
 	// prepare the mailbox tag
-	MailboxTag *tag = (MailboxTag *) buffer->tags;
+	mailbox_tag_t *tag = (mailbox_tag_t *) buffer->tags;
 	tag->tag         = tagId;
-	tag->bufferSize  = alignedDataSize - sizeof(MailboxTag);
+	tag->bufferSize  = alignedDataSize - sizeof(mailbox_tag_t);
 	tag->valueLength = 0;
 
 	// TODO: remove tag header from "data". The "data" should be the value buffer only.
@@ -143,7 +140,3 @@ bool mailbox_getProperty(
 	// if the response is partial, we kind a fail
 	return (buffer->code != MAILBOX_CODE_RESPONSE_OK);
 }
-
-
-
-} // machina

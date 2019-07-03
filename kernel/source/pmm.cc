@@ -63,9 +63,6 @@ static size_t startIndex;
 static uint8_t *frameTable;
 
 
-namespace machina {
-
-
 static struct
 {
 	const char16_t *symbol;
@@ -94,17 +91,17 @@ void pmm_initialize()
 	uart_puts(u"Initializing physical memory manager...\n");
 #ifdef __arm__
 	// probe the ARM memory map
-	MemoryTag armSplit;
+	memory_tag_t armSplit;
 	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit));
 	// probe the GPU memory map
-	MemoryTag gpuSplit;
+	memory_tag_t gpuSplit;
 	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit));
 #else
-	MemoryTag armSplit;
+	memory_tag_t armSplit;
 	armSplit.base = 0;
 	armSplit.size = 1024 * 1024 * 1024;
 
-	MemoryTag gpuSplit;
+	memory_tag_t gpuSplit;
 	gpuSplit.base = armSplit.size;
 	gpuSplit.size = 16 * 1024 * 1024;
 #endif
@@ -179,9 +176,9 @@ void pmm_dump()
 }
 
 
-size_t pmm_allocate(
+size_t pmm_alloc(
 	size_t count,
-	PhysicalFrameTag tag )
+	frame_type_t tag )
 {
 	if (count == 0) return 0;
 	if (tag & 0x01) return 0;//panic("Can not allocate with tag PFT_FREE");
@@ -224,10 +221,10 @@ size_t pmm_allocate(
 }
 
 
-size_t pmm_allocate(
+size_t pmm_allocAligned(
 	size_t count,
 	size_t alignment,
-	PhysicalFrameTag tag )
+	frame_type_t tag )
 {
 	if (count == 0) return 0;
 	if (tag & 0x01) return 0;//panic("Can not allocate with tag PFT_FREE");
@@ -290,7 +287,3 @@ size_t pmm_available()
 {
 	return freeCount;
 }
-
-
-
-} // machina

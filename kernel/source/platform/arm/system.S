@@ -80,6 +80,10 @@ system_entryPoint:
 	cps         #CPU_IRQ_MODE
 	mov         sp, #SYS_IRQ_STACK_END
 
+	// enters FIQ mode and set its stack base [B1-1140]
+	cps         #CPU_FIQ_MODE
+	mov         sp, #SYS_IRQ_STACK_END
+
 	// enters Abort mode and set its stack base [B1-1140]
 	cps         #CPU_ABORT_MODE
 	mov         sp, #SYS_ABORT_STACK_END

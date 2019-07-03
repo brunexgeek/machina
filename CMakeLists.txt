@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_USE_RELATIVE_PATHS false)
 set(MACHINA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(MACHINA_TARGET "Raspberry Pi Model B" CACHE STRING "Target Raspberry board")

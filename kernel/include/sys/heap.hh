@@ -21,9 +21,6 @@
 #include <sys/types.h>
 
 
-namespace machina {
-
-
 void *heap_allocate( size_t size );
 
 void heap_free( void * address );
@@ -31,10 +28,6 @@ void heap_free( void * address );
 void heap_dump();
 
 void heap_initialize();
-
-
-
-} //machina
 
 
 #endif // MACHINA_HEAP_HH

@@ -11,23 +11,20 @@
 #define MAILBOX_RESPONSE_BIT           (1 << 31)
 
 
-namespace machina {
-
-
-struct MailboxTag
+typedef struct
 {
 	uint32_t tag;
 	uint32_t bufferSize;
 	uint32_t valueLength;
-};
+} mailbox_tag_t;
 
 
-struct MemoryTag
+typedef struct
 {
-	MailboxTag header;
+	mailbox_tag_t header;
 	uint32_t base;
 	uint32_t size;
-};
+} memory_tag_t;
 
 
 uint32_t mailbox_send(
@@ -40,9 +37,6 @@ bool mailbox_getProperty(
 	void *data,
 	uint32_t dataSize,
 	uint32_t *expectedSize = nullptr );
-
-
-} //machina
 
 
 #endif // MACHINA_MAILBOX_H

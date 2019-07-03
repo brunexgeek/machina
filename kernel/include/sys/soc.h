@@ -2,6 +2,7 @@
 #define MACHINA_SOC_H
 
 
+#define CPU_FIQ_MODE         (0x0011)
 #define CPU_HYP_MODE         (0x001A)
 #define CPU_SVC_MODE         (0x0013)
 #define CPU_IRQ_MODE         (0x0012)
@@ -29,8 +30,8 @@
  * For more information, consult the "BCM2835 ARM Peripherals" manual.
  */
 
-#define CPU_GPIO_BASE            (CPU_IO_BASE + 0x00200000U) // GPU = 0x7E200000
-#define CPU_TIMER_BASE           (CPU_IO_BASE + 0x00003000U) // GPU = 0x7E003000
+#define CPU_GPIO_BASE            (CPU_IO_BASE + 0x200000U) // GPU = 0x7E200000
+#define CPU_TIMER_BASE           (/*CPU_IO_BASE +*/ 0x20003000U) // GPU = 0x7E003000
 
 
 #define GPU_CACHED_BASE		0x40000000

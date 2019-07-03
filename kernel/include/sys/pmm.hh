@@ -30,9 +30,6 @@
 	( (size_t) (address) / SYS_PAGE_SIZE )
 
 
-namespace machina {
-
-
 #define SET_FREE_PFT(index)    ( index << 1 | 1 )
 #define SET_USED_PFT(index)    ( index << 1 )
 #define IS_FREE_PFT(index)     ( (index & 0x01) != 0 )
@@ -45,7 +42,7 @@ namespace machina {
  * The LSB indicates whether the frame is free to be allocated
  * or not.
  */
-enum PhysicalFrameTag
+typedef enum
 {
 	PFT_FREE       = SET_FREE_PFT(0x00), // Available for allocation
 	PFT_DIRTY      = SET_FREE_PFT(0x01), // Available for allocation (but dirty)
@@ -62,19 +59,19 @@ enum PhysicalFrameTag
 	PFT_INVALID    = SET_USED_PFT(0x0c), // Invalid frame
 	PFT_MMIO       = SET_USED_PFT(0x0d), // Memory-mapped I/O
 	//PFT_LAST
-};
+} frame_type_t;
 
 
 void pmm_initialize();
 
-size_t pmm_allocate(
+size_t pmm_alloc(
 	size_t count,
-	PhysicalFrameTag tag = PFT_ALLOCATED );
+	frame_type_t tag );
 
-size_t pmm_allocate(
+size_t pmm_allocAligned(
 	size_t count,
 	size_t alignment,
-	PhysicalFrameTag tag = PFT_ALLOCATED );
+	frame_type_t tag );
 
 void pmm_free(
 	size_t address,
@@ -86,8 +83,6 @@ void pmm_dump();
 size_t pmm_size();
 
 size_t pmm_available();
-
-}
 
 
 #endif // MACHINA_PMM_H

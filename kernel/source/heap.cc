@@ -26,7 +26,7 @@
 
 
 #define BLOCK_SIGNATURE      (0x5353U)
-#define BLOCK_HEADER_SIZE    ( sizeof(BlockInformation) - sizeof(void*) )
+#define BLOCK_HEADER_SIZE    ( sizeof(block_info_t) - sizeof(void*) )
 #define HEAP_KB(x)           ( (x) * 1024 )
 #define HEAP_MB(x)           ( (x) * 1024 * 1024 )
 
@@ -44,9 +44,6 @@
 #define INVALID_BUCKET      ( (size_t) ~0x00U )
 
 
-namespace machina {
-
-
 /*
  * @brief Structure used to hold information about every
  * allocated block.
@@ -55,22 +52,22 @@ namespace machina {
  * free list, reducing the overhead from 8 bytes to 4 bytes
  * for allocated blocks.
  */
-struct BlockInformation
+struct block_info_t
 {
 	uint16_t signature;
 	uint16_t bucket;
 	void *next;
 };
 
-#define BLOCK_INFO_SIZE  ((size_t)&(((struct BlockInformation *)0)->next))
+#define BLOCK_INFO_SIZE  ((size_t)&(((struct block_info_t *)0)->next))
 
 
-struct BucketInformation
+struct bucket_info_t
 {
 	size_t size;
 	size_t count;
 	size_t peak;
-	BlockInformation *entries;
+	block_info_t *entries;
 };
 
 
@@ -84,7 +81,7 @@ struct BucketInformation
  * so we have more granularity in the smallest buckets. Granularity
  * means less waste of space (to some extent).
  */
-static BucketInformation HeapBuckets[] =
+static bucket_info_t heapBuckets[] =
 {
 	{ 32            , 0, 0, nullptr }, //  32 bytes
 	{ 64            , 0, 0, nullptr }, //  64 bytes
@@ -108,7 +105,7 @@ static BucketInformation HeapBuckets[] =
 	{ INVALID_BUCKET, 0, 0, nullptr }
 };
 
-#define MAX_BUCKETS   (sizeof(HeapBuckets) / sizeof(struct BucketInformation))
+#define MAX_BUCKETS   (sizeof(heapBuckets) / sizeof(struct bucket_info_t))
 
 /**
  * @brief Start address of the dynamic Heap region.
@@ -128,8 +125,8 @@ static size_t heapEnd;
 
 void heap_initialize()
 {
-	heapStart = heapOffset = (size_t) pmm_allocate(HEAP_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
-	if (heapStart == 0) KernelPanic();
+	heapStart = heapOffset = (size_t) pmm_alloc(HEAP_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
+	if (heapStart == 0) machina::KernelPanic();
 
 	heapEnd = heapOffset + HEAP_SIZE;
 }
@@ -144,18 +141,18 @@ void *heap_allocate(
 	size += BLOCK_INFO_SIZE;
 
 	// find out in which bucket the allocation goes
-	BucketInformation *bucket = HeapBuckets;
+	bucket_info_t *bucket = heapBuckets;
 	for (; size > bucket->size; ++bucket);
 	if (bucket->size == INVALID_BUCKET) return nullptr;
 
 	size = bucket->size;
 
 	// look for some free block in the bucket
-	BlockInformation *block = bucket->entries;
+	block_info_t *block = bucket->entries;
 	if (block != nullptr)
 	{
 		// we can reuse a free entry
-		bucket->entries = (BlockInformation*) block->next;
+		bucket->entries = (block_info_t*) block->next;
 		block->next = 0;
 	}
 	else
@@ -164,10 +161,10 @@ void *heap_allocate(
 		if ( heapOffset + bucket->size > heapEnd ) return nullptr;
 
 		// fill the block information
-		block = (BlockInformation *) heapOffset;
+		block = (block_info_t *) heapOffset;
 		block->signature = BLOCK_SIGNATURE;
-		block->bucket = (uint8_t) (bucket - HeapBuckets); // bucket index
-		heapOffset += sizeof(BlockInformation) + bucket->size;
+		block->bucket = (uint8_t) (bucket - heapBuckets); // bucket index
+		heapOffset += sizeof(block_info_t) + bucket->size;
 	}
 
 	++bucket->count;
@@ -185,13 +182,13 @@ void heap_free(
 	// from a valid allocation
 	if (address < (void*) heapStart || address >= (void*) heapEnd) return;
 	// check the block information (more validations :)
-	BlockInformation *block = (BlockInformation*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
+	block_info_t *block = (block_info_t*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
 	if (block->signature != BLOCK_SIGNATURE ||
 		block->bucket >= MAX_BUCKETS)
 		return;
 
 	// put the block in the free list of the corresponding bucket
-	BucketInformation *bucket = &HeapBuckets[block->bucket];
+	bucket_info_t *bucket = &heapBuckets[block->bucket];
 	block->next = bucket->entries;
 	bucket->entries = block;
 }
@@ -203,7 +200,7 @@ void heap_dump()
 
 	uart_print(u"Size     Count   Peak\n");
 	uart_print(u"-------  ------  --------\n");
-	BucketInformation *bucket = HeapBuckets;
+	bucket_info_t *bucket = heapBuckets;
 	for (; bucket->size != INVALID_BUCKET; ++bucket)
 	{
 		int unit = 0;
@@ -219,6 +216,3 @@ void heap_dump()
 			bucket->peak );
 	}
 }
-
-
-} // machina

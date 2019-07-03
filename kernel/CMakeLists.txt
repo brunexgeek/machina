@@ -1,15 +1,27 @@
-file(GLOB SOURCE
-    "source/*.cc"
-    "source/arm/*.S")
-
 include_directories(
     "include"
     "${MACHINA_ROOT}/libs/libmc/include")
 
 set(CMAKE_EXE_LINKER_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/kernel.ld")
 
-add_executable(kernel ${SOURCE})
-target_link_libraries(kernel libmc)
+add_subdirectory(source/platform/arm)
+add_subdirectory(source/platform/arm-rpi)
+
+add_executable(kernel
+    "source/heap.cc"
+    "source/uart.cc"
+    "source/pmm.cc"
+    "source/timer.cc"
+    "source/mailbox.cc"
+    "source/Font.cc"
+    "source/Display.cc"
+    "source/operator.cc"
+    "source/Screen.cc"
+    "source/System.cc"
+    "source/Kernel.cc"
+    "source/tamzen-10x20.c"
+    "source/platform/arm/system.S")
+target_link_libraries(kernel platform_arm libmc  platform_arm_rpi )
 set_target_properties(kernel PROPERTIES
     OUTPUT_NAME "kernel.elf"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

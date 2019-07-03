@@ -5,26 +5,26 @@
 void *operator new(
 	size_t size )
 {
-	return machina::heap_allocate(size);
+	return heap_allocate(size);
 }
 
 
 void *operator new[](
 	size_t size )
 {
-	return machina::heap_allocate(size);
+	return heap_allocate(size);
 }
 
 
 void operator delete (
 	void *ptr ) noexcept
 {
-	machina::heap_free(ptr);
+	heap_free(ptr);
 }
 
 
 void operator delete[] (
 	void *ptr ) noexcept
 {
-	machina::heap_free(ptr);
+	heap_free(ptr);
 }

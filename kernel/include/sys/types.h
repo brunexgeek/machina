@@ -37,6 +37,13 @@ typedef __INT64_TYPE__   ssize_t;
 #define NULL (void*)0
 #endif
 
+#ifndef __cplusplus
+#define bool int
+#define true 1
+#define false 0
+#endif
+
+
 // TODO: not the best place for this
 typedef uint16_t Color;
 

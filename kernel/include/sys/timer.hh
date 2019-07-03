@@ -13,24 +13,17 @@
 #include <sys/soc.h>
 
 
-namespace machina {
-
-
-struct TimerRegisters
+struct timer_t
 {
-	volatile uint32_t status;
-	const volatile uint32_t counterLow;
-	const volatile uint32_t counterHigh;
-	volatile uint32_t compare0;
-	volatile uint32_t compare1;
-	volatile uint32_t compare2;
-	volatile uint32_t compare3;
+	uint64_t (*now)();
 };
 
 
+void timer_initialize();
+void timer_terminate();
+void timer_register( struct timer_t &timer );
 uint64_t timer_tick();
-void timer_wait( uint64_t micro );
+void timer_wait( uint64_t us );
 
-}
 
 #endif // MACHINA_TIMER_HH
