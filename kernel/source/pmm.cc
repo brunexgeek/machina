@@ -16,7 +16,7 @@
 
 #include <sys/pmm.hh>
 #include <sys/mailbox.hh>
-#include <sys/uart.hh>
+#include <sys/uart.h>
 #include <sys/soc.h>
 #include <sys/system.h>
 #include <sys/errors.h>

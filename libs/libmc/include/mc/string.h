@@ -47,6 +47,17 @@ int FormatString(
 	const char16_t *format,
 	... );
 
+int strcmp( const char16_t *str1, const char16_t *str2 );
+
+int strncmp( const char16_t *str1, const char16_t *str2, size_t count );
+
+char16_t *strncpy( char16_t *dst, const char16_t *src, size_t num );
+
+char16_t *strcpy( char16_t *dst, const char16_t *src );
+
+size_t strlen( const char16_t *str );
+
+void *memset( void *ptr, int value, size_t num );
 
 #ifdef __cplusplus
 }

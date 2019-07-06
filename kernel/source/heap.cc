@@ -18,7 +18,7 @@
 #include <sys/pmm.hh>
 #include <machina/Kernel.hh>
 #include <sys/system.h>
-#include <sys/uart.hh>
+#include <sys/uart.h>
 #include <sys/types.h>
 #ifndef __arm__
 #include <cstdlib>

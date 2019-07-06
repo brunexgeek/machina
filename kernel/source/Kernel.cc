@@ -16,7 +16,7 @@
 
 #include <machina/Kernel.hh>
 #include <sys/Display.hh>
-#include <sys/uart.hh>
+#include <sys/uart.h>
 
 
 namespace machina {

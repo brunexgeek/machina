@@ -32,9 +32,18 @@ typedef __INT64_TYPE__   ssize_t;
 
 #endif
 
+typedef uint64_t time_t;
+typedef uint16_t uid_t;
+typedef uint16_t gid_t;
+typedef uint64_t ino_t;
+typedef uint64_t off64_t;
 
 #ifndef NULL
-#define NULL (void*)0
+	#ifdef __cplusplus
+		#define NULL 0
+	#else
+		#define NULL (void*)0
+	#endif
 #endif
 
 #ifndef __cplusplus

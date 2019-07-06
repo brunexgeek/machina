@@ -6,7 +6,7 @@
 #include <mc/stdlib.h>
 #include <mc/string.h>
 #include <mc/memory.h>
-#include <sys/uart.hh>
+#include <sys/uart.h>
 #ifndef __arm__
 #include <iostream>
 #include <cstdlib>
@@ -47,7 +47,7 @@ Display::Display (
 	uint32_t depth ) : width(width), height(height), depth(DISPLAY_DEPTH),
 		pitch(width * (depth / 8))
 {
-	uart_puts("Initializing display... ");
+	uart_puts(u"Initializing display... ");
 
 	req.width = width;
 	req.height = height;

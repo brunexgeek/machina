@@ -125,7 +125,7 @@ void TextScreen::print(
 	{
 		switch (symbol)
 		{
-			case '\e':
+			case '\33':
 				state = AES_ESCAPE;
 				param = 0;
 				break;
@@ -335,22 +335,22 @@ void TextScreen::draw(
 
 OPTIMIZE_0 void TextScreen::colorTest()
 {
-	static const char16_t HEADER[] = u"\e[0m         40m   41m   42m   43m   44m   45m   46m   47m\n";
+	static const char16_t HEADER[] = u"\33[0m         40m   41m   42m   43m   44m   45m   46m   47m\n";
 
 	write(HEADER, (sizeof(HEADER) - 1) / sizeof(char16_t));
 
 	for (int foreColor = 0; foreColor < 8; ++foreColor)
 	{
-		print(u"\e[0m    3%dm ", foreColor);
+		print(u"\33[0m    3%dm ", foreColor);
 		for (int backColor = 0; backColor < 8; ++backColor)
 		{
-			print(u"\e[3%d;4%dm AbC \e[0m ", foreColor, backColor);
+			print(u"\33[3%d;4%dm AbC \33[0m ", foreColor, backColor);
 		}
 
-		print(u"\n\e[0m  1;3%dm ", foreColor);
+		print(u"\n\33[0m  1;3%dm ", foreColor);
 		for (int backColor = 0; backColor < 8; ++backColor)
 		{
-			print(u"\e[1;3%d;4%dm AbC \e[0m ", foreColor, backColor);
+			print(u"\33[1;3%d;4%dm AbC \33[0m ", foreColor, backColor);
 		}
 		print('\n');
 	}

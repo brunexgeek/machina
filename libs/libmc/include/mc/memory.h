@@ -52,11 +52,6 @@ void *FillMemory(
 	int value,
 	size_t size );
 
-inline void *ZeroMemory(
-	void *output,
-	size_t size );
-
-
 #ifdef __cplusplus
 }
 #endif

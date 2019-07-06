@@ -21,6 +21,10 @@
 #include <sys/types.h>
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void *heap_allocate( size_t size );
 
 void heap_free( void * address );
@@ -28,6 +32,10 @@ void heap_free( void * address );
 void heap_dump();
 
 void heap_initialize();
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // MACHINA_HEAP_HH

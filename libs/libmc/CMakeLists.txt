@@ -11,6 +11,12 @@ add_library(libmc STATIC
     "source/FillMemory.S"
     "source/FormatString.cc"
     "source/StringLength.c"
+    "source/strlen.c"
+    "source/strcmp.c"
+    "source/strncmp.c"
+    "source/strncpy.c"
+    "source/strcpy.c"
+    "source/memset.c"
     "source/stub.c"
     )
 set_target_properties(libmc PROPERTIES

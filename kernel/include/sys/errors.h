@@ -1,13 +1,17 @@
 #ifndef MACHINA_ERRORS_H
 #define MACHINA_ERRORS_H
 
-#define EOK                            (0x00)
-#define EREBOOT                        (0x01)
-
-#define ERESTART                       (0x02)
-#define ESHUTDOWN                      (0x03)
-
-#define EINVALID                       (0x04)
-#define EEXHAUSTED                     (0x05)
+#define EOK                            (0)
+#define EREBOOT                        (-1)
+#define ERESTART                       (-2)
+#define ESHUTDOWN                      (-3)
+#define EINVALID                       (-4)
+#define EEXHAUSTED                     (-5)
+#define EEXIST                         (-6)
+#define ENOENT                         (-7)
+#define ETOOLONG                       (-8)
+#define ENODATA                        (-9)
+#define EMEMORY                        (-10)
+#define ENOIMP                         (-11)
 
 #endif // MACHINA_ERRORS_H

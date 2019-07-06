@@ -1,5 +1,5 @@
 #include <sys/system.h>
-#include <sys/sysio.hh>
+#include <sys/sysio.h>
 #include <sys/errors.h>
 #include <sys/soc.h>
 #include <sys/types.h>
@@ -11,8 +11,11 @@
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
 #include <sys/mailbox.hh>
-#include <sys/uart.hh>
+#include <sys/uart.h>
 #include <mc/memory.h>
+#include <sys/vfs.h>
+#include <sys/ramfs.h>
+#include <sys/procfs.h>
 
 
 /*
@@ -164,6 +167,13 @@ static void system_initializeVFP()
 }
 
 
+int system_proc( struct file *fp, void *data )
+{
+	uart_puts(u"'system_proc' was called\n");
+	return EOK;
+}
+
+
 extern "C" void system_initialize()
 {
 	timer_initialize();
@@ -205,6 +215,24 @@ extern "C" void system_initialize()
 	// initializes the dynamic memory manager
 	heap_initialize();
 
+	ramfs_initialize();
+	procfs_initialize();
+	procfs_register(u"/helena", system_proc, NULL);
+
+	struct mount *mp = NULL;
+	if (vfs_mount(u"procfs", u"procfs", u"/proc", u"", &mp) == EOK)
+	{
+		uart_print(u"Mounted '/proc'\n");
+		struct file *fp = NULL;
+		if (vfs_open(u"/proc/helena", 0, &fp) == EOK)
+		{
+			uart_print(u"Yay!\n");
+			vfs_read(fp, NULL, 0);
+			vfs_close(fp);
+		}
+		vfs_unmount(mp);
+	}
+
 	uart_puts(u"Starting kernel main...\n");
 
 	switch ( kernel_main () )
@@ -240,6 +268,9 @@ extern "C" void system_enableCoreEx (void)
 
 int kernel_main()
 {
+	system_disableCore();
+	return 0;
+
 	Display &display = Display::getInstance();
 
 	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);
@@ -273,7 +304,7 @@ int kernel_main()
 	system_disableCore();
 
 	return 0;
-};
+}
 
 
 } // machina

@@ -43,9 +43,9 @@ else()
     set(RPIGEN 1)
 endif()
 
-set(COMMOM_FLAGS "-Wfatal-errors -O0 -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type -Werror=implicit-function-declaration -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib")
+set(COMMOM_FLAGS "-Wfatal-errors -O0 -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type -Werror=implicit-function-declaration -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib -pedantic -Wuninitialized -Winit-self -Werror=int-conversion -Werror=incompatible-pointer-types -Werror=discarded-qualifiers")
 
-set(CMAKE_C_FLAGS   "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -std=gnu99")
+set(CMAKE_C_FLAGS   "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -std=c11")
 set(CMAKE_ASM_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN}")
 set(CMAKE_CXX_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -fno-exceptions -fno-rtti -std=c++11")
 set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "")

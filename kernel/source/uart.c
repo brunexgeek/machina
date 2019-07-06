@@ -1,6 +1,6 @@
-#include <sys/uart.hh>
+#include <sys/uart.h>
 #include <sys/soc.h>
-#include <sys/sysio.hh>
+#include <sys/sysio.h>
 #include <mc/string.h>
 
 #define GPFSEL1     (CPU_IO_BASE + 0x200004)
@@ -109,7 +109,7 @@ static void hexstrings ( uint32_t d )
 #endif
 
 
-void uart_puts( const char *str )
+/*void uart_puts( const char *str )
 {
     if (str == nullptr || *str == 0) return;
     while (*str != 0)
@@ -117,11 +117,11 @@ void uart_puts( const char *str )
         uart_putc((uint8_t)*str);
         ++str;
     }
-}
+}*/
 
 void uart_puts( const char16_t *str )
 {
-    if (str == nullptr || *str == 0) return;
+    if (str == NULL || *str == 0) return;
     while (*str != 0)
     {
         uart_putc((uint8_t)*str);
