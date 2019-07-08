@@ -16,6 +16,7 @@
 #include <sys/vfs.h>
 #include <sys/ramfs.h>
 #include <sys/procfs.h>
+#include <mc/string.h>
 
 
 /*
@@ -167,10 +168,20 @@ static void system_initializeVFP()
 }
 
 
-int system_proc( struct file *fp, void *data )
+int proc_sysname( uint8_t *buffer, int size, void *data )
 {
-	uart_puts(u"'system_proc' was called\n");
-	return EOK;
+	(void) data;
+
+	const char16_t *sysname = u"Machina";
+	size_t len = strlen(sysname);
+
+	if (size >= (len + 1) * 2)
+	{
+		strncpy((char16_t*) buffer, sysname, len + 1);
+		return (len + 1) * 2;
+	}
+
+	return 0;
 }
 
 
@@ -215,19 +226,19 @@ extern "C" void system_initialize()
 	// initializes the dynamic memory manager
 	heap_initialize();
 
-	ramfs_initialize();
 	procfs_initialize();
-	procfs_register(u"/helena", system_proc, NULL);
+	procfs_register(u"/sysname", proc_sysname, NULL);
 
 	struct mount *mp = NULL;
 	if (vfs_mount(u"procfs", u"procfs", u"/proc", u"", &mp) == EOK)
 	{
 		uart_print(u"Mounted '/proc'\n");
 		struct file *fp = NULL;
-		if (vfs_open(u"/proc/helena", 0, &fp) == EOK)
+		if (vfs_open(u"/proc/sysname", 0, &fp) == EOK)
 		{
-			uart_print(u"Yay!\n");
-			vfs_read(fp, NULL, 0);
+			char16_t buf[30];
+			vfs_read(fp, (uint8_t*)buf, sizeof(buf));
+			uart_print(u"Read '%s'\n", buf);
 			vfs_close(fp);
 		}
 		vfs_unmount(mp);
@@ -268,9 +279,6 @@ extern "C" void system_enableCoreEx (void)
 
 int kernel_main()
 {
-	system_disableCore();
-	return 0;
-
 	Display &display = Display::getInstance();
 
 	const Font *font = Font::load(___fonts_Tamzen10x20_psf, ___fonts_Tamzen10x20_psf_len);

@@ -4,7 +4,11 @@
 #include <mc/string.h>
 #include <sys/heap.hh>
 #include <sys/uart.h>
+#include <mc/stdlib.h>
+#include <mc/memory.h>
 
+
+#define PROCFS_MAX_BUFFER   4096
 
 struct inode
 {
@@ -15,62 +19,134 @@ struct inode
     struct inode *next;
 };
 
+struct fsdata
+{
+    struct inode *inode;
+    uint8_t buffer[PROCFS_MAX_BUFFER]; // TODO: make this dynamic
+    int offset;
+    int size;
+};
+
 static struct inode *procList = NULL;
 
 static ino_t counter = 0;
 
+
+static struct inode *find_inode( const char16_t *name )
+{
+    struct inode *node = procList;
+    while (node)
+    {
+        if (strcmp(name, node->name) == 0) return node;
+        node = node->next;
+    }
+
+    return NULL;
+}
+
+
+static struct inode *remove_inode( const char16_t *name )
+{
+    struct inode *prev = NULL;
+    struct inode *node = procList;
+    while (node)
+    {
+        if (strcmp(name, node->name) == 0)
+        {
+            if (prev)
+                prev->next = node->next;
+            else
+                procList->next = node->next;
+            node->next = NULL;
+            return node;
+        }
+        prev = node;
+        node = node->next;
+    }
+
+    return NULL;
+}
+
+
 int procfs_open( struct file *fp, const char16_t *path, uint32_t flags )
 {
-    struct inode *inode = procList;
-    while (inode)
-    {
-        if (strcmp(inode->name, path) == 0) break;
-        inode = inode->next;
-    }
+    (void) flags;
+
+    struct inode *inode = find_inode(path);
     if (inode == NULL) return ENOENT;
-    fp->fsdata = inode;
 
-    // run the callback
-    inode->callback(fp, inode->data);
+    // create procfs specific data
+    struct fsdata *data = (struct fsdata*) heap_allocate( sizeof(struct fsdata) );
+    if (data == NULL) return EMEMORY;
+    memset(data, 0, sizeof(*data));
+    data->inode = inode;
 
+    // call registered function with a fixed size internal buffer
+    int result = inode->callback(data->buffer, PROCFS_MAX_BUFFER, inode->data);
+    if (result < 0 || result > PROCFS_MAX_BUFFER)
+    {
+        heap_free(data);
+        return (result < 0) ? result : ETOOLONG;
+    }
+
+    data->size = result;
+    fp->fsdata = data;
     return EOK;
 }
 
 int procfs_close( struct file *fp )
 {
+    if (fp->fsdata) heap_free(fp->fsdata);
     return EOK;
 }
 
 int procfs_read( struct file *fp, uint8_t *buffer, size_t count )
 {
-    uart_print(u"Reading '%s'\n", ((struct inode*)fp->fsdata)->name);
-    return ENOIMP;
+    if (count == 0) return EOK;
+
+    struct fsdata *pd = (struct fsdata*)fp->fsdata;
+    if (pd->size - pd->offset == 0) return EOK;
+
+    int len = min((int) count, pd->size - pd->offset);
+    CopyMemory(buffer, pd->buffer + pd->offset, (size_t) len);
+    pd->offset += len;
+    //uart_print(u"%s: read %d bytes [total: %d, offset: %d]\n", pd->inode->name, len, pd->size, pd->offset);
+
+    return EOK;
 }
 
 int procfs_write( struct file *fp, const uint8_t *buffer, size_t count )
 {
+    (void) fp;
+    (void) buffer;
+    (void) count;
     return ENOIMP;
 }
 
 int procfs_stat( struct file *fp, struct stat *info )
 {
+    (void) fp;
+    (void) info;
     return ENOIMP;
 }
 
 int procfs_enumerate( struct file *fp, struct dirent *entry )
 {
+    (void) fp;
+    (void) entry;
     return ENOIMP;
 }
 
 int procfs_mount( struct mount *mp, const char16_t *opts )
 {
-    uart_print(u"Called '%s'\n", u"procfs_mount");
+    (void) mp;
+    (void) opts;
     return EOK;
 }
 
 int procfs_unmount( struct mount *mp )
 {
-    uart_print(u"Called '%s'\n", u"procfs_unmount");
+    (void) mp;
     return EOK;
 }
 
@@ -95,6 +171,8 @@ int procfs_register( const char16_t *name, procfunc_t func, void *data )
 {
     if (strlen(name ) >= MAX_FILENAME) return ETOOLONG;
 
+    if (find_inode(name)) return EEXIST;
+
     struct inode *ptr = (struct inode*) heap_allocate( sizeof(struct inode) );
     if (ptr == NULL) return EMEMORY;
 
@@ -110,8 +188,11 @@ int procfs_register( const char16_t *name, procfunc_t func, void *data )
     return EOK;
 }
 
-int procfs_unregister( const char16_t name )
+int procfs_unregister( const char16_t *name )
 {
-    // TODO: release 'inode'
+    struct inode *tmp = remove_inode(name);
+    if (tmp == NULL) return ENOENT;
+
+    heap_free(tmp);
     return EOK;
 }

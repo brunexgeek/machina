@@ -67,7 +67,7 @@ struct file
     uid_t owner;
     gid_t group;
     off64_t offset;
-    char *path;
+    char16_t *path;
     char chbuf;
     void *fsdata; // fylesystem-specific data
 };
@@ -183,7 +183,7 @@ int vfs_enumerate( struct file *fp, struct dirent *entry );
 
 
 // default implementation for 'fs->find' (because most of the time file systems will do the same thing)
-int vfs_defaultFind( struct vfs_mount *mp, const char16_t *name, struct vfs_noderef *ref );
+//int vfs_defaultFind( struct vfs_mount *mp, const char16_t *name, struct vfs_noderef *ref );
 
 #ifdef __cplusplus
 }

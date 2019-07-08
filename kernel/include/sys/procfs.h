@@ -6,7 +6,8 @@
 #include <sys/vfs.h>
 
 
-typedef int (*procfunc_t)( struct file *fp, void *data );
+//typedef int (*procfunc_t)( struct file *fp, void *data );
+typedef int (*procfunc_t)( uint8_t *buffer, int size, void *data );
 
 
 #ifdef __cplusplus
@@ -17,7 +18,7 @@ int procfs_initialize();
 
 int procfs_register( const char16_t *name, procfunc_t func, void *data );
 
-int procfs_unregister( const char16_t name );
+int procfs_unregister( const char16_t *name );
 
 #ifdef __cplusplus
 }

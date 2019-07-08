@@ -1,3 +1,5 @@
+#if 0
+
 #include <sys/ramfs.h>
 #include <sys/vfs.h>
 #include <sys/errors.h>
@@ -40,6 +42,8 @@ int ramfs_mount( struct mount *mp, const char16_t *opts )
 
 int ramfs_unmount( struct mount *mp )
 {
+    (void) mp;
+
     return ENOIMP;
 }
 
@@ -60,4 +64,4 @@ int ramfs_initialize()
     return vfs_register(&fs);
 }
 
-
+#endif
