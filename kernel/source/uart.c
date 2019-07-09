@@ -30,12 +30,6 @@
 #define UART0_ITOP   (UART0_BASE + 0x88)
 #define UART0_TDR    (UART0_BASE + 0x8C)
 
-//extern "C" void PUT32( uint32_t, uint32_t );
-//extern "C" uint32_t GET32( uint32_t );
-//extern "C" void DUMMY( uint32_t );
-
-//#define PUT32(addr,value) (*((uint32_t*)addr) = (uint32_t)value)
-//#define GET32(addr)       (*((uint32_t*)addr))
 
 static void DUMMY(uint32_t value )
 {
@@ -86,39 +80,6 @@ uint8_t uart_getc()
     return (uint8_t) GET32(UART0_DR);
 }
 
-#if 0
-static void hexstrings ( uint32_t d )
-{
-    //unsigned int ra;
-    uint32_t rb;
-    uint32_t rc;
-
-    uart_putc( '0' );
-    uart_putc( 'x' );
-
-    rb=32;
-    while(1)
-    {
-        rb-=4;
-        rc=(d>>rb)&0xF;
-        if(rc>9) rc+=0x37; else rc+=0x30;
-        uart_putc(rc);
-        if(rb==0) break;
-    }
-    uart_putc(10);
-}
-#endif
-
-
-/*void uart_puts( const char *str )
-{
-    if (str == nullptr || *str == 0) return;
-    while (*str != 0)
-    {
-        uart_putc((uint8_t)*str);
-        ++str;
-    }
-}*/
 
 void uart_puts( const char16_t *str )
 {

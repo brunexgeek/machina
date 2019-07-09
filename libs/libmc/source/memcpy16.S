@@ -32,7 +32,7 @@
  * This function follows the ABI and can be called from C code.
  */
 
-BEGIN_ASM_FUNCTION(CopyMemory16)
+BEGIN_ASM_FUNCTION(memcpy16)
 	push        {r0, r4-r6}
 1:	pld         [r1, #64]
 	ldmia       r1!, {r3-r6}
@@ -41,4 +41,4 @@ BEGIN_ASM_FUNCTION(CopyMemory16)
 	bne	        1b
 	pop         {r0, r4-r6}
 	bx          lr
-END_ASM_FUNCTION(CopyMemory16)
+END_ASM_FUNCTION(memcpy16)

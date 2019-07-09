@@ -108,7 +108,7 @@ int procfs_read( struct file *fp, uint8_t *buffer, size_t count )
     if (pd->size - pd->offset == 0) return EOK;
 
     int len = min((int) count, pd->size - pd->offset);
-    CopyMemory(buffer, pd->buffer + pd->offset, (size_t) len);
+    memcpy(buffer, pd->buffer + pd->offset, (size_t) len);
     pd->offset += len;
     //uart_print(u"%s: read %d bytes [total: %d, offset: %d]\n", pd->inode->name, len, pd->size, pd->offset);
 

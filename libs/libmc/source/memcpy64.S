@@ -31,7 +31,7 @@
  * This function follows the ABI and can be called from C code.
  */
 
-BEGIN_ASM_FUNCTION(CopyMemory64)
+BEGIN_ASM_FUNCTION(memcpy64)
 	mov         r3, r0
 1:  pld         [r1, #0xC0]
 	vldm        r1!, {d0-d7}
@@ -40,6 +40,6 @@ BEGIN_ASM_FUNCTION(CopyMemory64)
 	bge         1b
 	mov         r0, r3
 	bx          lr
-END_ASM_FUNCTION(CopyMemory64)
+END_ASM_FUNCTION(memcpy64)
 
 #endif

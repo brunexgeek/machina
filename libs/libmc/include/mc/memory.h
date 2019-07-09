@@ -28,24 +28,6 @@ extern "C" {
 #endif
 
 
-void *CopyMemory16(
-	void *output,
-	const void *input,
-	size_t size );
-
-#if (RPIGEN != 1)
-
-void *CopyMemory64(
-	void *output,
-	const void *input,
-	size_t size );
-
-#endif
-
-void *CopyMemory(
-	void *output,
-	const void *input,
-	size_t size );
 
 #ifdef __cplusplus
 }

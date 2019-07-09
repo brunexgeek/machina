@@ -5,9 +5,9 @@ include_directories(
 add_definitions("-DNOFLOAT")
 
 add_library(libmc STATIC
-    "source/CopyMemory.S"
-    "source/CopyMemory16.S"
-    "source/CopyMemory64.S"
+    "source/memcpy.S"
+    "source/memcpy16.S"
+    "source/memcpy64.S"
     "source/memset.S"
     "source/strlen.c"
     "source/strcmp.c"

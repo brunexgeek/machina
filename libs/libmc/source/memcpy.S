@@ -52,7 +52,7 @@
 		 * note that memcpy() always returns the destination pointer,
 		 * so we have to preserve R0.
 		 */
-BEGIN_ASM_FUNCTION(CopyMemory)
+BEGIN_ASM_FUNCTION(memcpy)
 		/* The stack must always be 64-bits aligned to be compliant with the
 		 * ARM ABI. Since we have to save R0, we might as well save R4
 		 * which we can use for better pipelining of the reads below
@@ -347,4 +347,4 @@ copy_last_3_and_return:
 		add         sp,  sp, #28
 		ldmfd       sp!, {r0, r4, lr}
 		bx          lr
-END_ASM_FUNCTION(CopyMemory)
+END_ASM_FUNCTION(memcpy)

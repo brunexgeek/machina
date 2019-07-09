@@ -136,7 +136,7 @@ void Display::draw(
 	size_t cy = min( height, screen.getHeight() ) - y;
 	for (; cy > 0; --cy)
 	{
-		CopyMemory(dst, src, srcPitch);
+		memcpy(dst, src, srcPitch);
 		src += screen.getPitch();
 		dst += pitch;
 	}
