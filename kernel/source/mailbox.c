@@ -1,12 +1,12 @@
-#include <sys/mailbox.hh>
-#include <sys/timer.hh>
+#include <sys/mailbox.h>
 #include <sys/sync.h>
 #include <sys/soc.h>
 #include <sys/sysio.h>
-#include <mc/memory.h>
+#include <sys/heap.h>
+#include <mc/string.h>
 
 
-struct MailboxBuffer
+struct mailbox_buffer
 {
 	uint32_t size;
 	uint32_t code;
@@ -50,8 +50,7 @@ uint32_t mailbox_send(
 {
 	uint32_t result;
 
-	sync_dataMemBarrier();
-
+	//sync_dataMemBarrier();
 	// acquire global lock
 
 	// write the request and retrieve the response
@@ -59,8 +58,7 @@ uint32_t mailbox_send(
 	result = mailbox_read(channel);
 
 	// release global lock
-
-	sync_dataMemBarrier();
+	//sync_dataMemBarrier();
 
 	return result;
 }
@@ -83,10 +81,10 @@ bool mailbox_getProperty(
 	uint32_t dataSize,
 	uint32_t *expectedSize )
 {
-	uint32_t alignedDataSize = (dataSize + 3) & ~0x03;
+	uint32_t alignedDataSize = (dataSize + 3) & ~3U;
 
 	// computes the mailbox buffer: mailbox buffer struct + aligned data size + end tag
-	uint32_t bufferSize = sizeof(MailboxBuffer) + alignedDataSize + sizeof(uint32_t);
+	uint32_t bufferSize = sizeof(struct mailbox_buffer) + alignedDataSize + sizeof(uint32_t);
 
 	// Note: at this point it's not safe to call dynamic memory allocation (physical
 	//       memory manager could not be initialized yet).
@@ -94,16 +92,16 @@ bool mailbox_getProperty(
 	// "allocates" some memory for the request/response buffer (we need to be sure
 	// this buffer is 16 bytes aligned, so we allocate some extra bytes to have room
 	// for adjustments)
-	uint8_t temp[bufferSize + 15];
+	void *temp = heap_allocate(bufferSize + 15);
 	// prepare the mailbox buffer (16 bytes aligned)
-	MailboxBuffer *buffer = (MailboxBuffer*) (((uint32_t) temp + 15) & ~(15));
+	struct mailbox_buffer *buffer = (struct mailbox_buffer*) (((size_t) temp + 15) & ~15U);
 	buffer->size = bufferSize;
 	buffer->code = MAILBOX_CODE_REQUEST;
-	CopyMemory(buffer->tags, data, dataSize);
+	memcpy(buffer->tags, data, dataSize);
 	// prepare the mailbox tag
-	mailbox_tag_t *tag = (mailbox_tag_t *) buffer->tags;
+	struct mailbox_header *tag = (struct mailbox_header *) buffer->tags;
 	tag->tag         = tagId;
-	tag->bufferSize  = alignedDataSize - sizeof(mailbox_tag_t);
+	tag->bufferSize  = alignedDataSize - sizeof(struct mailbox_header);
 	tag->valueLength = 0;
 
 	// TODO: remove tag header from "data". The "data" should be the value buffer only.
@@ -122,20 +120,22 @@ bool mailbox_getProperty(
 	uint32_t address = GPU_MEMORY_BASE + (uint32_t) buffer;
 	if (mailbox_send(channel, address) != address)
 	{
+		heap_free(temp);
 		return false;
 	}
 
-	sync_dataMemBarrier();
+	//sync_dataMemBarrier();
 
 	// returns the expected value buffer size
-	if (expectedSize != nullptr)
+	if (expectedSize != NULL)
 		*expectedSize = tag->valueLength & ~MAILBOX_RESPONSE_BIT;
 
 	// if the property is invalid, we fail (and expected size is probably zero)
 	if ((tag->valueLength & MAILBOX_RESPONSE_BIT) == 0)
 		return false;
 
-	CopyMemory(data, buffer->tags, dataSize);
+	memcpy(data, buffer->tags, dataSize);
+	heap_free(temp);
 
 	// if the response is partial, we kind a fail
 	return (buffer->code != MAILBOX_CODE_RESPONSE_OK);

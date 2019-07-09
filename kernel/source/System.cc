@@ -10,7 +10,7 @@
 #include <machina/VMM.hh>
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
-#include <sys/mailbox.hh>
+#include <sys/mailbox.h>
 #include <sys/uart.h>
 #include <mc/memory.h>
 #include <sys/vfs.h>
@@ -45,14 +45,6 @@ namespace machina {
 
 
 static volatile bool DISABLED_CORES[SYS_CPU_CORES];
-
-
-struct MacAddressProperty
-{
-	mailbox_tag_t tag;
-	uint8_t address[6];
-	uint8_t padding[2];
-};
 
 
 int kernel_main();

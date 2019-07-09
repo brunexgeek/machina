@@ -1,5 +1,5 @@
 #include <sys/Display.hh>
-#include <sys/mailbox.hh>
+#include <sys/mailbox.h>
 #include <sys/Screen.hh>
 #include <sys/sync.h>
 #include <sys/soc.h>

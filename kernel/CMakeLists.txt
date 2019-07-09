@@ -15,7 +15,7 @@ add_executable(kernel
     "source/uart.c"
     "source/pmm.cc"
     "source/timer.cc"
-    "source/mailbox.cc"
+    "source/mailbox.c"
     "source/Font.cc"
     "source/Display.cc"
     "source/operator.cc"

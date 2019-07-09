@@ -15,7 +15,7 @@
  */
 
 #include <sys/pmm.hh>
-#include <sys/mailbox.hh>
+#include <sys/mailbox.h>
 #include <sys/uart.h>
 #include <sys/soc.h>
 #include <sys/system.h>
@@ -89,22 +89,12 @@ static struct
 void pmm_initialize()
 {
 	uart_puts(u"Initializing physical memory manager...\n");
-#ifdef __arm__
 	// probe the ARM memory map
-	memory_tag_t armSplit;
-	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit));
+	struct memory_tag armSplit;
+	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit), NULL);
 	// probe the GPU memory map
-	memory_tag_t gpuSplit;
-	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit));
-#else
-	memory_tag_t armSplit;
-	armSplit.base = 0;
-	armSplit.size = 1024 * 1024 * 1024;
-
-	memory_tag_t gpuSplit;
-	gpuSplit.base = armSplit.size;
-	gpuSplit.size = 16 * 1024 * 1024;
-#endif
+	struct memory_tag gpuSplit;
+	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit), NULL);
 
 	// if (split.base != 0 || split.size < 256) panic();
 	freeCount = frameCount = (armSplit.size - SYS_HEAP_START) / SYS_PAGE_SIZE;
