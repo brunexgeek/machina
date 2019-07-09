@@ -2,6 +2,7 @@
 #include <sys/soc.h>
 #include <sys/sysio.h>
 #include <mc/string.h>
+#include <mc/stdio.h>
 
 #define GPFSEL1     (CPU_IO_BASE + 0x200004)
 #define GPSET0      (CPU_IO_BASE + 0x20001C)
@@ -129,16 +130,17 @@ void uart_puts( const char16_t *str )
     }
 }
 
+
+void _putchar( char16_t c )
+{
+    uart_putc(c);
+}
+
 void uart_print( const char16_t *format, ... )
 {
 	va_list args;
-	char16_t buffer[512];
-	int n = 0;
 
 	va_start(args, format);
-	n = FormatStringEx(buffer, sizeof(buffer) - 1, format, args);
-    buffer[n] = 0;
+	vprintf(format, args);
 	va_end(args);
-
-	uart_puts(buffer);
 }

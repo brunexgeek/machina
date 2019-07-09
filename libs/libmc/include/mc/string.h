@@ -35,18 +35,6 @@ size_t StringLengthEx(
 size_t StringLength(
 	const char16_t *text );
 
-int FormatStringEx(
-	char16_t *output,
-	size_t outputSize,
-	const char16_t *format,
-	va_list args );
-
-int FormatString(
-	char16_t *buffer,
-	size_t size,
-	const char16_t *format,
-	... );
-
 int strcmp( const char16_t *str1, const char16_t *str2 );
 
 int strncmp( const char16_t *str1, const char16_t *str2, size_t count );

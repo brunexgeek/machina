@@ -1,0 +1,8 @@
+#ifndef MACHINA_FLOAT_H
+#define MACHINA_FLOAT_H
+
+
+#define DBL_MAX  1.79769e+308
+
+
+#endif // MACHINA_FLOAT_H

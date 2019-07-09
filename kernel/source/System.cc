@@ -175,10 +175,10 @@ int proc_sysname( uint8_t *buffer, int size, void *data )
 	const char16_t *sysname = u"Machina";
 	size_t len = strlen(sysname);
 
-	if (size >= (len + 1) * 2)
+	if (size >= (int)(len + 1) * 2)
 	{
 		strncpy((char16_t*) buffer, sysname, len + 1);
-		return (len + 1) * 2;
+		return (int)(len + 1) * 2;
 	}
 
 	return 0;
@@ -298,16 +298,9 @@ int kernel_main()
 	sync_enableInterrupts();
 
 	ts->colorTest();
-	//VMM::printL1(*ts);
-	int i = 0;
 	ts->print(u"Now is %d\n", (uint32_t) timer_tick());
-	while (true)
-	{
-		ts->print(u"Counter is %d\n", i++);
-		ts->refresh();
-		display.draw(*ts);
-		timer_wait(1000);
-	}
+	ts->refresh();
+	display.draw(*ts);
 
 	system_disableCore();
 

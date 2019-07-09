@@ -2,8 +2,8 @@
 #include <sys/pmm.hh>
 #include <sys/system.h>
 #include <mc/string.h>
+#include <mc/stdio.h>
 #include <mc/stdarg.h>
-#include <mc/string.h>
 #include <mc/memory.h>
 #include <sys/types.h>
 
@@ -230,7 +230,7 @@ void TextScreen::print(
 	int n = 0;
 
 	va_start(args, format);
-	n = FormatStringEx(buffer, sizeof(buffer), format, args);
+	n = vsnprintf(buffer, sizeof(buffer), format, args);
 	va_end(args);
 
 	write(buffer, n);

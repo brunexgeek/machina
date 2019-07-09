@@ -37,6 +37,9 @@ typedef uint16_t uid_t;
 typedef uint16_t gid_t;
 typedef uint64_t ino_t;
 typedef uint64_t off64_t;
+typedef size_t ptrdiff_t;
+typedef size_t intmax_t;
+typedef size_t uintptr_t;
 
 #ifndef NULL
 	#ifdef __cplusplus
