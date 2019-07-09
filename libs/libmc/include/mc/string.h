@@ -28,13 +28,6 @@ extern "C" {
 #endif
 
 
-size_t StringLengthEx(
-	const char16_t *text,
-	size_t size );
-
-size_t StringLength(
-	const char16_t *text );
-
 int strcmp( const char16_t *str1, const char16_t *str2 );
 
 int strncmp( const char16_t *str1, const char16_t *str2, size_t count );

@@ -47,11 +47,6 @@ void *CopyMemory(
 	const void *input,
 	size_t size );
 
-void *FillMemory(
-	void *output,
-	int value,
-	size_t size );
-
 #ifdef __cplusplus
 }
 #endif

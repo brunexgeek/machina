@@ -29,14 +29,6 @@ void __cxa_pure_virtual()
 }
 
 
-int __aeabi_idiv0(
-	int result )
-{
-	while (1);
-	return result;
-}
-
-
 int __aeabi_atexit (
 	void * object,
 	void (*destroyer)(void*),

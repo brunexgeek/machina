@@ -184,7 +184,7 @@ int vfs_open( const char16_t *path, uint32_t flags, struct file **fp )
     // create file pointer
     struct file *tmp = heap_allocate( sizeof(struct file) + strlen(path) + 1 );
     if (tmp == NULL) return EMEMORY;
-    FillMemory(tmp, 0, sizeof(tmp));
+    memset(tmp, 0, sizeof(tmp));
     tmp->mp = mp;
     tmp->path = (char16_t*) ((uint8_t*) tmp + sizeof(*tmp));
     strcpy(tmp->path, path);

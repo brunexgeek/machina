@@ -30,3 +30,13 @@
         .global __aeabi_ldiv0
 __aeabi_ldiv0:
 	bx	lr
+
+
+@ int __aeabi_idiv0(int r)
+@
+@ Handler for 32 bit division by zero
+@
+	.thumb_func
+        .global __aeabi_idiv0
+__aeabi_idiv0:
+	bx	lr

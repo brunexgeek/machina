@@ -8,14 +8,12 @@ add_library(libmc STATIC
     "source/CopyMemory.S"
     "source/CopyMemory16.S"
     "source/CopyMemory64.S"
-    "source/FillMemory.S"
-    "source/StringLength.c"
+    "source/memset.S"
     "source/strlen.c"
     "source/strcmp.c"
     "source/strncmp.c"
     "source/strncpy.c"
     "source/strcpy.c"
-    "source/memset.c"
     "source/printf.c"
     "source/stub.c")
 set_target_properties(libmc PROPERTIES

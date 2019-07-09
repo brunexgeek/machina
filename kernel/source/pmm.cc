@@ -117,7 +117,7 @@ void pmm_initialize()
 	size_t bla = SYS_BITMAP_SIZE;
 	frameTable = (uint8_t*) calloc(1, SYS_BITMAP_SIZE);
 #endif
-	FillMemory(frameTable, PFT_INVALID, SYS_BITMAP_SIZE);
+	memset(frameTable, PFT_INVALID, SYS_BITMAP_SIZE);
 
 	// reserve everything before the heap
 	for (size_t i = 0; i < SYS_HEAP_START; i += SYS_PAGE_SIZE)

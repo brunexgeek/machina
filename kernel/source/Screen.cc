@@ -80,9 +80,9 @@ TextScreen *TextScreen::create(
 	info.text = (uint8_t*) info.buffer + info.bufferSize;
 	info.attribute = info.text + info.textSize;
 
-	FillMemory(info.attribute, 0, info.textSize);
-	FillMemory(info.text, 0, info.textSize);
-	FillMemory(info.buffer, 0, info.bufferSize);
+	memset(info.attribute, 0, info.textSize);
+	memset(info.text, 0, info.textSize);
+	memset(info.buffer, 0, info.bufferSize);
 
 	info.setOffset(0);
 
@@ -133,7 +133,7 @@ void TextScreen::print(
 			case '\n':
 				info.setOffset( info.getOffset() + info.columns );
 				info.setOffset( info.getOffset() / info.columns * info.columns );
-				FillMemory(info.text + info.getOffset(), ' ', info.columns);
+				memset(info.text + info.getOffset(), ' ', info.columns);
 				break;
 
 			case '\r':
