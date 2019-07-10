@@ -1,4 +1,4 @@
-#include <sys/heap.hh>
+#include <sys/heap.h>
 #include <sys/system.h>
 
 

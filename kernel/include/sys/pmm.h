@@ -61,6 +61,9 @@ typedef enum
 	//PFT_LAST
 } frame_type_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void pmm_initialize();
 
@@ -75,8 +78,7 @@ size_t pmm_allocAligned(
 
 void pmm_free(
 	size_t address,
-	size_t count,
-	bool cleanup = false );
+	size_t count );
 
 void pmm_dump();
 
@@ -84,5 +86,8 @@ size_t pmm_size();
 
 size_t pmm_available();
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MACHINA_PMM_H

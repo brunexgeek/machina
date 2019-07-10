@@ -2,7 +2,7 @@
 #include <sys/vfs.h>
 #include <sys/errors.h>
 #include <mc/string.h>
-#include <sys/heap.hh>
+#include <sys/heap.h>
 #include <sys/uart.h>
 #include <mc/stdlib.h>
 #include <mc/memory.h>

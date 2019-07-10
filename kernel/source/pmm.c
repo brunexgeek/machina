@@ -14,21 +14,14 @@
  *    limitations under the License.
  */
 
-#include <sys/pmm.hh>
+#include <sys/pmm.h>
 #include <sys/mailbox.h>
 #include <sys/uart.h>
 #include <sys/soc.h>
 #include <sys/system.h>
 #include <sys/errors.h>
-
-#ifndef __arm__
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#else
 #include <mc/string.h>
 #include <mc/memory.h>
-#endif
 
 
 #define PFRAME_GET_TAG(index) \
@@ -101,12 +94,7 @@ void pmm_initialize()
 	startIndex = SYS_HEAP_START / SYS_PAGE_SIZE;
 
 	//size_t temp = (frameCount + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
-#ifdef __arm__
 	frameTable = (uint8_t*) SYS_BITMAP_START;
-#else
-	size_t bla = SYS_BITMAP_SIZE;
-	frameTable = (uint8_t*) calloc(1, SYS_BITMAP_SIZE);
-#endif
 	memset(frameTable, PFT_INVALID, SYS_BITMAP_SIZE);
 
 	// reserve everything before the heap
@@ -252,8 +240,7 @@ size_t pmm_allocAligned(
 
 void pmm_free(
 	size_t address,
-	size_t count,
-	bool /* cleaup */ )
+	size_t count )
 {
 	size_t index = ADDRESS_TOFRAME(address);
 	if (index >= frameCount || count == 0) return;

@@ -2,7 +2,7 @@
 #include <sys/errors.h>
 #include <mc/string.h>
 #include <sys/uart.h>
-#include <sys/heap.hh>
+#include <sys/heap.h>
 #include <mc/memory.h>
 
 

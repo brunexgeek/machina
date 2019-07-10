@@ -5,8 +5,8 @@
 #include <sys/types.h>
 #include <sys/sync.h>
 #include <sys/timer.hh>
-#include <sys/heap.hh>
-#include <sys/pmm.hh>
+#include <sys/heap.h>
+#include <sys/pmm.h>
 #include <machina/VMM.hh>
 #include <sys/Display.hh>
 #include <sys/Screen.hh>

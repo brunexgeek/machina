@@ -1,5 +1,5 @@
 #include <sys/Screen.hh>
-#include <sys/pmm.hh>
+#include <sys/pmm.h>
 #include <sys/system.h>
 #include <mc/string.h>
 #include <mc/stdio.h>

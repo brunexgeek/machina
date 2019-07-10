@@ -14,19 +14,15 @@
  *    limitations under the License.
  */
 
-#include <sys/heap.hh>
-#include <sys/pmm.hh>
-#include <machina/Kernel.hh>
+#include <sys/heap.h>
+#include <sys/pmm.h>
 #include <sys/system.h>
 #include <sys/uart.h>
 #include <sys/types.h>
-#ifndef __arm__
-#include <cstdlib>
-#endif
 
 
 #define BLOCK_SIGNATURE      (0x5353U)
-#define BLOCK_HEADER_SIZE    ( sizeof(block_info_t) - sizeof(void*) )
+#define BLOCK_HEADER_SIZE    ( sizeof(struct block_info_t) - sizeof(void*) )
 #define HEAP_KB(x)           ( (x) * 1024 )
 #define HEAP_MB(x)           ( (x) * 1024 * 1024 )
 
@@ -67,7 +63,7 @@ struct bucket_info_t
 	size_t size;
 	size_t count;
 	size_t peak;
-	block_info_t *entries;
+	struct block_info_t *entries;
 };
 
 
@@ -81,28 +77,28 @@ struct bucket_info_t
  * so we have more granularity in the smallest buckets. Granularity
  * means less waste of space (to some extent).
  */
-static bucket_info_t heapBuckets[] =
+static struct bucket_info_t heapBuckets[] =
 {
-	{ 32            , 0, 0, nullptr }, //  32 bytes
-	{ 64            , 0, 0, nullptr }, //  64 bytes
-	{ 96            , 0, 0, nullptr }, //  96 bytes
-	{ 128           , 0, 0, nullptr }, // 128 bytes
-	{ 256           , 0, 0, nullptr }, // 256 bytes
-	{ 512           , 0, 0, nullptr }, // 512 bytes
-	{ HEAP_KB(1)    , 0, 0, nullptr }, //   1 KiB
-	{ HEAP_KB(4)    , 0, 0, nullptr }, //   4 KiB
-	{ HEAP_KB(16)   , 0, 0, nullptr }, //  16 KiB
-	{ HEAP_KB(64)   , 0, 0, nullptr }, //  64 KiB
-	{ HEAP_KB(128)  , 0, 0, nullptr }, // 128 KiB
-	{ HEAP_KB(256)  , 0, 0, nullptr }, // 256 KiB
-	{ HEAP_KB(512)  , 0, 0, nullptr }, // 512 KiB
-	{ HEAP_MB(1)    , 0, 0, nullptr }, //   1 MiB
-	{ HEAP_MB(2)    , 0, 0, nullptr }, //   2 MiB
-	{ HEAP_MB(4)    , 0, 0, nullptr }, //   4 MiB
-	{ HEAP_MB(16)   , 0, 0, nullptr }, //  16 MiB
-	{ HEAP_MB(32)   , 0, 0, nullptr }, //  32 MiB
-	{ HEAP_MB(64)   , 0, 0, nullptr }, //  64 MiB
-	{ INVALID_BUCKET, 0, 0, nullptr }
+	{ 32            , 0, 0, NULL }, //  32 bytes
+	{ 64            , 0, 0, NULL }, //  64 bytes
+	{ 96            , 0, 0, NULL }, //  96 bytes
+	{ 128           , 0, 0, NULL }, // 128 bytes
+	{ 256           , 0, 0, NULL }, // 256 bytes
+	{ 512           , 0, 0, NULL }, // 512 bytes
+	{ HEAP_KB(1)    , 0, 0, NULL }, //   1 KiB
+	{ HEAP_KB(4)    , 0, 0, NULL }, //   4 KiB
+	{ HEAP_KB(16)   , 0, 0, NULL }, //  16 KiB
+	{ HEAP_KB(64)   , 0, 0, NULL }, //  64 KiB
+	{ HEAP_KB(128)  , 0, 0, NULL }, // 128 KiB
+	{ HEAP_KB(256)  , 0, 0, NULL }, // 256 KiB
+	{ HEAP_KB(512)  , 0, 0, NULL }, // 512 KiB
+	{ HEAP_MB(1)    , 0, 0, NULL }, //   1 MiB
+	{ HEAP_MB(2)    , 0, 0, NULL }, //   2 MiB
+	{ HEAP_MB(4)    , 0, 0, NULL }, //   4 MiB
+	{ HEAP_MB(16)   , 0, 0, NULL }, //  16 MiB
+	{ HEAP_MB(32)   , 0, 0, NULL }, //  32 MiB
+	{ HEAP_MB(64)   , 0, 0, NULL }, //  64 MiB
+	{ INVALID_BUCKET, 0, 0, NULL }
 };
 
 #define MAX_BUCKETS   (sizeof(heapBuckets) / sizeof(struct bucket_info_t))
@@ -126,7 +122,7 @@ static size_t heapEnd;
 void heap_initialize()
 {
 	heapStart = heapOffset = (size_t) pmm_alloc(HEAP_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
-	if (heapStart == 0) machina::KernelPanic();
+	//if (heapStart == 0) machina::KernelPanic();
 
 	heapEnd = heapOffset + HEAP_SIZE;
 }
@@ -141,30 +137,30 @@ void *heap_allocate(
 	size += BLOCK_INFO_SIZE;
 
 	// find out in which bucket the allocation goes
-	bucket_info_t *bucket = heapBuckets;
+	struct bucket_info_t *bucket = heapBuckets;
 	for (; size > bucket->size; ++bucket);
-	if (bucket->size == INVALID_BUCKET) return nullptr;
+	if (bucket->size == INVALID_BUCKET) return NULL;
 
 	size = bucket->size;
 
 	// look for some free block in the bucket
-	block_info_t *block = bucket->entries;
-	if (block != nullptr)
+	struct block_info_t *block = bucket->entries;
+	if (block != NULL)
 	{
 		// we can reuse a free entry
-		bucket->entries = (block_info_t*) block->next;
+		bucket->entries = (struct block_info_t*) block->next;
 		block->next = 0;
 	}
 	else
 	{
 		// check whether we have available memory
-		if ( heapOffset + bucket->size > heapEnd ) return nullptr;
+		if ( heapOffset + bucket->size > heapEnd ) return NULL;
 
 		// fill the block information
-		block = (block_info_t *) heapOffset;
+		block = (struct block_info_t *) heapOffset;
 		block->signature = BLOCK_SIGNATURE;
 		block->bucket = (uint8_t) (bucket - heapBuckets); // bucket index
-		heapOffset += sizeof(block_info_t) + bucket->size;
+		heapOffset += sizeof(struct block_info_t) + bucket->size;
 	}
 
 	++bucket->count;
@@ -182,13 +178,13 @@ void heap_free(
 	// from a valid allocation
 	if (address < (void*) heapStart || address >= (void*) heapEnd) return;
 	// check the block information (more validations :)
-	block_info_t *block = (block_info_t*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
+	struct block_info_t *block = (struct block_info_t*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
 	if (block->signature != BLOCK_SIGNATURE ||
 		block->bucket >= MAX_BUCKETS)
 		return;
 
 	// put the block in the free list of the corresponding bucket
-	bucket_info_t *bucket = &heapBuckets[block->bucket];
+	struct bucket_info_t *bucket = &heapBuckets[block->bucket];
 	block->next = bucket->entries;
 	bucket->entries = block;
 }
@@ -200,7 +196,7 @@ void heap_dump()
 
 	uart_print(u"Size     Count   Peak\n");
 	uart_print(u"-------  ------  --------\n");
-	bucket_info_t *bucket = heapBuckets;
+	struct bucket_info_t *bucket = heapBuckets;
 	for (; bucket->size != INVALID_BUCKET; ++bucket)
 	{
 		int unit = 0;
