@@ -182,6 +182,14 @@ static inline unsigned int _strnlen_s(const CHAR_TYPE* str, size_t maxsize)
 }
 
 
+static inline unsigned int _strnlen_zs(const char* str, size_t maxsize)
+{
+  const char* s;
+  for (s = str; *s && maxsize--; ++s);
+  return (unsigned int)(s - str);
+}
+
+
 // internal test if CHAR_TYPE is a digit (0-9)
 // \return true if CHAR_TYPE is a digit
 static inline bool _is_digit(CHAR_TYPE ch)
@@ -794,6 +802,32 @@ static int _vsnprintf(/*out_fct_type out, CHAR_TYPE* buffer, const size_t maxlen
         }
         // CHAR_TYPE output
         wrapper->out(wrapper, (CHAR_TYPE)va_arg(va, int));
+        // post padding
+        if (flags & FLAGS_LEFT) {
+          while (l++ < width) {
+            wrapper->out(wrapper, ' ');
+          }
+        }
+        format++;
+        break;
+      }
+
+      case 'S' : {
+        const char* p = va_arg(va, char*);
+        unsigned int l = _strnlen_zs(p, precision ? precision : (size_t)-1);
+        // pre padding
+        if (flags & FLAGS_PRECISION) {
+          l = (l < precision ? l : precision);
+        }
+        if (!(flags & FLAGS_LEFT)) {
+          while (l++ < width) {
+            wrapper->out(wrapper, ' ');
+          }
+        }
+        // string output
+        while ((*p != 0) && (!(flags & FLAGS_PRECISION) || precision--)) {
+          wrapper->out(wrapper, (CHAR_TYPE) *(p++));
+        }
         // post padding
         if (flags & FLAGS_LEFT) {
           while (l++ < width) {

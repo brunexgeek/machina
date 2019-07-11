@@ -271,13 +271,13 @@ int kernel_main()
 
 	heap_dump();
 
-	ts->print(u"\nCompiled on %s\nVideo memory at 0x%08p with %d bytes\n\n", __TIME__,
+	ts->print(u"\nCompiled on %S\nVideo memory at 0x%08p with %d bytes\n\n", __TIME__,
 		display.getBuffer(), display.getBufferSize() );
 
 	sync_enableInterrupts();
 
-	//ts->colorTest();
-	ts->print(u"Now is %d\n", (uint32_t) timer_tick());
+	ts->colorTest();
+	//ts->print(u"Now is %d\n", (uint32_t) timer_tick());
 
 	// print physical memory information
 	struct file *fp = NULL;
