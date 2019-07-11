@@ -14,6 +14,8 @@
 #define CPU_IRQ_MASK         (0x0080)
 #define CPU_ABORT_MASK       (0x0100)
 
+#define BCMXXXX_EXCEPTTBL    (0x00000004)
+
 
 #if RPIGEN == 1
     #define CPU_IO_BASE          (0x20000000U)

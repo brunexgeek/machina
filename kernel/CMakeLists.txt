@@ -8,6 +8,8 @@ add_subdirectory(source/platform/arm)
 add_subdirectory(source/platform/arm-rpi)
 
 add_executable(kernel
+    "source/exception.S"
+    "source/exception.c"
     "source/vfs.c"
     "source/ramfs.c"
     "source/procfs.c"
