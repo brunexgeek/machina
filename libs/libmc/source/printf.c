@@ -296,7 +296,7 @@ static void _ntoa_long(struct printf_wrapper *wrapper, unsigned long value, bool
   if (!(flags & FLAGS_PRECISION) || value) {
     do {
       const CHAR_TYPE digit = (CHAR_TYPE)(value % base);
-      buf[len++] = digit < 10 ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10;
+      buf[len++] = (char16_t) ((digit < 10) ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10);
       value /= base;
     } while (value && (len < PRINTF_NTOA_BUFFER_SIZE));
   }
@@ -321,7 +321,7 @@ static void _ntoa_long_long(struct printf_wrapper *wrapper, unsigned long long v
   if (!(flags & FLAGS_PRECISION) || value) {
     do {
       const CHAR_TYPE digit = (CHAR_TYPE)(value % base);
-      buf[len++] = digit < 10 ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10;
+      buf[len++] = (char16_t)  ((digit < 10) ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10);
       value /= base;
     } while (value && (len < PRINTF_NTOA_BUFFER_SIZE));
   }
@@ -370,9 +370,10 @@ static void _ftoa(struct printf_wrapper *wrapper, double value, unsigned int pre
   // standard printf behavior is to print EVERY whole number digit -- which could be 100s of characters overflowing your buffers == bad
   if ((value > PRINTF_MAX_FLOAT) || (value < -PRINTF_MAX_FLOAT)) {
 #if defined(PRINTF_SUPPORT_EXPONENTIAL)
-    return _etoa(wrapper, value, prec, width, flags);
+    _etoa(wrapper, value, prec, width, flags);
+    return;
 #else
-    return 0U;
+    return;
 #endif
   }
 
@@ -575,7 +576,7 @@ static void _etoa(struct printf_wrapper *wrapper, double value, unsigned int pre
     // output the exponential symbol
     wrapper->out(wrapper, (flags & FLAGS_UPPERCASE) ? 'E' : 'e');
     // output the exponent value
-    _ntoa_long(wrapper, (expval < 0) ? -expval : expval, expval < 0, 10, 0, minwidth-1, FLAGS_ZEROPAD | FLAGS_PLUS);
+    _ntoa_long(wrapper, (unsigned long) ((expval < 0) ? -expval : expval), expval < 0, 10, 0, minwidth-1, FLAGS_ZEROPAD | FLAGS_PLUS);
     // might need to right-pad spaces
     if (flags & FLAGS_LEFT) {
       while (wrapper->idx - start_idx < width) wrapper->out(wrapper, ' ');
@@ -896,6 +897,23 @@ int snprintf_(CHAR_TYPE* buffer, size_t count, const CHAR_TYPE* format, ...)
   va_list va;
   va_start(va, format);
   struct printf_wrapper wrapper = { _out_buffer, NULL, NULL, buffer, 0, count };
+  const int ret = _vsnprintf(&wrapper, format, va);
+  va_end(va);
+  return ret;
+}
+
+
+int sncatprintf_(CHAR_TYPE* buffer, size_t count, const CHAR_TYPE* format, ...)
+{
+  CHAR_TYPE *p = buffer;
+
+  // move cursor to the end of the string
+  while (*p != 0 && p < buffer + count) ++p;
+  count = count - (size_t) (p - buffer);
+
+  va_list va;
+  va_start(va, format);
+  struct printf_wrapper wrapper = { _out_buffer, NULL, NULL, p, 0, count };
   const int ret = _vsnprintf(&wrapper, format, va);
   va_end(va);
   return ret;

@@ -81,6 +81,9 @@ int vprintf_(const CHAR_TYPE* format, va_list va);
 int cprintf(cprintf_callback_t callback, void* arg, const CHAR_TYPE* format, ...);
 
 
+#define sncatprintf sncatprintf_
+int sncatprintf_(CHAR_TYPE* buffer, size_t count, const CHAR_TYPE* format, ...);
+
 #ifdef __cplusplus
 }
 #endif
