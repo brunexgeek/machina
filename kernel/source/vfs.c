@@ -82,6 +82,8 @@ int vfs_mount(
     const char16_t *opts,
     struct mount **mp )
 {
+    (void) mp;
+
     if (strlen(mntto) >= MAX_PATH || strlen(mntfrom) >= MAX_PATH) return ETOOLONG;
 
     struct filesystem *fs = fsList;
@@ -197,7 +199,7 @@ int vfs_open( const char16_t *path, uint32_t flags, struct file **fp )
     }
 
     *fp = tmp;
-    return EOK;
+    return result;
 }
 
 int vfs_close( struct file *fp )
