@@ -220,16 +220,18 @@ extern "C" void system_initialize()
 
 	procfs_initialize();
 	procfs_register(u"/sysname", proc_sysname, NULL);
+	pmm_register();
 
 	struct mount *mp = NULL;
 	if (vfs_mount(u"procfs", u"procfs", u"/proc", u"", &mp) == EOK)
 	{
 		uart_print(u"Mounted '/proc'\n");
 		struct file *fp = NULL;
-		if (vfs_open(u"/proc/sysname", 0, &fp) == EOK)
+		if (vfs_open(u"/proc/frames", 0, &fp) == EOK)
 		{
-			char16_t buf[30];
-			vfs_read(fp, (uint8_t*)buf, sizeof(buf));
+			char16_t buf[1024];
+			int c = vfs_read(fp, (uint8_t*)buf, sizeof(buf));
+			buf[c] = 0;
 			uart_print(u"Read '%s'\n", buf);
 			vfs_close(fp);
 		}
@@ -281,7 +283,6 @@ int kernel_main()
 		display.getDepth(),
 		*font);
 
-	pmm_dump();
 	heap_dump();
 
 	ts->print(u"\nCompiled on %s\nVideo memory at 0x%08p with %d bytes\n\n", __TIME__,

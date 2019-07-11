@@ -19,8 +19,10 @@
 #include <sys/uart.h>
 #include <sys/soc.h>
 #include <sys/system.h>
+#include <sys/procfs.h>
 #include <sys/errors.h>
 #include <mc/string.h>
+#include <mc/stdio.h>
 #include <mc/memory.h>
 
 
@@ -78,6 +80,45 @@ static struct
 	{ u"I", u"Memory-mapped I/O" },
 };
 
+//#include <sys/uart.h>
+static int proc_frames( uint8_t *buffer, int size, void *data )
+{
+	(void) data;
+
+	char16_t *p = (char16_t*) buffer;
+	size_t ps = (size_t) size / sizeof(char16_t);
+	// 'sncatprintf' requires a null-terminator
+	p[0] = 0;
+
+	size_t type = frameTable[0];
+	size_t start = 0;
+
+ 	sncatprintf(p, ps, u"Start       End         Frames      Description\n");
+	sncatprintf(p, ps, u"----------  ----------  ----------  ---------------------------------------\n");
+
+	for (size_t i = 0; i <= SYS_BITMAP_SIZE; ++i)
+	{
+		if (i == SYS_BITMAP_SIZE || frameTable[i] != type)
+		{
+			sncatprintf(p, ps, u"0x%08x  0x%08x  %-10d  %s\n",
+				(uint32_t) (start * SYS_PAGE_SIZE),
+				(uint32_t) ( (i - 1) * SYS_PAGE_SIZE + (SYS_PAGE_SIZE - 1) ), // to avoid overflow
+				(uint32_t) (i - start),
+				PFT_NAMES[ GET_PFT_INDEX(type) ].name );
+			type = frameTable[i];
+			start = i;
+		}
+	}
+
+	return (int) (strlen(p) * sizeof(char16_t));
+}
+
+
+void pmm_register()
+{
+	procfs_register(u"/frames", proc_frames, NULL);
+}
+
 
 void pmm_initialize()
 {
@@ -127,30 +168,6 @@ void pmm_initialize()
 	// reserve the IO memory
 	for (size_t i = CPU_IO_BASE; i < CPU_IO_END; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_MMIO );
-}
-
-
-void pmm_dump()
-{
-	size_t type = frameTable[0];
-	size_t start = 0;
-
- 	uart_puts(u"Start       End         Frames      Description\n");
-	uart_puts(u"----------  ----------  ----------  ---------------------------------------\n");
-
-	for (size_t i = 0; i <= SYS_BITMAP_SIZE; ++i)
-	{
-		if (i == SYS_BITMAP_SIZE || frameTable[i] != type)
-		{
-			uart_print(u"0x%08x  0x%08x  %-10d  %s\n",
-				(uint32_t) (start * SYS_PAGE_SIZE),
-				(uint32_t) ( (i - 1) * SYS_PAGE_SIZE + (SYS_PAGE_SIZE - 1) ), // to avoid overflow
-				(uint32_t) (i - start),
-				PFT_NAMES[ GET_PFT_INDEX(type) ].name );
-			type = frameTable[i];
-			start = i;
-		}
-	}
 }
 
 

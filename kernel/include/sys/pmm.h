@@ -80,11 +80,11 @@ void pmm_free(
 	size_t address,
 	size_t count );
 
-void pmm_dump();
-
 size_t pmm_size();
 
 size_t pmm_available();
+
+void pmm_register();
 
 #ifdef __cplusplus
 }
