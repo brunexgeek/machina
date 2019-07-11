@@ -222,24 +222,10 @@ extern "C" void system_initialize()
 	procfs_register(u"/sysname", proc_sysname, NULL);
 	pmm_register();
 
-	struct mount *mp = NULL;
-	if (vfs_mount(u"procfs", u"procfs", u"/proc", u"", &mp) == EOK)
-	{
-		uart_print(u"Mounted '/proc'\n");
-		struct file *fp = NULL;
-		if (vfs_open(u"/proc/frames", 0, &fp) == EOK)
-		{
-			char16_t buf[1024];
-			int c = vfs_read(fp, (uint8_t*)buf, sizeof(buf));
-			buf[c] = 0;
-			uart_print(u"Read '%s'\n", buf);
-			vfs_close(fp);
-		}
-		vfs_unmount(mp);
-	}
+	if (vfs_mount(u"procfs", u"procfs", u"/proc", u"", 0, NULL) == EOK)
+		uart_puts(u"Mounted '/proc'\n");
 
 	uart_puts(u"Starting kernel main...\n");
-
 	switch ( kernel_main () )
 	{
 		case EREBOOT:
@@ -290,8 +276,25 @@ int kernel_main()
 
 	sync_enableInterrupts();
 
-	ts->colorTest();
+	//ts->colorTest();
 	ts->print(u"Now is %d\n", (uint32_t) timer_tick());
+
+	// print physical memory information
+	struct file *fp = NULL;
+	if (vfs_open(u"/proc/frames", 0, &fp) == EOK)
+	{
+		char16_t buf[1024];
+		int c = vfs_read(fp, (uint8_t*)buf, sizeof(buf));
+		if (c >= 0)
+		{
+			c /= sizeof(char16_t);
+			buf[c] = 0;
+			ts->write(buf, c);
+			uart_puts(buf);
+		}
+		vfs_close(fp);
+	}
+
 	ts->refresh();
 	display.draw(*ts);
 

@@ -48,8 +48,8 @@ struct filesystem;
 
 struct mount
 {
-    char16_t mntfrom[MAX_PATH];
-    char16_t mntto[MAX_PATH];
+    char16_t source[MAX_PATH];
+    char16_t target[MAX_PATH];
     struct filesystem *fs;
     uid_t uid;
     gid_t gid;
@@ -135,7 +135,7 @@ struct fsops
      */
     //int (*find)( struct mount *mp, const char16_t *name, struct vfs_noderef *ref );
 
-    int (*mount)( struct mount *mp, const char16_t *opts );
+    int (*mount)( struct mount *mp, const char16_t *opts, uint32_t flags );
 
     int (*unmount)( struct mount *mp );
 
@@ -144,7 +144,7 @@ struct fsops
 
 struct filesystem
 {
-    char16_t name[MAX_FILENAME + 1]; /* null-terminated file system name */
+    char16_t type[MAX_FILENAME + 1]; /* null-terminated file system name */
     struct fsops ops;
     struct filesystem *next;
 };
@@ -158,16 +158,17 @@ int vfs_initialize();
 
 int vfs_register( struct filesystem *fs );
 
-int vfs_unregister( const char16_t *name );
+int vfs_unregister( const char16_t *type );
 
 int vfs_mount(
     const char16_t *type,
-    const char16_t *mntfrom,
-    const char16_t *mntto,
+    const char16_t *source,
+    const char16_t *target,
     const char16_t *opts,
+    uint32_t flags,
     struct mount **mp );
 
-int vfs_unmount( struct mount *mp );
+int vfs_unmount( const char16_t *target, uint32_t flags );
 
 int vfs_lookup( const char16_t *name, struct mount **mp, const char16_t **rest);
 

@@ -26,7 +26,7 @@ int vfs_register( struct filesystem *fs )
 {
     bool valid =
         fs != NULL &&
-        fs->name[0] != 0 &&
+        fs->type[0] != 0 &&
         fs->ops.open != NULL &&
         fs->ops.close != NULL &&
         fs->ops.read != NULL &&
@@ -39,28 +39,28 @@ int vfs_register( struct filesystem *fs )
     struct filesystem *p = fsList;
     while (p)
     {
-        if (strcmp(p->name, fs->name) == 0) return EEXIST;
+        if (strcmp(p->type, fs->type) == 0) return EEXIST;
         p = p->next;
     }
 
     fs->next = fsList;
     fsList = fs;
 
-    uart_print(u"Registered filesystem '%s'\n", fs->name);
+    uart_print(u"Registered filesystem '%s'\n", fs->type);
 
     return EOK;
 }
 
 
-int vfs_unregister( const char16_t *name )
+int vfs_unregister( const char16_t *type )
 {
-    if (name == NULL || name[0] == 0) return EINVALID;
+    if (type == NULL || type[0] == 0) return EINVALID;
 
     struct filesystem *q = NULL;
     struct filesystem *p = fsList;
     while (p)
     {
-        if (strcmp(p->name, name) == 0)
+        if (strcmp(p->type, type) == 0)
         {
             if (q)
                 q->next = p->next;
@@ -77,19 +77,18 @@ int vfs_unregister( const char16_t *name )
 
 int vfs_mount(
     const char16_t *type,
-    const char16_t *mntfrom,
-    const char16_t *mntto,
+    const char16_t *source,
+    const char16_t *target,
     const char16_t *opts,
+    uint32_t flags,
     struct mount **mp )
 {
-    (void) mp;
-
-    if (strlen(mntto) >= MAX_PATH || strlen(mntfrom) >= MAX_PATH) return ETOOLONG;
+    if (strlen(target) >= MAX_PATH || strlen(source) >= MAX_PATH) return ETOOLONG;
 
     struct filesystem *fs = fsList;
     while (fs)
     {
-        if (strcmp(fs->name, type) == 0) break;
+        if (strcmp(fs->type, type) == 0) break;
         fs = fs->next;
     }
     if (fs == NULL) return ENOENT;
@@ -98,11 +97,11 @@ int vfs_mount(
     if (tmp == NULL) return EMEMORY;
 
     memset(tmp, 0, sizeof(*tmp));
-    strcpy(tmp->mntto, mntto);
-    strcpy(tmp->mntfrom, mntfrom);
+    strcpy(tmp->source, source);
+    strcpy(tmp->target, target);
     tmp->fs = fs;
 
-    int result = fs->ops.mount(tmp, opts);
+    int result = fs->ops.mount(tmp, opts, flags);
     if (result < 0)
     {
         heap_free(tmp);
@@ -111,33 +110,36 @@ int vfs_mount(
 
     tmp->next = mountList;
     mountList = tmp;
+    if (mp) *mp = tmp;
     return EOK;
 }
 
 
-int vfs_unmount( struct mount *mp )
+int vfs_unmount( const char16_t *target, uint32_t flags )
 {
-    if (mp == NULL) return EINVALID;
-    int result =  mp->fs->ops.unmount(mp);
+    (void) flags;
+
+    if (target == NULL) return EINVALID;
+
+    struct mount *p = NULL;
+    struct mount *m = mountList;
+
+    while (strcmp(m->target, target) == 0)
+    {
+        p = m;
+        m = m->next;
+    }
+    if (m == NULL) return ENOENT;
+
+    int result =  m->fs->ops.unmount(m);
     if (result < 0) return result;
 
-    if (mp == mountList)
-        mountList = mp->next;
+    if (m == mountList)
+        mountList = m->next;
     else
-    {
-        struct mount *q = mountList;
-        while (q)
-        {
-            if (q->next == mp)
-            {
-                q->next = mp->next;
-                break;
-            }
-            q = q->next;
-        }
-    }
+        p->next = m->next;
 
-    heap_free(mp);
+    heap_free(m);
     return EOK;
 }
 
@@ -154,9 +156,8 @@ int vfs_lookup( const char16_t *path, struct mount **mp, const char16_t **rest)
     struct mount *tmp = mountList;
     while (tmp)
     {
-        size_t s = strlen(tmp->mntto);
-        bool match = (strncmp(tmp->mntto, path, s) == 0);
-        //uart_print(u"--- '%s' against '%s' matches? %s\n", tmp->mntto, path, ((match) ? u"yes" : u"no"));
+        size_t s = strlen(tmp->target);
+        bool match = (strncmp(tmp->target, path, s) == 0);
         if (len >= s && match && path[s] == '/' && s > bests)
         {
             bests = s;
@@ -166,7 +167,7 @@ int vfs_lookup( const char16_t *path, struct mount **mp, const char16_t **rest)
     }
 
     if (bestm == NULL) return ENOENT;
-    uart_print(u"[vfs_lookup] Best mount is %s\n", bestm->mntto);
+    uart_print(u"[vfs_lookup] Best mount is %s\n", bestm->target);
     *rest = path + bests;
     *mp = bestm;
     return EOK;
