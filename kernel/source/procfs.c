@@ -102,17 +102,16 @@ int procfs_close( struct file *fp )
 
 int procfs_read( struct file *fp, uint8_t *buffer, size_t count )
 {
-    if (count == 0) return EOK;
+    if (count == 0) return 0;
 
     struct fsdata *pd = (struct fsdata*)fp->fsdata;
-    if (pd->size - pd->offset == 0) return EOK;
+    if (pd->size == pd->offset) return 0;
 
     int len = min((int) count, pd->size - pd->offset);
     memcpy(buffer, pd->buffer + pd->offset, (size_t) len);
     pd->offset += len;
-    //uart_print(u"%s: read %d bytes [total: %d, offset: %d]\n", pd->inode->name, len, pd->size, pd->offset);
 
-    return EOK;
+    return len;
 }
 
 int procfs_write( struct file *fp, const uint8_t *buffer, size_t count )
