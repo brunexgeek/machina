@@ -74,15 +74,15 @@ class TextScreen
 		~TextScreen();
 
 		void write(
-			const char16_t *text,
+			const char *text,
 			size_t size,
 			bool overwrite = true );
 
 		void print(
-			char16_t text );
+			char text );
 
 		void print(
-			const char16_t *format,
+			const char *format,
 			... );
 
 		uint32_t getColumns() const INLINE_ALWAYS;

@@ -16,9 +16,9 @@ extern "C" {
 
 int procfs_initialize();
 
-int procfs_register( const char16_t *name, procfunc_t func, void *data );
+int procfs_register( const char *name, procfunc_t func, void *data );
 
-int procfs_unregister( const char16_t *name );
+int procfs_unregister( const char *name );
 
 #ifdef __cplusplus
 }

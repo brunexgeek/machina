@@ -55,6 +55,8 @@ typedef size_t uintptr_t;
 #define false 0
 #endif
 
+#define CHAR_TYPE  char
+#define UCHAR_TYPE  uint8_t
 
 // TODO: not the best place for this
 typedef uint16_t Color;

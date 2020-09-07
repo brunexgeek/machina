@@ -1,7 +1,7 @@
 #include <mc/string.h>
 
 
-char16_t *strncpy( char16_t *dst, const char16_t *src, size_t num )
+CHAR_TYPE *strncpy( CHAR_TYPE *dst, const CHAR_TYPE *src, size_t num )
 {
     if (dst == NULL || src == NULL || num == 0) return NULL;
     while (num-- && *src) { *dst++ = *src++; }

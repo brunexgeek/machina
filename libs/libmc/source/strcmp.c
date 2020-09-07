@@ -1,10 +1,8 @@
 #include <mc/string.h>
 
 
-int strcmp( const char16_t *str1, const char16_t *str2 )
+int strcmp( const CHAR_TYPE *s1, const CHAR_TYPE *s2 )
 {
-    const uint16_t *p1 = (const uint16_t*) str1;
-    const uint16_t *p2 = (const uint16_t*) str2;
-    while (*p1 && *p1 == *p2) { ++p1; ++p2; }
-    return ( *p1 > *p2 ) - ( *p2  > *p1 );
+    while (*s1 && *s1 == *s2) { ++s1; ++s2; }
+    return ( *s1 > *s2 ) - ( *s2  > *s1 );
 }

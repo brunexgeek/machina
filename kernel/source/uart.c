@@ -81,7 +81,7 @@ uint8_t uart_getc()
 }
 
 
-void uart_puts( const char16_t *str )
+void uart_puts( const char *str )
 {
     if (str == NULL || *str == 0) return;
     while (*str != 0)
@@ -92,12 +92,12 @@ void uart_puts( const char16_t *str )
 }
 
 
-void _putchar( char16_t c )
+void _putchar( char c )
 {
     uart_putc(c);
 }
 
-void uart_print( const char16_t *format, ... )
+void uart_print( const char *format, ... )
 {
 	va_list args;
 

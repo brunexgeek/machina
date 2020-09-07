@@ -3,10 +3,6 @@
 
 #include <sys/types.h>
 
-
-#define CHAR_TYPE  char16_t
-#define UCHAR_TYPE  uint16_t
-
 typedef void (*cprintf_callback_t )(CHAR_TYPE character, void* arg);
 
 #ifdef __cplusplus

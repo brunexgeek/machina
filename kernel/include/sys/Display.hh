@@ -29,14 +29,14 @@ class Display : public Device
 	public:
 		~Display();
 
-		const char16_t *getName() const
+		const char *getName() const
 		{
-			return u"VideoCore IV";
+			return "VideoCore IV";
 		}
 
-		const char16_t *getFileName() const
+		const char *getFileName() const
 		{
-			return u"display";
+			return "display";
 		}
 
 		static Display &getInstance();

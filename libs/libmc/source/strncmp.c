@@ -2,10 +2,9 @@
 #include <mc/string.h>
 
 
-int strncmp( const char16_t *str1, const char16_t *str2, size_t count )
+int strncmp( const CHAR_TYPE *s1, const CHAR_TYPE *s2, size_t c )
 {
-    const uint16_t *p1 = (const uint16_t*) str1;
-    const uint16_t *p2 = (const uint16_t*) str2;
-    while (--count && *p1 && *p1 == *p2) { ++p1; ++p2; }
-    return (int)( *p1 > *p2 ) - (int)( *p2  > *p1 );
+    if (c == 0) return 0;
+    while (--c && *s1 && *s1 == *s2) { ++s1; ++s2; }
+    return (int)( *s1 > *s2 ) - (int)( *s2  > *s1 );
 }

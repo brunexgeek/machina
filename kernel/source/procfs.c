@@ -12,7 +12,7 @@
 
 struct inode
 {
-    char16_t name[MAX_FILENAME];
+    char name[MAX_FILENAME];
     ino_t inode;
     procfunc_t callback;
     void *data;
@@ -32,7 +32,7 @@ static struct inode *procList = NULL;
 static ino_t counter = 0;
 
 
-static struct inode *find_inode( const char16_t *name )
+static struct inode *find_inode( const char *name )
 {
     struct inode *node = procList;
     while (node)
@@ -45,7 +45,7 @@ static struct inode *find_inode( const char16_t *name )
 }
 
 
-static struct inode *remove_inode( const char16_t *name )
+static struct inode *remove_inode( const char *name )
 {
     struct inode *prev = NULL;
     struct inode *node = procList;
@@ -68,7 +68,7 @@ static struct inode *remove_inode( const char16_t *name )
 }
 
 
-static int procfs_open( struct file *fp, const char16_t *path, uint32_t flags )
+static int procfs_open( struct file *fp, const char *path, uint32_t flags )
 {
     (void) flags;
 
@@ -136,7 +136,7 @@ static int procfs_enumerate( struct file *fp, struct dirent *entry )
     return ENOIMP;
 }
 
-static int procfs_mount( struct mount *mp, const char16_t *opts, uint32_t flags )
+static int procfs_mount( struct mount *mp, const char *opts, uint32_t flags )
 {
     (void) mp;
     (void) opts;
@@ -153,7 +153,7 @@ static int procfs_unmount( struct mount *mp )
 int procfs_initialize()
 {
     static struct filesystem fs;
-    strcpy(fs.type, u"procfs");
+    strcpy(fs.type, "procfs");
     fs.ops.open = procfs_open;
     fs.ops.close = procfs_close;
     fs.ops.read = procfs_read;
@@ -166,7 +166,7 @@ int procfs_initialize()
     return vfs_register(&fs);
 }
 
-int procfs_register( const char16_t *name, procfunc_t func, void *data )
+int procfs_register( const char *name, procfunc_t func, void *data )
 {
     if (strlen(name ) >= MAX_FILENAME) return ETOOLONG;
 
@@ -182,12 +182,12 @@ int procfs_register( const char16_t *name, procfunc_t func, void *data )
     ptr->next = procList;
     procList = ptr;
 
-    uart_print(u"Registered procfs file '%s'\n", name);
+    uart_print("Registered procfs file '%s'\n", name);
 
     return EOK;
 }
 
-int procfs_unregister( const char16_t *name )
+int procfs_unregister( const char *name )
 {
     struct inode *tmp = remove_inode(name);
     if (tmp == NULL) return ENOENT;

@@ -192,10 +192,10 @@ void heap_free(
 
 void heap_dump()
 {
-	static const char16_t *UNITS[] = { u"B ", u"KB", u"MB" };
+	static const char *UNITS[] = { "B ", "KB", "MB" };
 
-	uart_print(u"Size     Count   Peak\n");
-	uart_print(u"-------  ------  --------\n");
+	uart_print("Size     Count   Peak\n");
+	uart_print("-------  ------  --------\n");
 	struct bucket_info_t *bucket = heapBuckets;
 	for (; bucket->size != INVALID_BUCKET; ++bucket)
 	{
@@ -205,7 +205,7 @@ void heap_dump()
 		for (; size >= 1024; ++unit, size /= 1024);
 
 		if (bucket->count == 0 && bucket->peak == 0) continue;
-		uart_print(u"%4d %s  %-6d  %-8d\n",
+		uart_print("%4d %s  %-6d  %-8d\n",
 			size,
 			UNITS[unit],
 			bucket->count,

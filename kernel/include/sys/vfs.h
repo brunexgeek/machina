@@ -22,7 +22,7 @@
 
 struct dirent
 {
-    char16_t name[MAX_FILENAME + 1]; /* null-terminated file name */
+    char name[MAX_FILENAME + 1]; /* null-terminated file name */
     ino_t inode;
     uint32_t size;
     uint16_t type;
@@ -48,8 +48,8 @@ struct filesystem;
 
 struct mount
 {
-    char16_t source[MAX_PATH];
-    char16_t target[MAX_PATH];
+    char source[MAX_PATH];
+    char target[MAX_PATH];
     struct filesystem *fs;
     uid_t uid;
     gid_t gid;
@@ -67,7 +67,7 @@ struct file
     uid_t owner;
     gid_t group;
     off64_t offset;
-    char16_t *path;
+    char *path;
     char chbuf;
     void *fsdata; // fylesystem-specific data
 };
@@ -81,7 +81,7 @@ struct fsops
      * @returns On success, returns a positive file descriptor. Otherwise,
      *     returns a negative error code.
      */
-    int (*open)( struct file *fp, const char16_t *path, uint32_t flags );
+    int (*open)( struct file *fp, const char *path, uint32_t flags );
 
     /**
      * Close a file description.
@@ -133,9 +133,9 @@ struct fsops
      * @returns On success, the directory entry information is copied to @c entry and
      *     the function returns zero. Otherwise, returns a negative error code.
      */
-    //int (*find)( struct mount *mp, const char16_t *name, struct vfs_noderef *ref );
+    //int (*find)( struct mount *mp, const char *name, struct vfs_noderef *ref );
 
-    int (*mount)( struct mount *mp, const char16_t *opts, uint32_t flags );
+    int (*mount)( struct mount *mp, const char *opts, uint32_t flags );
 
     int (*unmount)( struct mount *mp );
 
@@ -144,7 +144,7 @@ struct fsops
 
 struct filesystem
 {
-    char16_t type[MAX_FILENAME + 1]; /* null-terminated file system name */
+    char type[MAX_FILENAME + 1]; /* null-terminated file system name */
     struct fsops ops;
     struct filesystem *next;
 };
@@ -158,21 +158,21 @@ int vfs_initialize();
 
 int vfs_register( struct filesystem *fs );
 
-int vfs_unregister( const char16_t *type );
+int vfs_unregister( const char *type );
 
 int vfs_mount(
-    const char16_t *type,
-    const char16_t *source,
-    const char16_t *target,
-    const char16_t *opts,
+    const char *type,
+    const char *source,
+    const char *target,
+    const char *opts,
     uint32_t flags,
     struct mount **mp );
 
-int vfs_unmount( const char16_t *target, uint32_t flags );
+int vfs_unmount( const char *target, uint32_t flags );
 
-int vfs_lookup( const char16_t *name, struct mount **mp, const char16_t **rest);
+int vfs_lookup( const char *name, struct mount **mp, const char **rest);
 
-int vfs_open( const char16_t *name, uint32_t flags, struct file **fp );
+int vfs_open( const char *name, uint32_t flags, struct file **fp );
 
 int vfs_close( struct file *fp );
 
@@ -184,7 +184,7 @@ int vfs_enumerate( struct file *fp, struct dirent *entry );
 
 
 // default implementation for 'fs->find' (because most of the time file systems will do the same thing)
-//int vfs_defaultFind( struct vfs_mount *mp, const char16_t *name, struct vfs_noderef *ref );
+//int vfs_defaultFind( struct vfs_mount *mp, const char *name, struct vfs_noderef *ref );
 
 #ifdef __cplusplus
 }

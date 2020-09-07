@@ -23,7 +23,7 @@ namespace machina {
 
 void KernelPanic()
 {
-	uart_puts(u"PANIC");
+	uart_puts("PANIC");
 	//asm volatile("wfi");
 }
 

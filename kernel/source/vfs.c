@@ -46,13 +46,13 @@ int vfs_register( struct filesystem *fs )
     fs->next = fsList;
     fsList = fs;
 
-    uart_print(u"Registered filesystem '%s'\n", fs->type);
+    uart_print("Registered filesystem '%s'\n", fs->type);
 
     return EOK;
 }
 
 
-int vfs_unregister( const char16_t *type )
+int vfs_unregister( const char *type )
 {
     if (type == NULL || type[0] == 0) return EINVALID;
 
@@ -76,10 +76,10 @@ int vfs_unregister( const char16_t *type )
 
 
 int vfs_mount(
-    const char16_t *type,
-    const char16_t *source,
-    const char16_t *target,
-    const char16_t *opts,
+    const char *type,
+    const char *source,
+    const char *target,
+    const char *opts,
     uint32_t flags,
     struct mount **mp )
 {
@@ -115,7 +115,7 @@ int vfs_mount(
 }
 
 
-int vfs_unmount( const char16_t *target, uint32_t flags )
+int vfs_unmount( const char *target, uint32_t flags )
 {
     (void) flags;
 
@@ -144,7 +144,7 @@ int vfs_unmount( const char16_t *target, uint32_t flags )
 }
 
 
-int vfs_lookup( const char16_t *path, struct mount **mp, const char16_t **rest)
+int vfs_lookup( const char *path, struct mount **mp, const char **rest)
 {
     if (!path) return EINVALID;
 
@@ -167,20 +167,20 @@ int vfs_lookup( const char16_t *path, struct mount **mp, const char16_t **rest)
     }
 
     if (bestm == NULL) return ENOENT;
-    uart_print(u"[vfs_lookup] Best mount is %s\n", bestm->target);
+    uart_print("[vfs_lookup] Best mount is %s\n", bestm->target);
     *rest = path + bests;
     *mp = bestm;
     return EOK;
 }
 
 
-int vfs_open( const char16_t *path, uint32_t flags, struct file **fp )
+int vfs_open( const char *path, uint32_t flags, struct file **fp )
 {
     if (path == NULL || path[0] == 0) return EINVALID;
 
     // get the corresponding mount point
     struct mount *mp;
-    const char16_t *name;
+    const char *name;
     int result = vfs_lookup(path, &mp, &name);
     if (result < 0) return result;
 
@@ -189,7 +189,7 @@ int vfs_open( const char16_t *path, uint32_t flags, struct file **fp )
     if (tmp == NULL) return EMEMORY;
     memset(tmp, 0, sizeof(tmp));
     tmp->mp = mp;
-    tmp->path = (char16_t*) ((uint8_t*) tmp + sizeof(*tmp));
+    tmp->path = (char*) ((uint8_t*) tmp + sizeof(*tmp));
     strcpy(tmp->path, path);
 
     result = mp->fs->ops.open(tmp, name, flags);

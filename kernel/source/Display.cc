@@ -47,7 +47,7 @@ Display::Display (
 	uint32_t depth ) : width(width), height(height), depth(DISPLAY_DEPTH),
 		pitch(width * (depth / 8))
 {
-	uart_puts(u"Initializing display... ");
+	uart_puts("Initializing display... ");
 
 	req.width = width;
 	req.height = height;
@@ -66,7 +66,7 @@ Display::Display (
 	bufferSize = req.bufferSize;
 	pitch = req.pitch;
 
-	uart_print(u"%s %dx%d at 0x%08x\n", getName(), req.width, req.height, buffer);
+	uart_print("%s %dx%d at 0x%08x\n", getName(), req.width, req.height, buffer);
 }
 
 

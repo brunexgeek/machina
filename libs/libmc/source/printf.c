@@ -360,17 +360,17 @@ static void _ftoa(struct printf_wrapper *wrapper, double value, unsigned int pre
   // test for special values
   if (value != value)
   {
-    _out_rev(wrapper, u"nan", 3, width, flags);
+    _out_rev(wrapper, "nan", 3, width, flags);
     return;
   }
   if (value < -DBL_MAX)
   {
-    _out_rev(wrapper, u"fni-", 4, width, flags);
+    _out_rev(wrapper, "fni-", 4, width, flags);
     return;
   }
   if (value > DBL_MAX)
   {
-    _out_rev(wrapper, (flags & FLAGS_PLUS) ? u"fni+" : u"fni", (flags & FLAGS_PLUS) ? 4U : 3U, width, flags);
+    _out_rev(wrapper, (flags & FLAGS_PLUS) ? "fni+" : "fni", (flags & FLAGS_PLUS) ? 4U : 3U, width, flags);
     return;
   }
 

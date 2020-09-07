@@ -61,7 +61,7 @@ static void system_disableCore()
 
 	while (true)
 	{
-		uart_puts(u"Disabling CPU core");
+		uart_puts("Disabling CPU core");
 		#if (RPIGEN == 1)
 
 		size_t value = 0;
@@ -164,12 +164,12 @@ int proc_sysname( uint8_t *buffer, int size, void *data )
 {
 	(void) data;
 
-	const char16_t *sysname = u"Machina";
+	const char *sysname = "Machina";
 	size_t len = strlen(sysname);
 
 	if (size >= (int)(len + 1) * 2)
 	{
-		strncpy((char16_t*) buffer, sysname, len + 1);
+		strncpy((char*) buffer, sysname, len + 1);
 		return (int)(len + 1) * 2;
 	}
 
@@ -181,7 +181,7 @@ extern "C" void system_initialize()
 {
 	timer_initialize();
 	uart_init();
-	uart_puts(u"Initializing kernel...\nKernel arguments: ");
+	uart_puts("Initializing kernel...\nKernel arguments: ");
 
 	for (size_t i = 0; i < SYS_CPU_CORES; ++i)
 		DISABLED_CORES[i] = false;
@@ -211,21 +211,14 @@ extern "C" void system_initialize()
 	//       crucial that no dynamic memory allocation is attempted before
 	//       that point. This includes using 'new' and 'delete' C++ operators.
 
-	// initializes the physical memory manager
-	pmm_initialize();
-	// initializes the MMU
-	//VMM::getInstance().initialize();
-	// initializes the dynamic memory manager
-	heap_initialize();
-
 	procfs_initialize();
-	procfs_register(u"/sysname", proc_sysname, NULL);
+	procfs_register("/sysname", proc_sysname, NULL);
 	pmm_register();
 
-	if (vfs_mount(u"procfs", u"procfs", u"/proc", u"", 0, NULL) == EOK)
-		uart_puts(u"Mounted '/proc'\n");
+	if (vfs_mount("procfs", "procfs", "/proc", "", 0, NULL) == EOK)
+		uart_puts("Mounted '/proc'\n");
 
-	uart_puts(u"Starting kernel main...\n");
+	uart_puts("Starting kernel main...\n");
 	switch ( kernel_main () )
 	{
 		case EREBOOT:
@@ -271,7 +264,7 @@ int kernel_main()
 
 	heap_dump();
 
-	ts->print(u"\nCompiled on %S\nVideo memory at 0x%08p with %d bytes\n\n", __TIME__,
+	ts->print("\nCompiled on %S\nVideo memory at 0x%08p with %d bytes\n\n", __TIME__,
 		display.getBuffer(), display.getBufferSize() );
 
 	sync_enableInterrupts();
@@ -281,13 +274,13 @@ int kernel_main()
 
 	// print physical memory information
 	struct file *fp = NULL;
-	if (vfs_open(u"/proc/frames", 0, &fp) == EOK)
+	if (vfs_open("/proc/frames", 0, &fp) == EOK)
 	{
-		char16_t buf[1024];
+		char buf[1024];
 		int c = vfs_read(fp, (uint8_t*)buf, sizeof(buf));
 		if (c >= 0)
 		{
-			c /= sizeof(char16_t);
+			c /= sizeof(char);
 			buf[c] = 0;
 			ts->write(buf, c);
 			uart_puts(buf);

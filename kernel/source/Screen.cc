@@ -97,7 +97,7 @@ TextScreen::~TextScreen()
 
 
 void TextScreen::write(
-	const char16_t *text,
+	const char *text,
 	size_t size,
 	bool )
 {
@@ -106,7 +106,7 @@ void TextScreen::write(
 	for (; size > 0; --size, ++text)
 	{
 		if (*text == '\t')
-			print(u"    ");
+			print("    ");
 		else
 			print(*text);
 	}
@@ -116,7 +116,7 @@ void TextScreen::write(
 
 
 void TextScreen::print(
-	char16_t symbol )
+	char symbol )
 {
 	static AnsiEscapeState state = AES_NONE;
 	static size_t param = AES_NONE;
@@ -222,11 +222,11 @@ void TextScreen::print(
 
 
 void TextScreen::print(
-	const char16_t *format,
+	const char *format,
 	... )
 {
 	va_list args;
-	char16_t buffer[128];
+	char buffer[128];
 	int n = 0;
 
 	va_start(args, format);
@@ -335,22 +335,22 @@ void TextScreen::draw(
 
 OPTIMIZE_0 void TextScreen::colorTest()
 {
-	static const char16_t HEADER[] = u"\33[0m         40m   41m   42m   43m   44m   45m   46m   47m\n";
+	static const char HEADER[] = "\33[0m         40m   41m   42m   43m   44m   45m   46m   47m\n";
 
-	write(HEADER, (sizeof(HEADER) - 1) / sizeof(char16_t));
+	write(HEADER, (sizeof(HEADER) - 1) / sizeof(char));
 
 	for (int foreColor = 0; foreColor < 8; ++foreColor)
 	{
-		print(u"\33[0m    3%dm ", foreColor);
+		print("\33[0m    3%dm ", foreColor);
 		for (int backColor = 0; backColor < 8; ++backColor)
 		{
-			print(u"\33[3%d;4%dm AbC \33[0m ", foreColor, backColor);
+			print("\33[3%d;4%dm AbC \33[0m ", foreColor, backColor);
 		}
 
-		print(u"\n\33[0m  1;3%dm ", foreColor);
+		print("\n\33[0m  1;3%dm ", foreColor);
 		for (int backColor = 0; backColor < 8; ++backColor)
 		{
-			print(u"\33[1;3%d;4%dm AbC \33[0m ", foreColor, backColor);
+			print("\33[1;3%d;4%dm AbC \33[0m ", foreColor, backColor);
 		}
 		print('\n');
 	}

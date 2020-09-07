@@ -60,24 +60,24 @@ static uint8_t *frameTable;
 
 static struct
 {
-	const char16_t *symbol;
-    const char16_t *name;
+	const char *symbol;
+    const char *name;
 } PFT_NAMES[] =
 {
-	{ u".", u"Free" },
-	{ u".", u"Free (dirty)" },
-	{ u"K", u"Kernel image" },
-	{ u"-", u"Reserved" },
-	{ u"1", u"Kernel stack" },
-	{ u"2", u"Abort stack" },
-	{ u"3", u"IRQ stack" },
-	{ u"T", u"Frame table" },
-	{ u"A", u"Physical frame" },
-	{ u"H", u"Kernel heap" },
-	{ u"V", u"Video memory" },
-	{ u"P", u"Page table" },
-	{ u"x", u"Invalid" },
-	{ u"I", u"Memory-mapped I/O" },
+	{ ".", "Free" },
+	{ ".", "Free (dirty)" },
+	{ "K", "Kernel image" },
+	{ "-", "Reserved" },
+	{ "1", "Kernel stack" },
+	{ "2", "Abort stack" },
+	{ "3", "IRQ stack" },
+	{ "T", "Frame table" },
+	{ "A", "Physical frame" },
+	{ "H", "Kernel heap" },
+	{ "V", "Video memory" },
+	{ "P", "Page table" },
+	{ "x", "Invalid" },
+	{ "I", "Memory-mapped I/O" },
 };
 
 //#include <sys/uart.h>
@@ -85,22 +85,22 @@ static int proc_frames( uint8_t *buffer, int size, void *data )
 {
 	(void) data;
 
-	char16_t *p = (char16_t*) buffer;
-	size_t ps = (size_t) size / sizeof(char16_t);
+	char *p = (char*) buffer;
+	size_t ps = (size_t) size / sizeof(char);
 	// 'sncatprintf' requires a null-terminator
 	p[0] = 0;
 
 	size_t type = frameTable[0];
 	size_t start = 0;
 
- 	sncatprintf(p, ps, u"Start       End         Frames      Description\n");
-	sncatprintf(p, ps, u"----------  ----------  ----------  ---------------------------------------\n");
+ 	sncatprintf(p, ps, "Start       End         Frames      Description\n");
+	sncatprintf(p, ps, "----------  ----------  ----------  ---------------------------------------\n");
 
 	for (size_t i = 0; i <= SYS_BITMAP_SIZE; ++i)
 	{
 		if (i == SYS_BITMAP_SIZE || frameTable[i] != type)
 		{
-			sncatprintf(p, ps, u"0x%08x  0x%08x  %-10d  %s\n",
+			sncatprintf(p, ps, "0x%08x  0x%08x  %-10d  %s\n",
 				(uint32_t) (start * SYS_PAGE_SIZE),
 				(uint32_t) ( (i - 1) * SYS_PAGE_SIZE + (SYS_PAGE_SIZE - 1) ), // to avoid overflow
 				(uint32_t) (i - start),
@@ -110,19 +110,19 @@ static int proc_frames( uint8_t *buffer, int size, void *data )
 		}
 	}
 
-	return (int) (strlen(p) * sizeof(char16_t));
+	return (int) (strlen(p) * sizeof(char));
 }
 
 
 void pmm_register()
 {
-	procfs_register(u"/frames", proc_frames, NULL);
+	procfs_register("/frames", proc_frames, NULL);
 }
 
 
 void pmm_initialize()
 {
-	uart_puts(u"Initializing physical memory manager...\n");
+	uart_puts("Initializing physical memory manager...\n");
 	// probe the ARM memory map
 	struct memory_tag armSplit;
 	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit), NULL);
