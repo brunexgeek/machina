@@ -4,27 +4,13 @@ include_directories(
 
 set(CMAKE_EXE_LINKER_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/kernel.ld")
 
-add_subdirectory(source/platform/arm)
-add_subdirectory(source/platform/arm-rpi)
+add_subdirectory(source/platform/bcm2837)
 
 add_executable(kernel
-    "source/vfs.c"
-    "source/ramfs.c"
-    "source/procfs.c"
-    "source/heap.c"
+    "source/platform/bcm2837/entrypoint.S"
     "source/uart.c"
-    "source/pmm.c"
-    "source/timer.cc"
-    "source/mailbox.c"
-    "source/Font.cc"
-    "source/Display.cc"
-    "source/operator.cc"
-    "source/Screen.cc"
-    "source/System.cc"
-    "source/Kernel.cc"
-    "source/tamzen-10x20.c"
-    "source/platform/arm/system.S")
-target_link_libraries(kernel platform_arm libmc  platform_arm_rpi )
+    "source/main.cc")
+target_link_libraries(kernel bcm2837 libmc)
 set_target_properties(kernel PROPERTIES
     OUTPUT_NAME "kernel.elf"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

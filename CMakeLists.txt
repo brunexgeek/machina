@@ -13,7 +13,7 @@ set_property(CACHE  MACHINA_TARGET PROPERTY STRINGS
     "RPI-3B" )
 
 set(TOOLCHAIN_HOME "/opt/arm-rpi-4.9.3-linux-gnueabihf" CACHE STRING "")
-set(TOOLCHAIN_PREFIX "bin/arm-linux-gnueabihf-" CACHE STRING "")
+set(TOOLCHAIN_PREFIX "bin/aarch64-none-linux-gnu-" CACHE STRING "")
 
 enable_language(ASM)
 if(CMAKE_ASM_COMPILER_WORKS)
@@ -29,11 +29,11 @@ set(CMAKE_OBJCOPY      "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}objcopy")
 set(CMAKE_RANLIB       "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ranlib")
 
 if (MACHINA_TARGET STREQUAL "")
-    set(MACHINA_TARGET "RPI-2B")
+    set(MACHINA_TARGET "RPI-3B")
 endif()
 
 if (MACHINA_TARGET STREQUAL "RPI-3B")
-	set(TARGET_ARCH "-march=armv8-a -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard")
+	set(TARGET_ARCH "-march=armv8-a -mtune=cortex-a53")
     set(RPIGEN 3)
 elseif (MACHINA_TARGET STREQUAL "RPI-2B")
     set(TARGET_ARCH "-march=armv7ve -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard")
@@ -43,7 +43,7 @@ else()
     set(RPIGEN 1)
 endif()
 
-set(COMMOM_FLAGS "-Wfatal-errors -O0 -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type -Werror=implicit-function-declaration -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib -pedantic -Wuninitialized -Winit-self -Werror=int-conversion -Werror=incompatible-pointer-types -Werror=discarded-qualifiers")
+set(COMMOM_FLAGS "-Wfatal-errors -O0 -g -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type  -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib -pedantic -Wuninitialized -Winit-self -D__arm__=1")
 
 set(CMAKE_C_FLAGS   "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -std=c11")
 set(CMAKE_ASM_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN}")
@@ -51,9 +51,8 @@ set(CMAKE_CXX_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -fno-exce
 set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "")
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
-
-add_subdirectory(kernel)
 add_subdirectory(libs/libmc)
+add_subdirectory(kernel)
 
 
 if (CMAKE_CXX_COMPILER_VERSION)

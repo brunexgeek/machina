@@ -6,24 +6,15 @@ SECTIONS
 {
 	/*
 	 * The RPI third stage bootloader (start.elf) loads the kernel image
-	 * at 0x8000 and runs it.
+	 * at 0x8000 (0x80000 for aarch64) and runs it.
 	 */
-	.jumper 0x8000:
-	{
-		*(.jumperPoint)
-	}
-
-	/*
-	 * We use 0x10000 as entry point address because QEMU is unable to use
-	 * 0x8000. The real hardware will jump to here.
-	 */
-	.text 0x10000:
+	.text 0x80000:
 	{
 		/*
 		 * Kernel entry point function (written in assembly) which
 		 * calls the kernel main function (written in C).
 		 */
-		*(.entryPoint)
+		*(.text.entry)
 		*(.text*)
 	}
 
@@ -63,6 +54,8 @@ SECTIONS
 	}
 
 	__end_bss = .;
+	__size_bss = __end_bss - __begin_bss;
 
 	__kernel_end = .;
 }
+

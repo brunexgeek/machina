@@ -304,7 +304,7 @@ static void _ntoa_long(struct printf_wrapper *wrapper, unsigned long value, bool
   if (!(flags & FLAGS_PRECISION) || value) {
     do {
       const CHAR_TYPE digit = (CHAR_TYPE)(value % base);
-      buf[len++] = (char16_t) ((digit < 10) ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10);
+      buf[len++] = (CHAR_TYPE) ((digit < 10) ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10);
       value /= base;
     } while (value && (len < PRINTF_NTOA_BUFFER_SIZE));
   }
@@ -329,7 +329,7 @@ static void _ntoa_long_long(struct printf_wrapper *wrapper, unsigned long long v
   if (!(flags & FLAGS_PRECISION) || value) {
     do {
       const CHAR_TYPE digit = (CHAR_TYPE)(value % base);
-      buf[len++] = (char16_t)  ((digit < 10) ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10);
+      buf[len++] = (CHAR_TYPE)  ((digit < 10) ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10);
       value /= base;
     } while (value && (len < PRINTF_NTOA_BUFFER_SIZE));
   }
@@ -355,7 +355,7 @@ static void _ftoa(struct printf_wrapper *wrapper, double value, unsigned int pre
   double diff = 0.0;
 
   // powers of 10
-  static const double pow10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
+  static const uint32_t pow10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
 
   // test for special values
   if (value != value)
@@ -404,7 +404,7 @@ static void _ftoa(struct printf_wrapper *wrapper, double value, unsigned int pre
 
   int whole = (int)value;
   double tmp = (value - whole) * pow10[prec];
-  unsigned long frac = (unsigned long)tmp;
+  uint32_t frac = (uint32_t)tmp;
   diff = tmp - frac;
 
   if (diff > 0.5) {

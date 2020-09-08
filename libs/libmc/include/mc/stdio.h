@@ -3,6 +3,8 @@
 
 #include <sys/types.h>
 
+#define DBL_MAX  1.79769e+308
+
 typedef void (*cprintf_callback_t )(CHAR_TYPE character, void* arg);
 
 #ifdef __cplusplus

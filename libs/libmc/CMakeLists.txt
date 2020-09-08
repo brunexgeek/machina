@@ -5,17 +5,8 @@ include_directories(
 add_definitions("-DNOFLOAT")
 
 add_library(libmc STATIC
-    "source/memcpy.S"
-    "source/memcpy16.S"
-    "source/memcpy64.S"
-    "source/memset.S"
-    "source/strlen.c"
-    "source/strcmp.c"
-    "source/strncmp.c"
-    "source/strncpy.c"
-    "source/strcpy.c"
-    "source/printf.c"
-    "source/stub.c")
+    "source/string.cc"
+    "source/printf.cc")
 set_target_properties(libmc PROPERTIES
     OUTPUT_NAME "mc"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

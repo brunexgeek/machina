@@ -40,13 +40,6 @@ size_t strlen( const CHAR_TYPE *str );
 
 void *memset( void *ptr, int value, size_t num );
 
-
-void *memcpy16( void *output, const void *input, size_t size );
-
-#if (RPIGEN != 1)
-void *memcpy64( void *output, const void *input, size_t size );
-#endif
-
 void *memcpy( void *output, const void *input, size_t size );
 
 #ifdef __cplusplus

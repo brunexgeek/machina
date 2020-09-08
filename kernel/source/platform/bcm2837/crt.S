@@ -16,27 +16,20 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-	.syntax unified
 	.text
-	.thumb
-	//.cpu cortex-m0
 
-
-@ long long __aeabi_ldiv0(long long r)
-@
-@ Handler for 64 bit division by zero
-@
-	.thumb_func
-        .global __aeabi_ldiv0
+// long long __aeabi_ldiv0(long long r)
+//
+// Handler for 64 bit division by zero
+//
+	.global __aeabi_ldiv0
 __aeabi_ldiv0:
-	bx	lr
+	b	lr
 
-
-@ int __aeabi_idiv0(int r)
-@
-@ Handler for 32 bit division by zero
-@
-	.thumb_func
-        .global __aeabi_idiv0
+// int __aeabi_idiv0(int r)
+//
+// Handler for 32 bit division by zero
+//
+    .global __aeabi_idiv0
 __aeabi_idiv0:
-	bx	lr
+	b	lr
