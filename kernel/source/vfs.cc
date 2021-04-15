@@ -1,9 +1,8 @@
 #include <sys/vfs.h>
 #include <sys/errors.h>
 #include <mc/string.h>
-#include <sys/uart.h>
 #include <sys/heap.h>
-#include <mc/memory.h>
+#include <mc/string.h>
 
 
 #define MAX_FS_ENTRIES 8
@@ -46,7 +45,7 @@ int vfs_register( struct filesystem *fs )
     fs->next = fsList;
     fsList = fs;
 
-    uart_print("Registered filesystem '%s'\n", fs->type);
+    //uart_print("Registered filesystem '%s'\n", fs->type);
 
     return EOK;
 }
@@ -167,7 +166,6 @@ int vfs_lookup( const char *path, struct mount **mp, const char **rest)
     }
 
     if (bestm == NULL) return ENOENT;
-    uart_print("[vfs_lookup] Best mount is %s\n", bestm->target);
     *rest = path + bests;
     *mp = bestm;
     return EOK;
@@ -185,7 +183,7 @@ int vfs_open( const char *path, uint32_t flags, struct file **fp )
     if (result < 0) return result;
 
     // create file pointer
-    struct file *tmp = heap_allocate( sizeof(struct file) + strlen(path) + 1 );
+    struct file *tmp = (struct file *) heap_allocate( sizeof(struct file) + strlen(path) + 1 );
     if (tmp == NULL) return EMEMORY;
     memset(tmp, 0, sizeof(tmp));
     tmp->mp = mp;

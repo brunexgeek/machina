@@ -1,18 +1,18 @@
 #include <sys/system.h>
 #include <sys/sysio.h>
 #include <sys/errors.h>
-#include <sys/soc.h>
+#include <sys/bcm2837.h>
 #include <sys/types.h>
 #include <sys/sync.h>
 #include <sys/timer.hh>
 #include <sys/heap.h>
-#include <sys/pmm.h>
+#include <sys/pmm.hh>
 #include <machina/VMM.hh>
 #include <sys/Display.hh>
 #include <sys/Screen.hh>
 #include <sys/mailbox.h>
 #include <sys/uart.h>
-#include <mc/memory.h>
+#include <mc/string.h>
 #include <sys/vfs.h>
 #include <sys/ramfs.h>
 #include <sys/procfs.h>
@@ -69,7 +69,7 @@ static void system_disableCore()
 
 		#else
 
-		asm volatile ("dsb");
+		//asm volatile ("dsb");
 		asm volatile ("wfi");
 
 		#endif
@@ -108,7 +108,7 @@ static void system_shutdown(void)
 
 	#endif
 
-	sync_disableInterrupts();
+	//sync_disableInterrupts();
 
 	#if (RPIGEN > 1)
 	sync_dataSyncBarrier();
@@ -132,7 +132,7 @@ static void system_reboot(void)
    system_disableCore();
 }
 
-
+/*
 static void system_initializeVFP()
 {
 	size_t cacr;
@@ -158,7 +158,7 @@ static void system_initializeVFP()
 		"fmxr fpscr, %0"
 		:: "r" (0) );
 }
-
+*/
 
 int proc_sysname( uint8_t *buffer, int size, void *data )
 {
@@ -198,7 +198,7 @@ extern "C" void system_initialize()
 #endif
 
 	// initializes the VFP
-	system_initializeVFP();
+	//system_initializeVFP();
 
 	// clear the BBS area
 	for (uint8_t *p = &__begin_bss; p < &__end_bss; ++p) *p = 0;

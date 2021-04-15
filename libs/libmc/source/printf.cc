@@ -113,7 +113,7 @@
 
 // import float.h for DBL_MAX
 #if defined(PRINTF_SUPPORT_FLOAT)
-#include <mc/float.h>
+//#include <mc/float.h>
 #endif
 
 
@@ -978,3 +978,28 @@ int cprintf(cprintf_callback_t callback, void* arg, const CHAR_TYPE* format, ...
   return ret;
 }
 
+int puts_( const char *str )
+{
+  while (*str) _putchar(*str++);
+  return 0;
+}
+
+int puti( int32_t value )
+{
+  return putl(value);
+}
+
+int putl( int64_t value )
+{
+  CHAR_TYPE buf[PRINTF_NTOA_BUFFER_SIZE];
+  int len = 0;
+  do {
+      const CHAR_TYPE digit = (CHAR_TYPE)(value % 10);
+      buf[len++] = (CHAR_TYPE) ('0' + digit);
+      value /= 10;
+    } while (value && ((uint32_t)len + 1 < PRINTF_NTOA_BUFFER_SIZE));
+    buf[len] = 0;
+
+    while (len >= 0) _putchar(buf[len--]);
+    return 0;
+}

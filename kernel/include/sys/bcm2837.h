@@ -1,6 +1,7 @@
 #ifndef MACHINA_SOC_H
 #define MACHINA_SOC_H
 
+#include <sys/types.h>
 
 #define CPU_FIQ_MODE         (0x0011)
 #define CPU_HYP_MODE         (0x001A)
@@ -84,10 +85,25 @@
 #define SOC_MAILBOX_STATUS_FULL  (0x80000000)
 
 #define SYS_MEMORY_TOTAL         (1U << 30) // bytes
-#define SYS_FRAME_SIZE           (4096) // bytes
-#define SYS_FRAME_TOTAL          (SYS_MEMORY_TOTAL / SYS_PAGE_SIZE) // frames
+#define SYS_FRAME_SIZE           (4096U) // bytes
+#define SYS_FRAME_TOTAL          (SYS_MEMORY_TOTAL / SYS_FRAME_SIZE) // frames
+// TODO: remove
 #define SYS_BITMAP_START         (0x100) // bytes (16 bytes aligned)
-#define SYS_BITMAP_SIZE          (SYS_FRAME_TOTAL * 4 / 8) // bytes (using 4 bits per frame)
+// TODO: remove
+#define SYS_BITMAP_SIZE          (SYS_FRAME_TOTAL) // bytes
+// TODO: remove
 #define SYS_BITMAP_END           (SYS_BITMAP_START + SYS_BITMAP_SIZE)
+
+typedef union
+{
+	uint32_t flags;
+	struct
+	{
+		uint32_t cores_total : 3;
+		uint32_t cores_enabled : 3;
+		uint32_t hard_float : 1;
+		uint32_t reserved : 25;
+	} info;
+} SOC_INFO;
 
 #endif // MACHINA_SOC_H

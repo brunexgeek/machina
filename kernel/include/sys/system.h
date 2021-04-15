@@ -10,7 +10,7 @@
 /**
  * @brief Memory offset of the kernel start.
  */
-#define SYS_KERNEL_START          (0x10000)
+#define SYS_KERNEL_START          (0x80000)
 
 /**
  * @brief Maximum size for kernel binary.
@@ -91,11 +91,6 @@
 
 #define SYS_IRQ_STACK_END \
 	(SYS_IRQ_STACK_START + SYS_EXCEPT_STACK_SIZE * (SYS_CPU_CORES))
-
-
-#define SYS_BITMAP_START          (0x00300000)
-#define SYS_BITMAP_SIZE           ((1U << 31) / SYS_PAGE_SIZE * 2) // 1MB using 4KB pages
-#define SYS_BITMAP_END            (SYS_BITMAP_START + SYS_BITMAP_SIZE)
 
 
 /**

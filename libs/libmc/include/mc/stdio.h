@@ -2,6 +2,7 @@
 #define _PRINTF_H_
 
 #include <sys/types.h>
+#include <mc/stdarg.h>
 
 #define DBL_MAX  1.79769e+308
 
@@ -18,6 +19,11 @@ extern "C" {
  */
 void _putchar(CHAR_TYPE character);
 
+#define puts puts_
+int puts( const char *str );
+
+int puti( int32_t value );
+int putl( int64_t value );
 
 /**
  * Tiny printf implementation

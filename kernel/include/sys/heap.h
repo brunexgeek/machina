@@ -33,6 +33,8 @@ void heap_dump();
 
 void heap_initialize();
 
+void heap_register();
+
 #ifdef __cplusplus
 }
 #endif

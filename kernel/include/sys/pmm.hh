@@ -61,24 +61,44 @@ typedef enum
 	//PFT_LAST
 } frame_type_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct memory_entry_t
+{
+	uintptr_t begin;
+	uintptr_t end;
+};
+
+struct memory_map_t
+{
+	memory_entry_t bitmap; // fixed
+	memory_entry_t kernel;
+	memory_entry_t heap;
+	memory_entry_t io; // fixed
+	struct
+	{
+		memory_entry_t el0_core0; // fixed
+		memory_entry_t el1_core0; // fixed
+		memory_entry_t el2_core0; // fixed
+		memory_entry_t el0_core1; // fixed
+		memory_entry_t el1_core1; // fixed
+		memory_entry_t el2_core1; // fixed
+		memory_entry_t el0_core2; // fixed
+		memory_entry_t el1_core2; // fixed
+		memory_entry_t el2_core2; // fixed
+	} stack;
+};
+
+/**
+ * Public table with the memory map.
+ */
+extern memory_map_t kern_memory_map;
 
 void pmm_initialize();
 
-size_t pmm_alloc(
-	size_t count,
-	frame_type_t tag );
+uintptr_t pmm_allocate( size_t count, frame_type_t tag );
 
-size_t pmm_allocAligned(
-	size_t count,
-	size_t alignment,
-	frame_type_t tag );
+uintptr_t pmm_allocate_aligned( size_t count, size_t alignment, frame_type_t tag );
 
-void pmm_free(
-	size_t address,
-	size_t count );
+void pmm_free( uintptr_t address, size_t count );
 
 size_t pmm_size();
 
@@ -86,8 +106,6 @@ size_t pmm_available();
 
 void pmm_register();
 
-#ifdef __cplusplus
-}
-#endif
+void pmm_print();
 
 #endif // MACHINA_PMM_H

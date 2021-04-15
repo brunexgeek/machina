@@ -4,35 +4,7 @@
 
 #include <sys/types.h>
 
-
-/*static inline uint32_t GET32(
-	const uint32_t *address )
-{
-	return *( (uint32_t volatile *) address );
-}*/
-
-
-static inline uint32_t GET32(
-	const uint32_t address )
-{
-	return *( (uint32_t volatile *) address );
-}
-
-
-/*static inline void PUT32(
-	uint32_t *address,
-	uint32_t value )
-{
-	*( (uint32_t volatile *) address ) = value;
-}*/
-
-
-static inline void PUT32(
-	uint32_t address,
-	uint32_t value )
-{
-	*( (uint32_t volatile *) address ) = value;
-}
-
+#define GET32(addr) (*( (uint32_t volatile *) addr ))
+#define PUT32(addr, value) do { *( (volatile uint32_t *) addr ) = (uint32_t) value; } while(false)
 
 #endif // MACHINA_SYSIO_HH

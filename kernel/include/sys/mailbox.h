@@ -141,6 +141,7 @@ struct __attribute__((__packed__, aligned(1))) mailbox_tag_header
 	uint32_t code;
 };
 
+// MAILBOX_TAG_GET_ARM_MEMORY and MAILBOX_TAG_GET_VC_MEMORY
 struct __attribute__((__packed__, aligned(1))) memory_tag
 {
 	struct mailbox_tag_header header;
@@ -148,11 +149,41 @@ struct __attribute__((__packed__, aligned(1))) memory_tag
 	uint32_t size;
 };
 
+// MAILBOX_TAG_GET_BOARD_MAC_ADDRESS
 struct __attribute__((__packed__, aligned(1))) mac_tag
 {
 	struct mailbox_tag_header header;
 	uint8_t address[6];
 	uint8_t padding[2];
+};
+
+// MAILBOX_TAG_GET_BOARD_MODEL
+struct __attribute__((__packed__, aligned(1))) model_tag
+{
+	struct mailbox_tag_header header;
+	uint32_t value;
+};
+
+// MAILBOX_TAG_GET_BOARD_REVISION
+struct __attribute__((__packed__, aligned(1))) revision_tag
+{
+	struct mailbox_tag_header header;
+	uint32_t value;
+};
+
+// MAILBOX_TAG_GET_BOARD_SERIAL
+struct __attribute__((__packed__, aligned(1))) serial_tag
+{
+	struct mailbox_tag_header header;
+	uint64_t value;
+};
+
+// MAILBOX_TAG_GET_MAX_CLOCK_RATE
+struct __attribute__((__packed__, aligned(1))) clock_rate_tag
+{
+	struct mailbox_tag_header header;
+	uint32_t id;    // IN/OUT
+	uint32_t rate;
 };
 
 struct __attribute__((__packed__, aligned(1))) mailbox_message
@@ -162,8 +193,12 @@ struct __attribute__((__packed__, aligned(1))) mailbox_message
 	union
 	{
 		struct mailbox_tag_header header;
-		struct memory_tag split;
+		struct memory_tag memory; // ARM ou VC
 		struct mac_tag mac;
+		struct model_tag model;
+		struct revision_tag revision;
+		struct serial_tag serial;
+		struct clock_rate_tag clock;
 	} tag;
 	uint8_t end[4]; // end tag
 };

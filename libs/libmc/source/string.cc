@@ -41,7 +41,7 @@ CHAR_TYPE *strncpy( CHAR_TYPE *dst, const CHAR_TYPE *src, size_t num )
 void *memset( void *ptr, int value, size_t num )
 {
     uint8_t *p = (uint8_t*) ptr;
-    while (num-- > 0) *p = (uint8_t) value;
+    while (num-- > 0) *p++ = (uint8_t) value;
     return ptr;
 }
 
@@ -49,6 +49,6 @@ void *memcpy( void *output, const void *input, size_t size )
 {
     uint8_t *i = (uint8_t*) input;
     uint8_t *o = (uint8_t*) output;
-    while (size-- > 0) *i++ = *o++;
+    while (size-- > 0) *o++ = *i++;
     return output;
 }

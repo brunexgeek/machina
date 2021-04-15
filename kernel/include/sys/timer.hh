@@ -10,7 +10,7 @@
 
 
 #include <sys/types.h>
-#include <sys/soc.h>
+#include <sys/bcm2837.h>
 
 
 struct timer_t

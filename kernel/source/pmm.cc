@@ -14,34 +14,34 @@
  *    limitations under the License.
  */
 
-#include <sys/pmm.h>
-#include <sys/mailbox.h>
+#include <sys/pmm.hh>
 #include <sys/uart.h>
-#include <sys/soc.h>
+#include <sys/mailbox.h>
+#include <sys/bcm2837.h>
 #include <sys/system.h>
 #include <sys/procfs.h>
 #include <sys/errors.h>
 #include <mc/string.h>
 #include <mc/stdio.h>
-#include <mc/memory.h>
 
 
 #define PFRAME_GET_TAG(index) \
-	( frameTable[index] )
+	( table[index] )
 
 #define PFRAME_SET_TAG(index,value) \
-	do { frameTable[index] = value; } while(false)
+	do { table[index] = value; } while(false)
 
+memory_map_t kern_memory_map;
 
 /**
 * @brief Number of free frames.
 */
-static size_t freeCount;
+static size_t free_count;
 
 /**
 * @brief Number of frames in memory.
 */
-static size_t frameCount;
+static size_t frame_count;
 
 /**
  * @brief Index of the page in which the allocate funcion
@@ -49,13 +49,13 @@ static size_t frameCount;
  *
  * This should be equals to @ref SYS_HEAP_START.
  */
-static size_t startIndex;
+static size_t start_index;
 
 /**
 * @brief Pointer to the table containing information
 * about all physical frames.
 */
-static uint8_t *frameTable;
+static uint8_t *table;
 
 
 static struct
@@ -90,22 +90,24 @@ static int proc_frames( uint8_t *buffer, int size, void *data )
 	// 'sncatprintf' requires a null-terminator
 	p[0] = 0;
 
-	size_t type = frameTable[0];
+	size_t type = table[0];
 	size_t start = 0;
 
  	sncatprintf(p, ps, "Start       End         Frames      Description\n");
 	sncatprintf(p, ps, "----------  ----------  ----------  ---------------------------------------\n");
 
-	for (size_t i = 0; i <= SYS_BITMAP_SIZE; ++i)
+	size_t bs = kern_memory_map.bitmap.end - kern_memory_map.bitmap.begin;
+
+	for (size_t i = 0; i <= bs; ++i)
 	{
-		if (i == SYS_BITMAP_SIZE || frameTable[i] != type)
+		if (i == bs || table[i] != type)
 		{
 			sncatprintf(p, ps, "0x%08x  0x%08x  %-10d  %s\n",
 				(uint32_t) (start * SYS_PAGE_SIZE),
 				(uint32_t) ( (i - 1) * SYS_PAGE_SIZE + (SYS_PAGE_SIZE - 1) ), // to avoid overflow
 				(uint32_t) (i - start),
 				PFT_NAMES[ GET_PFT_INDEX(type) ].name );
-			type = frameTable[i];
+			type = table[i];
 			start = i;
 		}
 	}
@@ -113,77 +115,132 @@ static int proc_frames( uint8_t *buffer, int size, void *data )
 	return (int) (strlen(p) * sizeof(char));
 }
 
+void pmm_print()
+{
+	uint8_t buffer[2048];
+	proc_frames(buffer, sizeof(buffer), nullptr);
+	puts((const char *)buffer);
+}
 
 void pmm_register()
 {
 	procfs_register("/frames", proc_frames, NULL);
 }
 
+void kernel_panic( const char *path, int line );
+
+// offsets from 'kernel.ld'
+extern size_t _kernel_size;
+extern uint8_t _kernel_begin;
+extern uint8_t _kernel_end;
+extern uint8_t __stack_start_core0__;
+extern uint8_t __EL0_stack_core0;
+extern uint8_t __EL1_stack_core0;
+extern uint8_t __EL2_stack_core0;
+extern uint8_t __stack_start_core1__;
+extern uint8_t __EL0_stack_core1;
+extern uint8_t __EL1_stack_core1;
+extern uint8_t __EL2_stack_core1;
+extern uint8_t __stack_start_core2__;
+extern uint8_t __EL0_stack_core2;
+extern uint8_t __EL1_stack_core2;
+extern uint8_t __EL2_stack_core2;
+
+static void pmm_map_memory( const memory_tag &arm, const memory_tag &vc )
+{
+	// update the memory map
+	kern_memory_map.bitmap.begin = SYS_BITMAP_START;
+	kern_memory_map.bitmap.end = SYS_BITMAP_END;
+
+	kern_memory_map.kernel.begin = (uintptr_t) &_kernel_begin;
+	kern_memory_map.kernel.end = ((uintptr_t) &_kernel_end + (SYS_FRAME_SIZE-1)) & (~(SYS_FRAME_SIZE-1));
+
+	kern_memory_map.heap.begin = kern_memory_map.kernel.end;
+	kern_memory_map.heap.end = arm.size & (~(SYS_FRAME_SIZE-1));
+
+	kern_memory_map.stack.el0_core0.begin = (uintptr_t) &__stack_start_core0__;
+	kern_memory_map.stack.el0_core0.end = (uintptr_t) &__EL0_stack_core0;
+	kern_memory_map.stack.el1_core0.begin = (uintptr_t) &__EL0_stack_core0;
+	kern_memory_map.stack.el1_core0.end = (uintptr_t) &__EL1_stack_core0;
+	kern_memory_map.stack.el2_core0.begin = (uintptr_t) &__EL1_stack_core0;
+	kern_memory_map.stack.el2_core0.end = (uintptr_t) &__EL2_stack_core0;
+
+	kern_memory_map.stack.el0_core1.begin = (uintptr_t) &__stack_start_core1__;
+	kern_memory_map.stack.el0_core1.end = (uintptr_t) &__EL0_stack_core1;
+	kern_memory_map.stack.el1_core1.begin = (uintptr_t) &__EL0_stack_core1;
+	kern_memory_map.stack.el1_core1.end = (uintptr_t) &__EL1_stack_core1;
+	kern_memory_map.stack.el2_core1.begin = (uintptr_t) &__EL1_stack_core1;
+	kern_memory_map.stack.el2_core1.end = (uintptr_t) &__EL2_stack_core1;
+
+	kern_memory_map.stack.el0_core2.begin = (uintptr_t) &__stack_start_core2__;
+	kern_memory_map.stack.el0_core2.end = (uintptr_t) &__EL0_stack_core2;
+	kern_memory_map.stack.el1_core2.begin = (uintptr_t) &__EL0_stack_core2;
+	kern_memory_map.stack.el1_core2.end = (uintptr_t) &__EL1_stack_core2;
+	kern_memory_map.stack.el2_core2.begin = (uintptr_t) &__EL1_stack_core2;
+	kern_memory_map.stack.el2_core2.end = (uintptr_t) &__EL2_stack_core2;
+}
 
 void pmm_initialize()
 {
 	uart_puts("Initializing physical memory manager...\n");
 	// probe the ARM memory map
-	struct memory_tag armSplit;
-	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010005, &armSplit, sizeof(armSplit), NULL);
+	struct mailbox_message message1;
+	memset(&message1, 0, sizeof(message1));
+	if (mailbox_tag(MAILBOX_TAG_GET_ARM_MEMORY, &message1) != 0)
+		kernel_panic(__FILE__, __LINE__);
 	// probe the GPU memory map
-	struct memory_tag gpuSplit;
-	mailbox_getProperty(MAILBOX_CHANNEL_ARM, 0x00010006, &gpuSplit, sizeof(gpuSplit), NULL);
+	struct mailbox_message message2;
+	memset(&message2, 0, sizeof(message2));
+	if (mailbox_tag(MAILBOX_TAG_GET_VC_MEMORY, &message2) != 0)
+		kernel_panic(__FILE__, __LINE__);
+
+	uart_print("ARM split: %x - %x\n", message1.tag.memory.base, message1.tag.memory.base + message1.tag.memory.size);
+	uart_print("GPU split: %x - %x\n", message2.tag.memory.base, message2.tag.memory.base + message2.tag.memory.size);
+
+	pmm_map_memory(message1.tag.memory, message2.tag.memory);
 
 	// if (split.base != 0 || split.size < 256) panic();
-	freeCount = frameCount = (armSplit.size - SYS_HEAP_START) / SYS_PAGE_SIZE;
-	startIndex = SYS_HEAP_START / SYS_PAGE_SIZE;
+	free_count = frame_count = (kern_memory_map.heap.end - kern_memory_map.heap.begin) / SYS_PAGE_SIZE;
+	start_index = kern_memory_map.heap.begin / SYS_PAGE_SIZE;
 
-	//size_t temp = (frameCount + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
-	frameTable = (uint8_t*) SYS_BITMAP_START;
-	memset(frameTable, PFT_INVALID, SYS_BITMAP_SIZE);
+	//size_t temp = (frame_count + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
+	table = (uint8_t*) kern_memory_map.bitmap.begin;
+	uint32_t *end = (uint32_t*) (kern_memory_map.bitmap.begin + 4);
+	for (uint32_t *p = (uint32_t*) kern_memory_map.bitmap.begin; p < end; p++)
+		*p = 0x18181818;
 
 	// reserve everything before the heap
-	for (size_t i = 0; i < SYS_HEAP_START; i += SYS_PAGE_SIZE)
+	for (uintptr_t i = 0; i < kern_memory_map.kernel.end; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_RESERVED );
 	// reserve the frames used by physical memory table
-	for (size_t i = SYS_BITMAP_START; i < SYS_BITMAP_END; i += SYS_PAGE_SIZE)
+	for (uintptr_t i = kern_memory_map.bitmap.begin; i < kern_memory_map.bitmap.end; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_PHYS );
 	// reserve the kernel memory
-	for (size_t i = SYS_KERNEL_START; i < SYS_KERNEL_END; i += SYS_PAGE_SIZE)
+	for (uintptr_t i = kern_memory_map.kernel.begin; i < kern_memory_map.kernel.end; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_KERNEL );
-
-	// reserve the kernel stack
-	for (size_t i = SYS_KERNEL_STACK_START; i < SYS_KERNEL_STACK_END; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_KSTACK );
-	// reserve the Abort stack
-	for (size_t i = SYS_ABORT_STACK_START; i < SYS_ABORT_STACK_END; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_ASTACK );
-	// reserve the IRQ stack
-	for (size_t i = SYS_IRQ_STACK_START; i < SYS_IRQ_STACK_END; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_ISTACK );
-
 	// sets the free memory region
-	for (size_t i = SYS_HEAP_START; i < gpuSplit.base; i += SYS_PAGE_SIZE)
+	for (uintptr_t i = kern_memory_map.heap.begin; i < kern_memory_map.heap.end; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_FREE );
 
 	// reserve the video memory
-	for (size_t i = gpuSplit.base; i < gpuSplit.base + gpuSplit.size; i += SYS_PAGE_SIZE)
+	for (uintptr_t i = message2.tag.memory.base; i < message2.tag.memory.base + message2.tag.memory.size; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_VIDEO );
 	// reserve the IO memory
-	for (size_t i = CPU_IO_BASE; i < CPU_IO_END; i += SYS_PAGE_SIZE)
+	for (uintptr_t i = CPU_IO_BASE; i < CPU_IO_END; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_MMIO );
 }
 
 
-size_t pmm_alloc(
-	size_t count,
-	frame_type_t tag )
+uintptr_t pmm_allocate( size_t count, frame_type_t tag )
 {
 	if (count == 0) return 0;
 	if (tag & 0x01) return 0;//panic("Can not allocate with tag PFT_FREE");
 
-	bool updateIndex = true;
-
+	bool update = true;
 	// check if we have enough free memory
-	if (freeCount < count) return 0;
+	if (free_count < count) return 0;
 	// find some region with available frames
-	for (size_t i = startIndex; i < frameCount; ++i)
+	for (size_t i = start_index; i < frame_count; ++i)
 	{
 		if (!IS_FREE_PFT(PFRAME_GET_TAG(i))) continue;
 
@@ -196,19 +253,15 @@ size_t pmm_alloc(
 			for (j = 0; j < count; ++j)
 				PFRAME_SET_TAG(i+j, tag);
 			// decrease the free frames counter
-			freeCount -= count;
+			free_count -= count;
 
-			if (updateIndex) startIndex = i + count;
-#ifdef __arm__
+			if (update) start_index = i + count;
 			return FRAME_TO_ADDRESS(i);
-#else
-			return (size_t) calloc(1, count * SYS_PAGE_SIZE);
-#endif
 		}
 		else
 		{
 			i += j;
-			updateIndex = false;
+			update = false;
 		}
 	}
 
@@ -216,19 +269,16 @@ size_t pmm_alloc(
 }
 
 
-size_t pmm_allocAligned(
-	size_t count,
-	size_t alignment,
-	frame_type_t tag )
+uintptr_t pmm_allocate_aligned( size_t count, size_t alignment, frame_type_t tag )
 {
 	if (count == 0) return 0;
 	if (tag & 0x01) return 0;//panic("Can not allocate with tag PFT_FREE");
 
 	// check if we have enough free memory
-	if (freeCount < count) return 0;
+	if (free_count < count) return 0;
 	// find some region with available frames
-	size_t i = startIndex + (alignment - (startIndex % (alignment + 1)));
-	for (; i < frameCount; i += alignment)
+	size_t i = start_index + (alignment - (start_index % (alignment + 1)));
+	for (; i < frame_count; i += alignment)
 	{
 		if (!IS_FREE_PFT(PFRAME_GET_TAG(i))) continue;
 
@@ -241,43 +291,35 @@ size_t pmm_allocAligned(
 			for (j = 0; j < count; ++j)
 				PFRAME_SET_TAG(i+j, tag);
 			// decrease the free frames counter
-			freeCount -= count;
+			free_count -= count;
 
-#ifdef __arm__
 			return FRAME_TO_ADDRESS(i);
-#else
-			return (size_t) calloc(1, count * SYS_PAGE_SIZE);
-#endif
 		}
 	}
 
 	return 0;
 }
 
-
-void pmm_free(
-	size_t address,
-	size_t count )
+void pmm_free( uintptr_t address, size_t count )
 {
 	size_t index = ADDRESS_TOFRAME(address);
-	if (index >= frameCount || count == 0) return;
+	if (index >= frame_count || count == 0) return;
 
 	for (size_t i = index, t = index + count; i < t; ++i)
 	{
 		PFRAME_SET_TAG(i, PFT_DIRTY);
-		freeCount++;
+		free_count++;
 	}
 
-	if (index < startIndex) startIndex = index;
+	if (index < start_index) start_index = index;
 }
-
 
 size_t pmm_total()
 {
-	return frameCount;
+	return frame_count;
 }
 
 size_t pmm_available()
 {
-	return freeCount;
+	return free_count;
 }

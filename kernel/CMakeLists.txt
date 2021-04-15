@@ -8,7 +8,13 @@ add_subdirectory(source/platform/bcm2837)
 
 add_executable(kernel
     "source/platform/bcm2837/entrypoint.S"
-    "source/uart.c"
+    "source/uart.cc"
+    "source/pmm.cc"
+    "source/heap.cc"
+    "source/mailbox.cc"
+    "source/task.cc"
+    "source/procfs.cc"
+    "source/vfs.cc"
     "source/main.cc")
 target_link_libraries(kernel bcm2837 libmc)
 set_target_properties(kernel PROPERTIES

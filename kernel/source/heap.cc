@@ -14,11 +14,14 @@
  *    limitations under the License.
  */
 
-#include <sys/heap.h>
-#include <sys/pmm.h>
-#include <sys/system.h>
 #include <sys/uart.h>
+#include <sys/heap.h>
+#include <sys/pmm.hh>
+#include <sys/procfs.h>
+#include <sys/system.h>
 #include <sys/types.h>
+#include <mc/stdio.h>
+#include <mc/string.h>
 
 
 #define BLOCK_SIGNATURE      (0x5353U)
@@ -74,7 +77,7 @@ struct bucket_info_t
  * the following buckets (the smaller one in which the size fits).
  * Dynamic allocation will mostly be used when creating C++ objects
  * (large chunks will probably be allocated via physical frames),
- * so we have more granularity in the smallest buckets. Granularity
+ * so we have more granularity in the smaller buckets. Granularity
  * means less waste of space (to some extent).
  */
 static struct bucket_info_t heapBuckets[] =
@@ -119,17 +122,18 @@ static size_t heapOffset;
 static size_t heapEnd;
 
 
+void kernel_panic( const char *path, int line );
+
 void heap_initialize()
 {
-	heapStart = heapOffset = (size_t) pmm_alloc(HEAP_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
-	//if (heapStart == 0) machina::KernelPanic();
-
+	heapStart = heapOffset = (size_t) pmm_allocate(HEAP_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
+	if (heapStart == 0) kernel_panic(__FILE__, __LINE__);
 	heapEnd = heapOffset + HEAP_SIZE;
+	uart_print("Initializing memmory allocator with heap of %d MB\n", HEAP_SIZE / 1024 / 1024);
 }
 
 
-void *heap_allocate(
-	size_t size )
+void *heap_allocate( size_t size )
 {
 	if (heapOffset == 0) heap_initialize();
 
@@ -174,8 +178,7 @@ void *heap_allocate(
 void heap_free(
 	void *address )
 {
-	// we need to be sure that the given address is
-	// from a valid allocation
+	// we need to be sure that the given address is from a valid allocation
 	if (address < (void*) heapStart || address >= (void*) heapEnd) return;
 	// check the block information (more validations :)
 	struct block_info_t *block = (struct block_info_t*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
@@ -189,13 +192,17 @@ void heap_free(
 	bucket->entries = block;
 }
 
-
-void heap_dump()
+static int proc_heap( uint8_t *buffer, int size, void * /* data */ )
 {
 	static const char *UNITS[] = { "B ", "KB", "MB" };
 
-	uart_print("Size     Count   Peak\n");
-	uart_print("-------  ------  --------\n");
+	char *p = (char*) buffer;
+	size_t ps = (size_t) size / sizeof(char);
+	// 'sncatprintf' requires a null-terminator
+	p[0] = 0;
+
+	sncatprintf(p, ps, "Size     Count   Peak\n");
+	sncatprintf(p, ps, "-------  ------  --------\n");
 	struct bucket_info_t *bucket = heapBuckets;
 	for (; bucket->size != INVALID_BUCKET; ++bucket)
 	{
@@ -205,10 +212,17 @@ void heap_dump()
 		for (; size >= 1024; ++unit, size /= 1024);
 
 		if (bucket->count == 0 && bucket->peak == 0) continue;
-		uart_print("%4d %s  %-6d  %-8d\n",
+		sncatprintf(p, ps, "%4d %s  %-6d  %-8d\n",
 			size,
 			UNITS[unit],
 			bucket->count,
 			bucket->peak );
 	}
+
+	return (int) (strlen(p) * sizeof(char));
+}
+
+void heap_register()
+{
+	procfs_register("/heap", proc_heap, nullptr);
 }

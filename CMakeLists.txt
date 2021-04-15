@@ -1,19 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
+project(machina)
 
 set(CMAKE_USE_RELATIVE_PATHS false)
 set(MACHINA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(MACHINA_TARGET "Raspberry Pi Model B" CACHE STRING "Target Raspberry board")
-set_property(CACHE  MACHINA_TARGET PROPERTY STRINGS
-#    "RPI-1A"
-#    "RPI-1B"
-#    "RPI-1A+"
-#    "RPI-1B+"
-    "RPI-2B"
-    "RPI-3B" )
-
-set(TOOLCHAIN_HOME "/opt/arm-rpi-4.9.3-linux-gnueabihf" CACHE STRING "")
-set(TOOLCHAIN_PREFIX "bin/aarch64-none-linux-gnu-" CACHE STRING "")
+set(TOOLCHAIN_HOME "" CACHE STRING "")
+set(TOOLCHAIN_PREFIX "" CACHE STRING "")
 
 enable_language(ASM)
 if(CMAKE_ASM_COMPILER_WORKS)
@@ -28,20 +20,8 @@ set(CMAKE_LD           "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ld")
 set(CMAKE_OBJCOPY      "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}objcopy")
 set(CMAKE_RANLIB       "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ranlib")
 
-if (MACHINA_TARGET STREQUAL "")
-    set(MACHINA_TARGET "RPI-3B")
-endif()
-
-if (MACHINA_TARGET STREQUAL "RPI-3B")
-	set(TARGET_ARCH "-march=armv8-a -mtune=cortex-a53")
-    set(RPIGEN 3)
-elseif (MACHINA_TARGET STREQUAL "RPI-2B")
-    set(TARGET_ARCH "-march=armv7ve -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard")
-    set(RPIGEN 2)
-else()
-    set(TARGET_ARCH "-march=armv6j -mtune=arm1176jzf-s -mfloat-abi=hard")
-    set(RPIGEN 1)
-endif()
+set(TARGET_ARCH "-march=armv8-a -mcpu=cortex-a53+fp+simd")
+set(RPIGEN 3)
 
 set(COMMOM_FLAGS "-Wfatal-errors -O0 -g -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type  -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib -pedantic -Wuninitialized -Winit-self -D__arm__=1")
 
@@ -53,7 +33,6 @@ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 add_subdirectory(libs/libmc)
 add_subdirectory(kernel)
-
 
 if (CMAKE_CXX_COMPILER_VERSION)
     set(MACHINA_COMPILER_STR "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1} (ver ${CMAKE_CXX_COMPILER_VERSION})")
