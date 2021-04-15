@@ -43,7 +43,7 @@ void uart_init()
     // In Respberry PI 3 (and 4) the UART_CLOCK is system-clock dependent by default.
 	// Set it to 3Mhz so that we can consistently set the baud rate
     // UART_CLOCK = 30000000;
-    unsigned int r = (((unsigned int)(&mbox) & ~0xF) | 8);
+    uint32_t r = (((uint32_t)( (size_t) &mbox ) & (uint32_t)(~0xF)) | 8);
     // wait until we can talk to the VC
     while ( GET32(SOC_MAILBOX_POLL) & 0x80000000 ) { }
     // send our message to property channel and wait for the response
@@ -52,8 +52,8 @@ void uart_init()
 
     // setup GPIO pints 14 and 15
     flags =GET32(GPFSEL1);
-    flags &= ~((7 << 12)|(7 << 15)); // gpio14 and gpio15
-    flags |= (2 << 12) | (2 << 15); // alt0
+    flags = flags & (uint32_t) (~((7 << 12)|(7 << 15))); // gpio14 and gpio15
+    flags = flags | (2 << 12) | (2 << 15); // alt0
     PUT32(GPFSEL1,flags);
 
     // divider = 3000000 / (16 * 115200) = 1.627 = ~1
@@ -93,7 +93,7 @@ void uart_puts( const char *str )
 
 void _putchar( char c )
 {
-    uart_putc(c);
+    uart_putc((uint8_t)c);
 }
 
 void uart_print( const char *format, ... )

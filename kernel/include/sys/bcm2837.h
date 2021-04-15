@@ -64,22 +64,9 @@
  */
 
 #define CPU_GPIO_BASE            (CPU_IO_BASE + 0x200000U) // GPU = 0x7E200000
-#define CPU_TIMER_BASE           (/*CPU_IO_BASE +*/ 0x20003000U) // GPU = 0x7E003000
+//#define CPU_TIMER_BASE           (/*CPU_IO_BASE +*/ 0x20003000U) // GPU = 0x7E003000
 
-
-#define GPU_CACHED_BASE		0x40000000
-#define GPU_UNCACHED_BASE	0xC0000000
-
-#if (RPIGEN == 1)
-	#ifdef ENABLE_GPU_L2
-		#define GPU_MEMORY_BASE	GPU_CACHED_BASE
-	#else
-		#define GPU_MEMORY_BASE	GPU_UNCACHED_BASE
-	#endif
-#else
-	#define GPU_MEMORY_BASE	GPU_UNCACHED_BASE
-#endif
-
+#define GPU_MEMORY_BASE	0xC0000000
 
 #define SOC_PM_BASE              (CPU_IO_BASE + 0x00100000U)
 #define SOC_PM_RSTC              (SOC_PM_BASE + 0x0000001CU)
@@ -96,8 +83,11 @@
 #define SOC_MAILBOX_STATUS_EMPTY (0x40000000)
 #define SOC_MAILBOX_STATUS_FULL  (0x80000000)
 
-#define MAILBOX_CHANNEL_POWER    (0x00)
-#define MAILBOX_CHANNEL_DISPLAY  (0x01)
-#define MAILBOX_CHANNEL_ARM      (0x08)  // ARM to VC
+#define SYS_MEMORY_TOTAL         (1U << 30) // bytes
+#define SYS_FRAME_SIZE           (4096) // bytes
+#define SYS_FRAME_TOTAL          (SYS_MEMORY_TOTAL / SYS_PAGE_SIZE) // frames
+#define SYS_BITMAP_START         (0x100) // bytes (16 bytes aligned)
+#define SYS_BITMAP_SIZE          (SYS_FRAME_TOTAL * 4 / 8) // bytes (using 4 bits per frame)
+#define SYS_BITMAP_END           (SYS_BITMAP_START + SYS_BITMAP_SIZE)
 
 #endif // MACHINA_SOC_H
