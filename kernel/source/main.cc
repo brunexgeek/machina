@@ -5,10 +5,12 @@
 #include <mc/stdlib.h>
 #include <mc/string.h>
 #include <sys/pmm.hh>
+#include <sys/display.hh>
 #include <sys/heap.h>
 #include <sys/errors.h>
 #include <sys/procfs.h>
 #include <sys/mailbox.h>
+#include <sys/device.hh>
 
 static int proc_sysname( uint8_t *buffer, int size, void *data )
 {
@@ -29,7 +31,7 @@ static int proc_sysname( uint8_t *buffer, int size, void *data )
 void kernel_panic( const char *path, int line )
 {
 	uart_print("KERNEL PANIC!   at %s:%d\n", path, line);
-	while (true);
+	while (true) asm("wfi");
 }
 
 void kernel_print_file( const char *path )
@@ -86,6 +88,9 @@ extern "C" void kernel_main()
 
     kernel_print_file("/proc/frames");
     kernel_print_file("/proc/heap");
+
+	kdev_initialize();
+	kdev_enumerate();
 
 	puts("Done!\n");
 	while (true) { asm("wfi"); };

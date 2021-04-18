@@ -53,9 +53,21 @@ bool mailbox_read( MAILBOX_CHANNEL channel )
 	return false;
 }
 
+bool mailbox_send( MAILBOX_CHANNEL channel, uint32_t addr )
+{
+	__asm volatile ("dc civac, %0" : : "r" (addr) : "memory");
+
+	bool result = mailbox_write(channel, GPU_MEMORY_BASE | addr);
+	if (!result) return false;
+	result = mailbox_read(channel);
+
+	__asm volatile ("dc civac, %0" : : "r" (addr) : "memory");
+	return result;
+}
+
 int mailbox_tag( uint32_t tag , struct mailbox_message *buffer )
 {
-	// manually align the memory because the 'align' attribute wont work with aarch64 (why?)
+	// manually align the memory because the 'align' attribute wont work in local variables
 	uint32_t tmp[sizeof(struct mailbox_message) + 15];
 	uint32_t addr = ((uint32_t) (size_t) &tmp + 15) & (~15U);
 	struct mailbox_message *message = (struct mailbox_message *) (size_t) addr;

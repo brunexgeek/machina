@@ -13,5 +13,6 @@
 #define ENODATA                        (-9)
 #define EMEMORY                        (-10)
 #define ENOIMP                         (-11)
+#define EARGUMENT                      (-12)
 
 #endif // MACHINA_ERRORS_H

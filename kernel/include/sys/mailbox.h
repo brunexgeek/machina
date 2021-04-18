@@ -207,9 +207,11 @@ struct __attribute__((__packed__, aligned(1))) mailbox_message
 extern "C" {
 #endif
 
-bool mailbox_write( MAILBOX_CHANNEL channel, uint32_t addr );
+bool mailbox_send( MAILBOX_CHANNEL channel, uint32_t addr );
 
-bool mailbox_read( MAILBOX_CHANNEL channel );
+//bool mailbox_write( MAILBOX_CHANNEL channel, uint32_t addr );
+
+//bool mailbox_read( MAILBOX_CHANNEL channel );
 
 int mailbox_tag( uint32_t tag , struct mailbox_message *buffer );
 

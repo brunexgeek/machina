@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-#if defined(__arm__) && !defined(MACHINA_LIBMC_STDLIB_H)
+#ifndef MACHINA_LIBMC_STDLIB_H
 #define MACHINA_LIBMC_STDLIB_H
 
 
@@ -29,5 +29,12 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#define STACK_BUFFER_ALIGNED(name_, count_, align_, type_) \
+    uint8_t *name_##_tmp[count_*sizeof(type_)+align_-1];  \
+    type_ *name_ = (type_*) (((uintptr_t) &name_##_tmp + (align_-1)) & (~(align_-1)))
+
+#define STACK_STRUCT_ALIGNED(name_, size_, align_, type_) \
+    uint8_t *name_##_tmp[size_+align_-1];  \
+    type_ &name_ = *((type_*) (((uintptr_t) &name_##_tmp + (align_-1)) & (~(align_-1))))
 
 #endif // MACHINA_LIBMC_STDLIB_H

@@ -23,7 +23,7 @@ set(CMAKE_RANLIB       "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ranlib")
 set(TARGET_ARCH "-march=armv8-a -mcpu=cortex-a53+fp+simd")
 set(RPIGEN 3)
 
-set(COMMOM_FLAGS "-Wfatal-errors -O0 -g -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type  -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib -pedantic -Wuninitialized -Winit-self -D__arm__=1")
+set(COMMOM_FLAGS "-Wfatal-errors -fno-threadsafe-statics -O0 -g -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type  -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib -pedantic -Wuninitialized -Winit-self -D__arm__=1")
 
 set(CMAKE_C_FLAGS   "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -std=c11")
 set(CMAKE_ASM_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN}")

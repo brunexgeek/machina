@@ -2,14 +2,21 @@
 
 # Machina
 
-[Machina](https://brunexgeek.github.io/machina/) (pronounced _MAH-kih-nah_) is a minimalist kernel and operating system for Raspberry Pi. The project is just beginning, but intents to provide a simple and extensible operating system able to run in every Raspberry Pi board.
+[Machina](https://brunexgeek.github.io/machina/) (pronounced _MAH-kih-nah_) is a minimalist kernel and operating system for Raspberry Pi 3/4 (*aarch64* only).
 
 Current features:
 
 * Basic memory management with dynamic allocator
+* Device and driver management
 * Graphic display and colored console
-* Able to use PSF fonts (versions 1 and 2) in console mode
-* Support for Raspberry Pi mailboxes
+* Support for PSF fonts (versions 1 and 2) in console mode
+
+# Task list
+
+[ ] FAT32 file system
+[ ] eMMC device driver
+[ ] Multi-tasking with threads and processes
+[ ] Implement description-based UI system
 
 # Screenshot
 

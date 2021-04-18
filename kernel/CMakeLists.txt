@@ -14,6 +14,8 @@ add_executable(kernel
     "source/mailbox.cc"
     "source/task.cc"
     "source/procfs.cc"
+    "source/device.cc"
+    "source/display.cc"
     "source/vfs.cc"
     "source/main.cc")
 target_link_libraries(kernel bcm2837 libmc)
