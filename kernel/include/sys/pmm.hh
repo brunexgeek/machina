@@ -21,21 +21,6 @@
 #include <sys/types.h>
 #include <sys/compiler.h>
 
-
-#define FRAME_TO_ADDRESS(frame) \
-	( (frame) * SYS_PAGE_SIZE )
-
-
-#define ADDRESS_TOFRAME(address) \
-	( (size_t) (address) / SYS_PAGE_SIZE )
-
-
-#define SET_FREE_PFT(index)    ( index << 1 | 1 )
-#define SET_USED_PFT(index)    ( index << 1 )
-#define IS_FREE_PFT(index)     ( (index & 0x01) != 0 )
-#define GET_PFT_INDEX(code)    ( code >> 1 )
-
-
 /**
  * @brief Codes for physical frame types.
  *
@@ -44,21 +29,10 @@
  */
 typedef enum
 {
-	PFT_FREE       = SET_FREE_PFT(0x00), // Available for allocation
-	PFT_DIRTY      = SET_FREE_PFT(0x01), // Available for allocation (but dirty)
-	PFT_KERNEL     = SET_USED_PFT(0x02), // Kernel image
-	PFT_RESERVED   = SET_USED_PFT(0x03), // Reserved
-	PFT_KSTACK     = SET_USED_PFT(0x04), // kernel stack
-	PFT_ASTACK     = SET_USED_PFT(0x05), // Abort stack
-	PFT_ISTACK     = SET_USED_PFT(0x06), // IRQ stack
-	PFT_PHYS       = SET_USED_PFT(0x07), // Physical memory table
-	PFT_ALLOCATED  = SET_USED_PFT(0x08), // Allocated frame
-	PFT_KHEAP      = SET_USED_PFT(0x09), // Allocated frame
-	PFT_VIDEO      = SET_USED_PFT(0x0a), // Video memory
-	PFT_PTABLE     = SET_USED_PFT(0x0b), // Page table
-	PFT_INVALID    = SET_USED_PFT(0x0c), // Invalid frame
-	PFT_MMIO       = SET_USED_PFT(0x0d), // Memory-mapped I/O
-	//PFT_LAST
+	PFT_FREE       = 0x00, // Available for allocation
+	PFT_RESERVED   = 0x01, // Reserved
+	PFT_DIRTY      = 0x02, // Available for allocation (but dirty)
+	PFT_ALLOCATED  = 0x03, // Allocated frame
 } frame_type_t;
 
 struct memory_entry_t

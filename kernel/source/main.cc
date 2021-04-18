@@ -73,6 +73,7 @@ extern "C" void kernel_main()
 
     pmm_initialize();
 	//pmm_print();
+
 	heap_initialize();
 
     procfs_initialize();

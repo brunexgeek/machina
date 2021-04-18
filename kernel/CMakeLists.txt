@@ -18,11 +18,11 @@ add_executable(kernel
     "source/main.cc")
 target_link_libraries(kernel bcm2837 libmc)
 set_target_properties(kernel PROPERTIES
-    OUTPUT_NAME "kernel.elf"
+    OUTPUT_NAME "kernel8.elf"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-add_custom_target(kernel.img
-    ${CMAKE_OBJCOPY} ${CMAKE_BINARY_DIR}/kernel.elf -O binary ${CMAKE_BINARY_DIR}/kernel.img
+add_custom_target(image
+    ${CMAKE_OBJCOPY} ${CMAKE_BINARY_DIR}/kernel8.elf -O binary ${CMAKE_BINARY_DIR}/kernel8.img
     DEPENDS kernel "./kernel.ld")

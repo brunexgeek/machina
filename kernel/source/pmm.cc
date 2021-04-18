@@ -25,6 +25,14 @@
 #include <mc/stdio.h>
 
 
+#define FRAME_TO_ADDRESS(frame) \
+	( (frame) * SYS_PAGE_SIZE )
+
+#define ADDRESS_TOFRAME(address) \
+	( (size_t) (address) / SYS_PAGE_SIZE )
+
+#define IS_FREE_PFT(index)     (index == PFT_FREE || index == PFT_DIRTY)
+
 #define PFRAME_GET_TAG(index) \
 	( table[index] )
 
@@ -65,15 +73,15 @@ static struct
 } PFT_NAMES[] =
 {
 	{ ".", "Free" },
-	{ ".", "Free (dirty)" },
-	{ "K", "Kernel image" },
 	{ "-", "Reserved" },
+	{ ".", "Free (dirty)" },
+	{ "A", "Alocated" },
+	{ "K", "Kernel image" },
 	{ "1", "Kernel stack" },
 	{ "2", "Abort stack" },
 	{ "3", "IRQ stack" },
 	{ "T", "Frame table" },
 	{ "A", "Physical frame" },
-	{ "H", "Kernel heap" },
 	{ "V", "Video memory" },
 	{ "P", "Page table" },
 	{ "x", "Invalid" },
@@ -106,7 +114,7 @@ static int proc_frames( uint8_t *buffer, int size, void *data )
 				(uint32_t) (start * SYS_PAGE_SIZE),
 				(uint32_t) ( (i - 1) * SYS_PAGE_SIZE + (SYS_PAGE_SIZE - 1) ), // to avoid overflow
 				(uint32_t) (i - start),
-				PFT_NAMES[ GET_PFT_INDEX(type) ].name );
+				PFT_NAMES[type].name );
 			type = table[i];
 			start = i;
 		}
@@ -146,7 +154,7 @@ extern uint8_t __EL0_stack_core2;
 extern uint8_t __EL1_stack_core2;
 extern uint8_t __EL2_stack_core2;
 
-static void pmm_map_memory( const memory_tag &arm, const memory_tag &vc )
+static void pmm_map_memory( const memory_tag &arm, const memory_tag &/* vc */ )
 {
 	// update the memory map
 	kern_memory_map.bitmap.begin = SYS_BITMAP_START;
@@ -205,29 +213,25 @@ void pmm_initialize()
 
 	//size_t temp = (frame_count + SYS_PAGE_SIZE - 1) & ~(SYS_PAGE_SIZE - 1);
 	table = (uint8_t*) kern_memory_map.bitmap.begin;
-	uint32_t *end = (uint32_t*) (kern_memory_map.bitmap.begin + 4);
-	for (uint32_t *p = (uint32_t*) kern_memory_map.bitmap.begin; p < end; p++)
-		*p = 0x18181818;
+	size_t bsize = kern_memory_map.bitmap.end - kern_memory_map.bitmap.begin;
+	memset4(table, PFT_RESERVED, bsize);
 
-	// reserve everything before the heap
-	for (uintptr_t i = 0; i < kern_memory_map.kernel.end; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_RESERVED );
 	// reserve the frames used by physical memory table
-	for (uintptr_t i = kern_memory_map.bitmap.begin; i < kern_memory_map.bitmap.end; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_PHYS );
+	//for (uintptr_t i = kern_memory_map.bitmap.begin; i < kern_memory_map.bitmap.end; i += SYS_PAGE_SIZE)
+	//	PFRAME_SET_TAG( i >> 12, PFT_RESERVED );
 	// reserve the kernel memory
-	for (uintptr_t i = kern_memory_map.kernel.begin; i < kern_memory_map.kernel.end; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_KERNEL );
+	//for (uintptr_t i = kern_memory_map.kernel.begin; i < kern_memory_map.kernel.end; i += SYS_PAGE_SIZE)
+	//	PFRAME_SET_TAG( i >> 12, PFT_RESERVED );
 	// sets the free memory region
 	for (uintptr_t i = kern_memory_map.heap.begin; i < kern_memory_map.heap.end; i += SYS_PAGE_SIZE)
 		PFRAME_SET_TAG( i >> 12, PFT_FREE );
 
 	// reserve the video memory
-	for (uintptr_t i = message2.tag.memory.base; i < message2.tag.memory.base + message2.tag.memory.size; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_VIDEO );
+	//for (uintptr_t i = message2.tag.memory.base; i < message2.tag.memory.base + message2.tag.memory.size; i += SYS_PAGE_SIZE)
+	//	PFRAME_SET_TAG( i >> 12, PFT_RESERVED );
 	// reserve the IO memory
-	for (uintptr_t i = CPU_IO_BASE; i < CPU_IO_END; i += SYS_PAGE_SIZE)
-		PFRAME_SET_TAG( i >> 12, PFT_MMIO );
+	//for (uintptr_t i = CPU_IO_BASE; i < CPU_IO_END; i += SYS_PAGE_SIZE)
+	//	PFRAME_SET_TAG( i >> 12, PFT_RESERVED );
 }
 
 

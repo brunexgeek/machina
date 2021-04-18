@@ -1,5 +1,5 @@
 /*
- *    Copyright 2016 Bruno Ribeiro
+ *    Copyright 2016-2021 Bruno Ribeiro
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ struct bucket_info_t
  * so we have more granularity in the smaller buckets. Granularity
  * means less waste of space (to some extent).
  */
-static struct bucket_info_t heapBuckets[] =
+static struct bucket_info_t heap_buckets[] =
 {
 	{ 32            , 0, 0, NULL }, //  32 bytes
 	{ 64            , 0, 0, NULL }, //  64 bytes
@@ -104,44 +104,43 @@ static struct bucket_info_t heapBuckets[] =
 	{ INVALID_BUCKET, 0, 0, NULL }
 };
 
-#define MAX_BUCKETS   (sizeof(heapBuckets) / sizeof(struct bucket_info_t))
+#define MAX_BUCKETS   (sizeof(heap_buckets) / sizeof(struct bucket_info_t))
 
 /**
  * @brief Start address of the dynamic Heap region.
  */
-static size_t heapStart;
+static size_t heap_start;
 
 /**
  * @brief Current offset of the dynamic Heap region.
  */
-static size_t heapOffset;
+static size_t heap_offset;
 
 /**
  * @brief End address of the dynamic Heap region.
  */
-static size_t heapEnd;
+static size_t heap_end;
 
 
 void kernel_panic( const char *path, int line );
 
 void heap_initialize()
 {
-	heapStart = heapOffset = (size_t) pmm_allocate(HEAP_SIZE / SYS_PAGE_SIZE, PFT_KHEAP);
-	if (heapStart == 0) kernel_panic(__FILE__, __LINE__);
-	heapEnd = heapOffset + HEAP_SIZE;
+	heap_start = heap_offset = (size_t) pmm_allocate(HEAP_SIZE / SYS_PAGE_SIZE, PFT_FREE);
+	if (heap_start == 0) kernel_panic(__FILE__, __LINE__);
+	heap_end = heap_offset + HEAP_SIZE;
 	uart_print("Initializing memmory allocator with heap of %d MB\n", HEAP_SIZE / 1024 / 1024);
 }
 
-
 void *heap_allocate( size_t size )
 {
-	if (heapOffset == 0) heap_initialize();
+	if (heap_offset == 0) heap_initialize();
 
 	// we have to take into account the extra bytes for a block header
 	size += BLOCK_INFO_SIZE;
 
 	// find out in which bucket the allocation goes
-	struct bucket_info_t *bucket = heapBuckets;
+	struct bucket_info_t *bucket = heap_buckets;
 	for (; size > bucket->size; ++bucket);
 	if (bucket->size == INVALID_BUCKET) return NULL;
 
@@ -158,13 +157,13 @@ void *heap_allocate( size_t size )
 	else
 	{
 		// check whether we have available memory
-		if ( heapOffset + bucket->size > heapEnd ) return NULL;
+		if ( heap_offset + bucket->size > heap_end ) return NULL;
 
 		// fill the block information
-		block = (struct block_info_t *) heapOffset;
+		block = (struct block_info_t *) heap_offset;
 		block->signature = BLOCK_SIGNATURE;
-		block->bucket = (uint8_t) (bucket - heapBuckets); // bucket index
-		heapOffset += sizeof(struct block_info_t) + bucket->size;
+		block->bucket = (uint8_t) (bucket - heap_buckets); // bucket index
+		heap_offset += sizeof(struct block_info_t) + bucket->size;
 	}
 
 	++bucket->count;
@@ -174,12 +173,10 @@ void *heap_allocate( size_t size )
 	return &block->next;
 }
 
-
-void heap_free(
-	void *address )
+void heap_free( void *address )
 {
 	// we need to be sure that the given address is from a valid allocation
-	if (address < (void*) heapStart || address >= (void*) heapEnd) return;
+	if (address < (void*) heap_start || address >= (void*) heap_end) return;
 	// check the block information (more validations :)
 	struct block_info_t *block = (struct block_info_t*) ( (size_t) address - BLOCK_HEADER_SIZE ) ;
 	if (block->signature != BLOCK_SIGNATURE ||
@@ -187,7 +184,7 @@ void heap_free(
 		return;
 
 	// put the block in the free list of the corresponding bucket
-	struct bucket_info_t *bucket = &heapBuckets[block->bucket];
+	struct bucket_info_t *bucket = &heap_buckets[block->bucket];
 	block->next = bucket->entries;
 	bucket->entries = block;
 }
@@ -203,7 +200,7 @@ static int proc_heap( uint8_t *buffer, int size, void * /* data */ )
 
 	sncatprintf(p, ps, "Size     Count   Peak\n");
 	sncatprintf(p, ps, "-------  ------  --------\n");
-	struct bucket_info_t *bucket = heapBuckets;
+	struct bucket_info_t *bucket = heap_buckets;
 	for (; bucket->size != INVALID_BUCKET; ++bucket)
 	{
 		int unit = 0;

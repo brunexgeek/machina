@@ -40,7 +40,14 @@ size_t strlen( const CHAR_TYPE *str );
 
 void *memset( void *ptr, int value, size_t num );
 
+void *memset4( void *ptr, int value, size_t num );
+
 void *memcpy( void *output, const void *input, size_t size );
+
+/**
+ * Zero a 16 bytes aligned memory block with size multiple of 32 bytes
+ */
+void *memzero32( void *ptr, size_t size );
 
 #ifdef __cplusplus
 }

@@ -45,6 +45,16 @@ void *memset( void *ptr, int value, size_t num )
     return ptr;
 }
 
+void *memset4( void *ptr, int value, size_t num )
+{
+    num /= 4;
+    value &= 0xFF;
+    uint32_t tmp = value | (value << 8) | (value << 16) | (value << 24);
+    uint32_t *p = (uint32_t*) ptr;
+    while (num-- > 0) *p++ = tmp;
+    return ptr;
+}
+
 void *memcpy( void *output, const void *input, size_t size )
 {
     uint8_t *i = (uint8_t*) input;

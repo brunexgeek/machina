@@ -5,6 +5,7 @@ include_directories(
 add_definitions("-DNOFLOAT")
 
 add_library(libmc STATIC
+    "source/memzero32.S"
     "source/string.cc"
     "source/printf.cc")
 set_target_properties(libmc PROPERTIES

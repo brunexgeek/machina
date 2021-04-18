@@ -1,3 +1,26 @@
+/*
+ *    Copyright 2019-2021 Bruno Ribeiro
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+/*
+ * Simple "procfs" file system.
+ */
+
+// TODO: introduce write callback
+// TODO: execute the handler when the user read/write data
+
 #include <sys/procfs.h>
 #include <sys/vfs.h>
 #include <sys/errors.h>
@@ -6,7 +29,6 @@
 #include <sys/uart.h>
 #include <mc/stdlib.h>
 #include <mc/string.h>
-
 
 #define PROCFS_MAX_BUFFER   4096
 
@@ -31,7 +53,6 @@ static struct inode *procList = NULL;
 
 static ino_t counter = 0;
 
-
 static struct inode *find_inode( const char *name )
 {
     struct inode *node = procList;
@@ -43,7 +64,6 @@ static struct inode *find_inode( const char *name )
 
     return NULL;
 }
-
 
 static struct inode *remove_inode( const char *name )
 {
@@ -66,7 +86,6 @@ static struct inode *remove_inode( const char *name )
 
     return NULL;
 }
-
 
 static int procfs_open( struct file *fp, const char *path, uint32_t flags )
 {
@@ -140,6 +159,7 @@ static int procfs_mount( struct mount *mp, const char *opts, uint32_t flags )
 {
     (void) mp;
     (void) opts;
+    (void) flags;
     return EOK;
 }
 
@@ -148,7 +168,6 @@ static int procfs_unmount( struct mount *mp )
     (void) mp;
     return EOK;
 }
-
 
 int procfs_initialize()
 {

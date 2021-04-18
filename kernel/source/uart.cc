@@ -77,9 +77,8 @@ void uart_putc( uint8_t c )
 
 void uart_putc2( uint8_t c )
 {
-    //while((GET32(UART0_FR) & 0x20) != 0);
-    //PUT32(UART0_DR,(uint32_t)c);
-    *( (volatile uint32_t *) UART0_DR ) = (uint32_t) c;
+    while((GET32(UART0_FR) & 0x20) != 0);
+    PUT32(UART0_DR,(uint32_t)c);
 }
 
 uint8_t uart_getc()
