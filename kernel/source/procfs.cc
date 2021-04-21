@@ -26,7 +26,7 @@
 #include <sys/errors.h>
 #include <mc/string.h>
 #include <sys/heap.h>
-#include <sys/uart.h>
+#include <sys/log.h>
 #include <mc/stdlib.h>
 #include <mc/string.h>
 
@@ -201,7 +201,7 @@ int procfs_register( const char *name, procfunc_t func, void *data )
     ptr->next = procList;
     procList = ptr;
 
-    uart_print("Registered procfs file '%s'\n", name);
+    klog_print("Registered procfs file '%s'\n", name);
 
     return EOK;
 }

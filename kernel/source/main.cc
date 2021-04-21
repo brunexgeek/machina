@@ -1,6 +1,6 @@
 #include <sys/bcm2837.h>
 #include <sys/uart.h>
-#include <mc/stdarg.h>
+#include <sys/log.h>
 #include <mc/stdio.h>
 #include <mc/stdlib.h>
 #include <mc/string.h>
@@ -31,7 +31,7 @@ static int proc_sysname( uint8_t *buffer, int size, void *data )
 
 void kernel_panic( const char *path, int line )
 {
-	uart_print("KERNEL PANIC!   at %s:%d\n", path, line);
+	klog_print("KERNEL PANIC!   at %s:%d\n", path, line);
 	while (true) asm("wfi");
 }
 
@@ -46,7 +46,7 @@ void kernel_print_file( const char *path )
 		{
 			c /= sizeof(char);
 			buf[c] = 0;
-			uart_puts(buf);
+			klog_print(buf);
 		}
 		vfs_close(fp);
 	}
@@ -58,13 +58,13 @@ extern "C" void kernel_main()
 {
     uart_init();
 
-	printf("Raspberry PI 3\n  Processor: ARMv8 aarch64 %d cores\n", kvar_soc_info.info.cores_enabled);
+	klog_print("Raspberry PI 3\n  Processor: ARMv8 aarch64 %d cores\n", kvar_soc_info.info.cores_enabled);
 
 	struct mailbox_message message;
 	if (mailbox_tag(MAILBOX_TAG_GET_ARM_MEMORY, &message) == 0)
-		printf("     Memory: %d MB\n", message.tag.memory.size / 1024 / 1024);
+		klog_print("     Memory: %d MB\n", message.tag.memory.size / 1024 / 1024);
 	if (mailbox_tag(MAILBOX_TAG_GET_BOARD_MAC_ADDRESS, &message) == 0)
-		printf("MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n",
+		klog_print("MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n",
 			message.tag.mac.address[0],
 			message.tag.mac.address[1],
 			message.tag.mac.address[2],
@@ -72,7 +72,7 @@ extern "C" void kernel_main()
 			message.tag.mac.address[4],
 			message.tag.mac.address[5]);
 	if (mailbox_tag(MAILBOX_TAG_GET_BOARD_SERIAL, &message) == 0)
-		printf("     Serial: %lu\n", message.tag.serial.value);
+		klog_print("     Serial: %lu\n", message.tag.serial.value);
 
     pmm_initialize();
 	//pmm_print();
@@ -82,7 +82,7 @@ extern "C" void kernel_main()
     procfs_initialize();
 	procfs_register("/sysname", proc_sysname, NULL);
 	if (vfs_mount("procfs", "procfs", "/proc", "", 0, NULL) == EOK)
-		uart_puts("Mounted '/proc'\n");
+		klog_print("Mounted '/proc'\n");
 
 	pmm_register();
 	heap_register();
@@ -96,6 +96,6 @@ extern "C" void kernel_main()
 	kdev_enumerate();
 
 
-	puts("Done!\n");
+	klog_print("Done!\n");
 	while (true) { asm("wfi"); };
 }

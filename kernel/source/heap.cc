@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-#include <sys/uart.h>
+#include <sys/log.h>
 #include <sys/heap.h>
 #include <sys/pmm.hh>
 #include <sys/procfs.h>
@@ -129,7 +129,7 @@ void heap_initialize()
 	heap_start = heap_offset = (size_t) pmm_allocate(HEAP_SIZE / SYS_PAGE_SIZE, PFT_FREE);
 	if (heap_start == 0) kernel_panic(__FILE__, __LINE__);
 	heap_end = heap_offset + HEAP_SIZE;
-	uart_print("Initializing memmory allocator with heap of %d MB\n", HEAP_SIZE / 1024 / 1024);
+	klog_print("Initializing memmory allocator with heap of %d MB\n", HEAP_SIZE / 1024 / 1024);
 }
 
 void *heap_allocate( size_t size )

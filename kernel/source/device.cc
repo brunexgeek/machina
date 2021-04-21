@@ -1,4 +1,5 @@
 #include <sys/errors.h>
+#include <sys/log.h>
 #include <sys/uart.h>
 #include <sys/device.hh>
 #include <sys/heap.h>
@@ -19,14 +20,9 @@ static system_bus_t *kdev_create_bus( const char *name )
     return bus;
 }
 
-/*
- * Local bus
- */
-
-static int local_bus_match(device_t *dev, device_driver_t *driver)
-{
-    return EOK;
-}
+//
+// Local bus
+//
 
 static int local_bus_attach(system_bus_t *bus, device_t *dev)
 {
@@ -82,7 +78,6 @@ static system_bus_t *kdev_create_local_bus()
     bus->suspend = local_bus_suspend;
     bus->resume = local_bus_resume;
     bus_list.push(bus);
-    puts("Created bus \"local\"\n");
     return local_bus = bus;
 }
 
@@ -124,7 +119,7 @@ int kdev_enumerate_bus( system_bus_t *bus )
     device_t *dev = bus->devices.head;
     while (dev)
     {
-        uart_print("[%s.%d] [%04X:%04X] %s (%s)\n",
+        klog_print("[%s.%d] [%04X:%04X] %s (%s)\n",
             bus->name,
             dev->id,
             dev->id_product,
@@ -151,7 +146,7 @@ int kdev_register_driver( device_driver_t *drv )
     // include the driver
     drv->next = driver_list;
     driver_list = drv;
-    printf("<device> Registered driver %s\n", drv->name);
+    klog_print("<device> Registered driver %s\n", drv->name);
 
     return EOK;
 }

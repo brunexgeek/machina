@@ -15,7 +15,7 @@
  */
 
 #include <sys/pmm.hh>
-#include <sys/uart.h>
+#include <sys/log.h>
 #include <sys/mailbox.h>
 #include <sys/bcm2837.h>
 #include <sys/system.h>
@@ -190,7 +190,7 @@ static void pmm_map_memory( const memory_tag &arm, const memory_tag &/* vc */ )
 
 void pmm_initialize()
 {
-	uart_puts("Initializing physical memory manager...\n");
+	klog_print("Initializing physical memory manager...\n");
 	// probe the ARM memory map
 	struct mailbox_message message1;
 	memset(&message1, 0, sizeof(message1));
@@ -202,8 +202,8 @@ void pmm_initialize()
 	if (mailbox_tag(MAILBOX_TAG_GET_VC_MEMORY, &message2) != 0)
 		kernel_panic(__FILE__, __LINE__);
 
-	uart_print("ARM split: %x - %x\n", message1.tag.memory.base, message1.tag.memory.base + message1.tag.memory.size);
-	uart_print("GPU split: %x - %x\n", message2.tag.memory.base, message2.tag.memory.base + message2.tag.memory.size);
+	klog_print("ARM split: %x - %x\n", message1.tag.memory.base, message1.tag.memory.base + message1.tag.memory.size);
+	klog_print("GPU split: %x - %x\n", message2.tag.memory.base, message2.tag.memory.base + message2.tag.memory.size);
 
 	pmm_map_memory(message1.tag.memory, message2.tag.memory);
 
@@ -233,7 +233,6 @@ void pmm_initialize()
 	//for (uintptr_t i = CPU_IO_BASE; i < CPU_IO_END; i += SYS_PAGE_SIZE)
 	//	PFRAME_SET_TAG( i >> 12, PFT_RESERVED );
 }
-
 
 uintptr_t pmm_allocate( size_t count, frame_type_t tag )
 {
@@ -271,7 +270,6 @@ uintptr_t pmm_allocate( size_t count, frame_type_t tag )
 
 	return 0;
 }
-
 
 uintptr_t pmm_allocate_aligned( size_t count, size_t alignment, frame_type_t tag )
 {

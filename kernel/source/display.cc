@@ -5,7 +5,7 @@
 #include <sys/sync.h>
 #include <mc/stdlib.h>
 #include <mc/string.h>
-#include <sys/uart.h>
+#include <sys/log.h>
 #include <sys/heap.h>
 #ifndef __arm__
 #include <iostream>
@@ -127,7 +127,7 @@ static int kvid_drv_attach(device_driver_t *drv, device_t *dev)
 	dev->driver = &def_driver;
 	dev->iobase = nullptr; // VC4 uses mailboxes
 
-	uart_print("%s %dx%d at 0x%08x\n", DEV_NAME, req.width, req.height, int_device.buffer);
+	klog_print("%s %dx%d at 0x%08x\n", DEV_NAME, req.width, req.height, int_device.buffer);
 
 	return EOK;
 }
