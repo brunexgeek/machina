@@ -96,7 +96,6 @@ static int kvid_drv_attach(device_driver_t *drv, device_t *dev)
 		return EINVALID;
 
 	static kvid_devinternals int_device;
-	uart_puts(LOG_TITLE "Initializing device\n");
 
 	STACK_STRUCT_ALIGNED(req, sizeof(vc4_fb_info), 16, vc4_fb_info);
 
@@ -168,8 +167,6 @@ static int kvid_create_device( system_bus_t *bus )
 int kvid_create_driver( system_bus_t *bus )
 {
 	if (bus == nullptr) return EARGUMENT;
-
-	uart_puts(LOG_TITLE "Initializing driver\n");
 
 	def_api.clear = kvid_api_clear;
 	def_api.draw = kvid_api_draw;

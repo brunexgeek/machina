@@ -4,8 +4,10 @@
 #include <sys/heap.h>
 #include <mc/stdio.h>
 #include <mc/string.h>
+#include <sys/cpp.h>
 
-static system_bus_t *bus_list = nullptr;
+static system_bus_t *local_bus = nullptr;
+static linked_list_t<system_bus_t> bus_list;
 static device_driver_t *driver_list = nullptr;
 
 static system_bus_t *kdev_create_bus( const char *name )
@@ -42,15 +44,23 @@ static int local_bus_attach(system_bus_t *bus, device_t *dev)
     }
 
     // append the device
-    dev->next = bus->devices;
-    bus->devices = dev;
+    dev->id = bus->counter++;
+    dev->bus = bus;
+    bus->devices.push(dev);
 
     return EOK;
 }
 
 static int local_bus_remove(device_t *dev)
 {
-    return dev->driver->remove(dev);
+    if (dev == nullptr) return ENOTEXIST;
+
+    if (local_bus->devices.remove(dev))
+        return ENOTEXIST;
+    int result = dev->driver->remove(dev);
+    if (!result)
+        local_bus->devices.push(dev);
+    return result;
 }
 
 static int local_bus_suspend(device_t *dev)
@@ -71,10 +81,9 @@ static system_bus_t *kdev_create_local_bus()
     bus->remove = local_bus_remove;
     bus->suspend = local_bus_suspend;
     bus->resume = local_bus_resume;
-    bus->next = bus_list;
-    bus->devices = nullptr;
+    bus_list.push(bus);
     puts("Created bus \"local\"\n");
-    return bus_list = bus;
+    return local_bus = bus;
 }
 
 //
@@ -82,6 +91,7 @@ static system_bus_t *kdev_create_local_bus()
 //
 
 int kvid_initialize( system_bus_t *bus, device_t **dev, device_driver_t **drv ); // display.hh
+int kramdsk_initialize( system_bus_t *bus, device_driver_t **drv ); // ramdsk.hh
 
 int kdev_initialize()
 {
@@ -92,13 +102,15 @@ int kdev_initialize()
         device_t *dev;
         device_driver_t *drv;
         result = kvid_initialize(bus, &dev, &drv);
+        if (result) return result;
+        result = kramdsk_initialize(bus, &drv);
     }
     return result;
 }
 
 int kdev_enumerate()
 {
-    system_bus_t *bus = bus_list;
+    system_bus_t *bus = bus_list.head;
     while (bus)
     {
         kdev_enumerate_bus(bus);
@@ -109,7 +121,7 @@ int kdev_enumerate()
 
 int kdev_enumerate_bus( system_bus_t *bus )
 {
-    device_t *dev = bus->devices;
+    device_t *dev = bus->devices.head;
     while (dev)
     {
         uart_print("[%s.%d] [%04X:%04X] %s (%s)\n",
@@ -139,6 +151,12 @@ int kdev_register_driver( device_driver_t *drv )
     // include the driver
     drv->next = driver_list;
     driver_list = drv;
+    printf("<device> Registered driver %s\n", drv->name);
 
     return EOK;
+}
+
+system_bus_t *kdev_local_bus()
+{
+    return local_bus;
 }

@@ -16,6 +16,7 @@ add_executable(kernel
     "source/procfs.cc"
     "source/device.cc"
     "source/display.cc"
+    "source/ramdsk.cc"
     "source/vfs.cc"
     "source/main.cc")
 target_link_libraries(kernel bcm2837 libmc)

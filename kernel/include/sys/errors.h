@@ -14,5 +14,7 @@
 #define EMEMORY                        (-10)
 #define ENOIMP                         (-11)
 #define EARGUMENT                      (-12)
+#define ENOINIT                        (-13)
+#define ENOTEXIST                      (-14)
 
 #endif // MACHINA_ERRORS_H

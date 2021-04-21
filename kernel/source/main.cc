@@ -9,6 +9,7 @@
 #include <sys/heap.h>
 #include <sys/errors.h>
 #include <sys/procfs.h>
+#include <sys/ramdsk.h>
 #include <sys/mailbox.h>
 #include <sys/device.hh>
 
@@ -90,7 +91,10 @@ extern "C" void kernel_main()
     kernel_print_file("/proc/heap");
 
 	kdev_initialize();
+	device_t *ramdsk = nullptr;
+	kramdsk_create_device(nullptr, 10 * 1024 * 1024, &ramdsk);
 	kdev_enumerate();
+
 
 	puts("Done!\n");
 	while (true) { asm("wfi"); };

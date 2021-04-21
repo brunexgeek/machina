@@ -1,6 +1,7 @@
 #ifndef MACHINA_DEVICE_HH
 #define MACHINA_DEVICE_HH
 
+#include <sys/cpp.h>
 #include <sys/types.h>
 
 struct device_t;
@@ -32,7 +33,14 @@ struct system_bus_t
      * Pointer to the next item in the linked list or nullptr otherwise.
      */
     system_bus_t *next;
-    device_t *devices;
+    /**
+     * Device list.
+     */
+    linked_list_t<device_t> devices;
+    /**
+     * Device counter used to set device ids.
+     */
+    int counter;
 };
 
 enum device_type
@@ -52,7 +60,46 @@ struct video_api
     int (*draw)( device_t *dev, void *pixels, int width, int height, int x, int y, int pitch );
 };
 
-struct storage_api {};
+struct storage_api
+{
+    /**
+     * Read data to the device.
+     *
+     * @param dev Device pointer.
+     * @param sector sector Number of the sector to read from. If @c count is greater than
+     *     1 the following sectors will be read.
+     * @param buffer Pointer to the buffer. Must have (@c count * sector
+     *     size) bytes.
+     * @param count Number of sector to read.
+     */
+    int (*read)( device_t *dev, size_t sector, void *buffer, size_t count );
+    /**
+     * Write data to the device.
+     *
+     * @param dev Device pointer.
+     * @param sector sector Number of the sector to write from. If @c count is greater than
+     *     1 the following sectors will be written.
+     * @param buffer Pointer to the data to be written. Must have (@c count * sector
+     *     size) bytes.
+     * @param count Number of sector to write.
+     */
+    int (*write)( device_t *dev, size_t sector, void *buffer, size_t count );
+    /**
+     * Makes sure that the device has finished pending write process.
+     *
+     * @param dev Device pointer.
+     */
+    int (*sync)( device_t *dev );
+    /**
+     * Access device-specific functions.
+     *
+     * @param dev Device pointer.
+     * @param cmd Command identifier.
+     * @param buffer Input/output buffer
+     */
+    int (*ioctl)( device_t *dev, int32_t cmd, void *buffer );
+    int (*status)( device_t *dev );
+};
 
 union device_api
 {
@@ -95,7 +142,11 @@ struct device_driver_t
 
 struct device_t
 {
+    /**
+     * Unique name used to publish the device in '/dev' directory.
+     */
     const char *name;
+    const char *product;
     const char *vendor;
     uint32_t id;               // internal device ID (relative to the bus)
     uint32_t id_product;
@@ -129,5 +180,10 @@ int kdev_enumerate_bus( system_bus_t *bus );
  * Register a new device driver.
  */
 int kdev_register_driver( device_driver_t *drv );
+
+/**
+ * Returns the local bus pointer.
+ */
+system_bus_t *kdev_local_bus();
 
 #endif // MACHINA_DEVICE_HH
