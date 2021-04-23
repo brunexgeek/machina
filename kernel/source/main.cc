@@ -13,6 +13,17 @@
 #include <sys/mailbox.h>
 #include <sys/device.hh>
 
+/*
+ * Pointer to the first C/C++ static construtor.
+ */
+extern void (*__begin_init_array) (void);
+
+/*
+ * Pointer to the end of C/C++ static construtor list.
+ * The last valid constructor is the one before this.
+ */
+extern void (*__end_init_array) (void);
+
 static int proc_sysname( uint8_t *buffer, int size, void *data )
 {
 	(void) data;
@@ -37,7 +48,7 @@ void kernel_panic( const char *path, int line )
 
 void kernel_print_file( const char *path )
 {
-	struct file *fp = NULL;
+	file_t *fp = NULL;
 	if (vfs_open(path, 0, &fp) == EOK)
 	{
 		char buf[1024];
@@ -57,6 +68,9 @@ extern SOC_INFO kvar_soc_info;
 extern "C" void kernel_main()
 {
     uart_init();
+	// call C++ static construtors
+	void (**p) (void) = 0;
+	for (p = &__begin_init_array; p < &__end_init_array; ++p) (**p) ();
 
 	klog_print("Raspberry PI 3\n  Processor: ARMv8 aarch64 %d cores\n", kvar_soc_info.info.cores_enabled);
 
@@ -74,14 +88,15 @@ extern "C" void kernel_main()
 	if (mailbox_tag(MAILBOX_TAG_GET_BOARD_SERIAL, &message) == 0)
 		klog_print("     Serial: %lu\n", message.tag.serial.value);
 
+	// Note: The next calls will initialize our memory managers. It's
+	//       crucial that no dynamic memory allocation is attempted before
+	//       that point. This includes using 'new' and 'delete' C++ operators.
     pmm_initialize();
-	//pmm_print();
-
 	heap_initialize();
 
     procfs_initialize();
 	procfs_register("/sysname", proc_sysname, NULL);
-	if (vfs_mount("procfs", "procfs", "/proc", "", 0, NULL) == EOK)
+	if (vfs_mount("procfs", nullptr, "/proc", "", 0, 0) == EOK)
 		klog_print("Mounted '/proc'\n");
 
 	pmm_register();

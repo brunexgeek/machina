@@ -48,7 +48,8 @@ struct kvid_devinternals
 
 static uint32_t DEV_PRODUCT_ID = 0xF7FF; // fake ID
 static uint32_t DEV_VENDOR_ID = 0x0A5C; // Broadcom
-static const char *DEV_NAME = "VideoCore IV";
+static const char *DEV_NAME = "vc4";
+static const char *DEV_PRODUCT = "VideoCore IV";
 static const char *DEV_VENDOR = "Broadcom";
 static device_driver_t def_driver;
 static video_api def_api;
@@ -122,12 +123,10 @@ static int kvid_drv_attach(device_driver_t *drv, device_t *dev)
 	int_device.buffer_size = req.buffer_size;
 	int_device.pitch = req.pitch;
 	dev->internals = &int_device;
-	dev->name = DEV_NAME;
-	dev->vendor = DEV_VENDOR;
 	dev->driver = &def_driver;
 	dev->iobase = nullptr; // VC4 uses mailboxes
 
-	klog_print("%s %dx%d at 0x%08x\n", DEV_NAME, req.width, req.height, int_device.buffer);
+	klog_print("%s %dx%d at 0x%08x\n", DEV_PRODUCT, req.width, req.height, int_device.buffer);
 
 	return EOK;
 }
@@ -153,8 +152,11 @@ static int kvid_create_device( system_bus_t *bus )
 
 	static device_t def_device;
 
+	def_device.name_id = 0;
+	def_device.dev_id = 0;
 	def_device.name = DEV_NAME;
 	def_device.vendor = DEV_VENDOR;
+	def_device.product = DEV_PRODUCT;
 	def_device.id_vendor = DEV_VENDOR_ID;
 	def_device.id_product = DEV_PRODUCT_ID;
 	def_device.internals = nullptr;

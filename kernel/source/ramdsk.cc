@@ -123,30 +123,26 @@ int kramdsk_create_device( system_bus_t *bus, size_t size, device_t **dev )
     if (devid > 99) return ETOOLONG;
 
     size = (size + sector_size - 1) & (~(sector_size - 1));
+    void *data = heap_allocate(size);
+    if (data == nullptr) return EMEMORY;
 
-    *dev = (device_t*) heap_allocate(
-        sizeof(device_t) +      // device structure
-        sizeof(internal_t) +    // internal information
-        size +                  // disk space
-        8);                     // device name ('ramfsXX')
-    if (*dev == nullptr) return EMEMORY;
+    int result = kdev_create_device(DEV_TYPE_STORAGE, DEV_VENDOR_ID,
+        DEV_PRODUCT_ID, "ramfs", sizeof(internal_t), dev);
+    if (result)
+    {
+        heap_free(data);
+        return result;
+    }
 
-    bus = (bus == nullptr) ? kdev_local_bus() : bus;
-    (*dev)->bus = bus;
-    (*dev)->driver = nullptr;
-    (*dev)->id = 0;
-    (*dev)->id_product = 0;
-    (*dev)->id_vendor = 0;
-    (*dev)->iobase = nullptr;
+    if (bus != nullptr)
+        (*dev)->bus = bus;
+    else
+        bus = (*dev)->bus;
     (*dev)->product = DEV_PRODUCT;
     (*dev)->vendor = DEV_VENDOR;
-    (*dev)->next = nullptr;
-    (*dev)->name = (char*)(*dev + 1);
-    snprintf((char*)(*dev)->name, 7, "ramfs%d", devid++);
-    (*dev)->internals = (void*) ((*dev)->name + 8);
 
     internal_t *tmp = (internal_t*) (*dev)->internals;
-    tmp->ptr = tmp + 1;
+    tmp->ptr = data;
     tmp->size = size;
     tmp->sector_size = sector_size;
 

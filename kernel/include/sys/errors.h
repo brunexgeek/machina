@@ -16,5 +16,6 @@
 #define EARGUMENT                      (-12)
 #define ENOINIT                        (-13)
 #define ENOTEXIST                      (-14)
+#define ETOOMANY                       (-15)
 
 #endif // MACHINA_ERRORS_H

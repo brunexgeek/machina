@@ -87,7 +87,7 @@ static struct inode *remove_inode( const char *name )
     return NULL;
 }
 
-static int procfs_open( struct file *fp, const char *path, uint32_t flags )
+static int procfs_open( file_t *fp, const char *path, uint32_t flags )
 {
     (void) flags;
 
@@ -113,13 +113,13 @@ static int procfs_open( struct file *fp, const char *path, uint32_t flags )
     return EOK;
 }
 
-static int procfs_close( struct file *fp )
+static int procfs_close( file_t *fp )
 {
     if (fp->fsdata) heap_free(fp->fsdata);
     return EOK;
 }
 
-static int procfs_read( struct file *fp, uint8_t *buffer, size_t count )
+static int procfs_read( file_t *fp, uint8_t *buffer, size_t count )
 {
     if (count == 0) return 0;
 
@@ -133,7 +133,7 @@ static int procfs_read( struct file *fp, uint8_t *buffer, size_t count )
     return len;
 }
 
-static int procfs_write( struct file *fp, const uint8_t *buffer, size_t count )
+static int procfs_write( file_t *fp, const uint8_t *buffer, size_t count )
 {
     (void) fp;
     (void) buffer;
@@ -141,21 +141,21 @@ static int procfs_write( struct file *fp, const uint8_t *buffer, size_t count )
     return ENOIMP;
 }
 
-static int procfs_stat( struct file *fp, struct stat *info )
+static int procfs_stat( file_t *fp, struct stat *info )
 {
     (void) fp;
     (void) info;
     return ENOIMP;
 }
 
-static int procfs_enumerate( struct file *fp, struct dirent *entry )
+static int procfs_enumerate( file_t *fp, struct dirent *entry )
 {
     (void) fp;
     (void) entry;
     return ENOIMP;
 }
 
-static int procfs_mount( struct mount *mp, const char *opts, uint32_t flags )
+static int procfs_mount( mount_t *mp, const char *opts, uint32_t flags )
 {
     (void) mp;
     (void) opts;
@@ -163,7 +163,7 @@ static int procfs_mount( struct mount *mp, const char *opts, uint32_t flags )
     return EOK;
 }
 
-static int procfs_unmount( struct mount *mp )
+static int procfs_unmount( mount_t *mp )
 {
     (void) mp;
     return EOK;
@@ -171,7 +171,7 @@ static int procfs_unmount( struct mount *mp )
 
 int procfs_initialize()
 {
-    static struct filesystem fs;
+    static filesystem_t fs;
     strcpy(fs.type, "procfs");
     fs.ops.open = procfs_open;
     fs.ops.close = procfs_close;

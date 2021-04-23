@@ -8,9 +8,9 @@
 #define MAX_FS_ENTRIES 8
 
 
-struct filesystem *fsList;
+filesystem_t *fsList;
 
-struct mount *mountList;
+mount_t *mountList;
 
 
 int vfs_initialize()
@@ -21,7 +21,7 @@ int vfs_initialize()
 }
 
 
-int vfs_register( struct filesystem *fs )
+int vfs_register( filesystem_t *fs )
 {
     bool valid =
         fs != NULL &&
@@ -35,7 +35,7 @@ int vfs_register( struct filesystem *fs )
         fs->ops.unmount != NULL;
     if (!valid) return EINVALID;
 
-    struct filesystem *p = fsList;
+    filesystem_t *p = fsList;
     while (p)
     {
         if (strcmp(p->type, fs->type) == 0) return EEXIST;
@@ -55,8 +55,8 @@ int vfs_unregister( const char *type )
 {
     if (type == NULL || type[0] == 0) return EINVALID;
 
-    struct filesystem *q = NULL;
-    struct filesystem *p = fsList;
+    filesystem_t *q = NULL;
+    filesystem_t *p = fsList;
     while (p)
     {
         if (strcmp(p->type, type) == 0)
@@ -74,17 +74,12 @@ int vfs_unregister( const char *type )
 }
 
 
-int vfs_mount(
-    const char *type,
-    const char *source,
-    const char *target,
-    const char *opts,
-    uint32_t flags,
-    struct mount **mp )
+int vfs_mount( const char *type, device_t *dev, const char *target, const char *opts,
+    uint32_t flags, mount_t **mp )
 {
-    if (strlen(target) >= MAX_PATH || strlen(source) >= MAX_PATH) return ETOOLONG;
+    if (strlen(target) >= MAX_PATH) return ETOOLONG;
 
-    struct filesystem *fs = fsList;
+    filesystem_t *fs = fsList;
     while (fs)
     {
         if (strcmp(fs->type, type) == 0) break;
@@ -92,11 +87,10 @@ int vfs_mount(
     }
     if (fs == NULL) return ENOENT;
 
-    struct mount *tmp = (struct mount*) heap_allocate(sizeof(struct mount));
+    mount_t *tmp = (mount_t*) heap_allocate(sizeof(mount_t));
     if (tmp == NULL) return EMEMORY;
 
     memset(tmp, 0, sizeof(*tmp));
-    strcpy(tmp->source, source);
     strcpy(tmp->target, target);
     tmp->fs = fs;
 
@@ -120,8 +114,8 @@ int vfs_unmount( const char *target, uint32_t flags )
 
     if (target == NULL) return EINVALID;
 
-    struct mount *p = NULL;
-    struct mount *m = mountList;
+    mount_t *p = NULL;
+    mount_t *m = mountList;
 
     while (strcmp(m->target, target) == 0)
     {
@@ -143,16 +137,16 @@ int vfs_unmount( const char *target, uint32_t flags )
 }
 
 
-int vfs_lookup( const char *path, struct mount **mp, const char **rest)
+int vfs_lookup( const char *path, mount_t **mp, const char **rest)
 {
     if (!path) return EINVALID;
 
     size_t len = strlen(path);
-    struct mount *bestm = NULL;
+    mount_t *bestm = NULL;
     size_t bests = 0;
 
     // find matching mount point
-    struct mount *tmp = mountList;
+    mount_t *tmp = mountList;
     while (tmp)
     {
         size_t s = strlen(tmp->target);
@@ -172,18 +166,18 @@ int vfs_lookup( const char *path, struct mount **mp, const char **rest)
 }
 
 
-int vfs_open( const char *path, uint32_t flags, struct file **fp )
+int vfs_open( const char *path, uint32_t flags, file_t **fp )
 {
     if (path == NULL || path[0] == 0) return EINVALID;
 
     // get the corresponding mount point
-    struct mount *mp;
+    mount_t *mp;
     const char *name;
     int result = vfs_lookup(path, &mp, &name);
     if (result < 0) return result;
 
     // create file pointer
-    struct file *tmp = (struct file *) heap_allocate( sizeof(struct file) + strlen(path) + 1 );
+    file_t *tmp = (file_t *) heap_allocate( sizeof(file_t) + strlen(path) + 1 );
     if (tmp == NULL) return EMEMORY;
     memset(tmp, 0, sizeof(tmp));
     tmp->mp = mp;
@@ -201,25 +195,25 @@ int vfs_open( const char *path, uint32_t flags, struct file **fp )
     return result;
 }
 
-int vfs_close( struct file *fp )
+int vfs_close( file_t *fp )
 {
     if (fp == NULL) return EINVALID;
     return fp->mp->fs->ops.close(fp);
 }
 
-int vfs_read( struct file *fp, uint8_t *buffer, size_t count )
+int vfs_read( file_t *fp, uint8_t *buffer, size_t count )
 {
     if (fp == NULL || buffer == NULL) return EINVALID;
     return fp->mp->fs->ops.read(fp, buffer, count);
 }
 
-int vfs_write( struct file *fp, const uint8_t *buffer, size_t count )
+int vfs_write( file_t *fp, const uint8_t *buffer, size_t count )
 {
     if (fp == NULL) return EINVALID;
     return fp->mp->fs->ops.write(fp, buffer, count);
 }
 
-int vfs_enumerate( struct file *fp, struct dirent *entry )
+int vfs_enumerate( file_t *fp, struct dirent *entry )
 {
     if (fp == NULL) return EINVALID;
     return fp->mp->fs->ops.enumerate(fp, entry);

@@ -8,8 +8,12 @@
 #include <sys/cpp.h>
 
 static system_bus_t *local_bus = nullptr;
+
 static linked_list_t<system_bus_t> bus_list;
+
 static device_driver_t *driver_list = nullptr;
+
+static uint8_t dev_counter[DEV_TYPE_STORAGE] = {0};
 
 static system_bus_t *kdev_create_bus( const char *name )
 {
@@ -40,7 +44,7 @@ static int local_bus_attach(system_bus_t *bus, device_t *dev)
     }
 
     // append the device
-    dev->id = bus->counter++;
+    dev->dev_id = bus->counter++;
     dev->bus = bus;
     bus->devices.push(dev);
 
@@ -119,13 +123,15 @@ int kdev_enumerate_bus( system_bus_t *bus )
     device_t *dev = bus->devices.head;
     while (dev)
     {
-        klog_print("[%s.%d] [%04X:%04X] %s (%s)\n",
+        klog_print("[%s.%d] [%04X:%04X] /dev/%s (driver=%s,vendor=%s,product=%s)\n",
             bus->name,
-            dev->id,
-            dev->id_product,
+            dev->dev_id,
             dev->id_vendor,
+            dev->id_product,
             dev->name,
-            dev->driver->name);
+            dev->driver->name,
+            dev->vendor,
+            dev->product);
         dev = dev->next;
     }
     return EOK;
@@ -154,4 +160,40 @@ int kdev_register_driver( device_driver_t *drv )
 system_bus_t *kdev_local_bus()
 {
     return local_bus;
+}
+
+int kdev_create_device( device_type type, uint32_t vendor, uint32_t product,
+    const char *name, size_t internal_size, device_t **dev )
+{
+	if (!dev || (type < DEV_TYPE_VIDEO && type > DEV_TYPE_STORAGE))
+        return EARGUMENT;
+    if (!name || *name == 0)
+        return EARGUMENT;
+    if (dev_counter[type] > 99)
+        return ETOOMANY;
+
+    internal_size = (internal_size + 3) & (~3);
+	*dev = (device_t*) heap_allocate(sizeof(device_t) + internal_size + strlen(name) + 3);
+    if (*dev == nullptr) return EMEMORY;
+    (*dev)->internals = (internal_size > 0) ? (*dev + 1) : nullptr;
+    if (internal_size > 0)
+        (*dev)->name = (const char*) (*dev)->internals + internal_size;
+    else
+        (*dev)->name = (const char*) (*dev + 1);
+
+	(*dev)->dev_id = 0;
+	(*dev)->name_id = dev_counter[type]++;
+    sprintf((char*) (*dev)->name, "%s%d", name, (*dev)->name_id);
+	(*dev)->product = nullptr;
+	(*dev)->vendor = nullptr;
+	(*dev)->id_product = product;
+	(*dev)->id_vendor = vendor;
+	(*dev)->type = (uint32_t) type & 0x0F;
+	(*dev)->driver = nullptr;
+	(*dev)->bus = local_bus;
+	(*dev)->iobase = nullptr;
+	(*dev)->parent = nullptr;
+	(*dev)->next = nullptr;
+
+	return EOK;
 }
