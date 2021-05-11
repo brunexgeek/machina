@@ -109,6 +109,7 @@ extern "C" void kernel_main()
 	device_t *ramdsk = nullptr;
 	kramdsk_create_device(nullptr, 10 * 1024 * 1024, &ramdsk);
 	kdev_enumerate();
+	kdev_enumerate_driver();
 
 
 	klog_print("Done!\n");

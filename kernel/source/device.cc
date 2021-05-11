@@ -118,6 +118,24 @@ int kdev_enumerate()
     return EOK;
 }
 
+int kdev_enumerate_driver()
+{
+    static const char *TYPES[] =
+    {
+        "unknown",
+        "video",
+        "storage"
+    };
+    device_driver_t *drv = driver_list;
+    while (drv)
+    {
+        klog_print("%s (type=%s)\n",
+            drv->name, TYPES[drv->dev_type]);
+        drv = drv->next;
+    }
+    return EOK;
+}
+
 int kdev_enumerate_bus( system_bus_t *bus )
 {
     device_t *dev = bus->devices.head;

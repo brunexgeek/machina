@@ -65,9 +65,10 @@ static int drvapi_status( device_t *dev )
 
 static int driver_attach(device_driver_t *drv, device_t *dev)
 {
-    (void) drv;
-    (void) dev;
-    dev->driver = drv;
+    if (!drv || !dev)
+        return EARGUMENT;
+    if (dev->id_product == DEV_PRODUCT_ID || dev->id_vendor == DEV_VENDOR_ID)
+        return EINVALID;
 	return EOK;
 }
 
@@ -95,6 +96,7 @@ int kramdsk_create_driver( system_bus_t *bus, device_driver_t **drv )
 
     def_driver.bus = (bus == nullptr) ? kdev_local_bus() : bus;
     def_driver.name = DEV_PRODUCT;
+    def_driver.dev_type = DEV_TYPE_STORAGE;
     def_driver.attach = driver_attach;
     def_driver.remove = driver_remove;
     def_driver.suspend = driver_suspend;

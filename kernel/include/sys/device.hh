@@ -111,7 +111,7 @@ union device_api
 struct device_driver_t
 {
     /**
-     * Unique name used to publish the driver in '/dev' directory.
+     * Unique name used to publish the driver in '/drv' directory.
      */
     const char *name;
     struct system_bus_t *bus;
@@ -242,6 +242,11 @@ struct device_t
 int kdev_initialize();
 
 /**
+ * Enumerate all drivers.
+ */
+int kdev_enumerate_driver();
+
+/**
  * Enumerate all attached devices.
  */
 int kdev_enumerate();
@@ -272,5 +277,18 @@ system_bus_t *kdev_local_bus();
  */
 int kdev_create_device( device_type type, uint32_t vendor, uint32_t product,
     const char *name, size_t internal_size, device_t **dev );
+
+/**
+ * Find a device by name.
+ *
+ * Since the device name do not give any clue about the bus,
+ * this function will search for the device in every bus available.
+ */
+int kdev_find( const char *name, device_t **dev );
+
+/**
+ * Find a bus by name.
+ */
+int kdev_find( const char *name, system_bus_t **bus );
 
 #endif // MACHINA_DEVICE_HH
