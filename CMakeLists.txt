@@ -1,35 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
+#set(CMAKE_TOOLCHAIN_FILE "/machina/toolchain.cmake")
 project(machina)
-
-set(CMAKE_USE_RELATIVE_PATHS false)
-set(MACHINA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-
-set(TOOLCHAIN_HOME "" CACHE STRING "")
-set(TOOLCHAIN_PREFIX "" CACHE STRING "")
 
 enable_language(ASM)
 if(CMAKE_ASM_COMPILER_WORKS)
 	set(can_use_assembler TRUE)
 endif(CMAKE_ASM_COMPILER_WORKS)
 
-set(CMAKE_C_COMPILER   "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}gcc")
-set(CMAKE_CXX_COMPILER "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}g++")
-set(CMAKE_ASM_COMPILER "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}gcc")
-set(CMAKE_AR           "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ar")
-set(CMAKE_LD           "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ld")
-set(CMAKE_OBJCOPY      "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}objcopy")
-set(CMAKE_RANLIB       "${TOOLCHAIN_HOME}/${TOOLCHAIN_PREFIX}ranlib")
-
-set(TARGET_ARCH "-march=armv8-a -mcpu=cortex-a53+fp+simd")
-set(RPIGEN 3)
-
-set(COMMOM_FLAGS "-Wfatal-errors -fno-threadsafe-statics -O0 -g -ffreestanding -Wl,--no-undefined -Wall -Wextra -Wconversion -Werror=return-type  -Wno-psabi -fsigned-char -fno-builtin -nostdinc -nostdlib -pedantic -Wuninitialized -Winit-self -D__arm__=1")
-
-set(CMAKE_C_FLAGS   "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -std=c11")
-set(CMAKE_ASM_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN}")
-set(CMAKE_CXX_FLAGS "${TARGET_ARCH} ${COMMOM_FLAGS} -DRPIGEN=${RPIGEN} -fno-exceptions -fno-rtti -std=c++11")
-set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "")
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+set(CMAKE_USE_RELATIVE_PATHS false)
+set(MACHINA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_subdirectory(libs/libmc)
 add_subdirectory(kernel)
