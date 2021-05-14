@@ -1,6 +1,7 @@
 #include <sys/bcm2837.h>
 #include <sys/uart.h>
 #include <sys/log.h>
+#include "fs/simple.h"
 #include <mc/stdio.h>
 #include <mc/stdlib.h>
 #include <mc/string.h>
@@ -96,21 +97,34 @@ extern "C" void kernel_main()
 
     procfs_initialize();
 	procfs_register("/sysname", proc_sysname, NULL);
+	pmm_register();
+	heap_register();
 	if (vfs_mount("procfs", nullptr, "/proc", "", 0, 0) == EOK)
 		klog_print("Mounted '/proc'\n");
 
-	pmm_register();
-	heap_register();
-
-    kernel_print_file("/proc/frames");
-    kernel_print_file("/proc/heap");
+    //kernel_print_file("/proc/frames");
+    //kernel_print_file("/proc/heap");
 
 	kdev_initialize();
 	device_t *ramdsk = nullptr;
-	kramdsk_create_device(nullptr, 10 * 1024 * 1024, &ramdsk);
-	kdev_enumerate();
+	if (kramdsk_create_device(nullptr, 10 * 1024 * 1024, &ramdsk) != EOK)
+		kernel_panic(__FILE__, __LINE__);
+	// enumerate drivers
+	klog_print("Loaded drivers:\n");
 	kdev_enumerate_driver();
+	// enumerate devices
+	klog_print("Devices found:\n");
+	kdev_enumerate();
 
+	simple_initialize();
+
+	device_t *dev;
+	if (kdev_find("ramdsk0", &dev) == EOK)
+	{
+		klog_print("Found device\n");
+		if (vfs_mkfs("simplefs", dev, "", 0) == EOK)
+			klog_print("File system initialized\n");
+	}
 
 	klog_print("Done!\n");
 	while (true) { asm("wfi"); };

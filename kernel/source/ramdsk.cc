@@ -4,11 +4,13 @@
 #include <mc/stdio.h>
 
 static device_driver_t def_driver;
+static int devid = 0;
 
 static const uint32_t DEV_PRODUCT_ID = 0xFFFF;
 static const uint32_t DEV_VENDOR_ID = 0xFFFF;
 static const char *DEV_PRODUCT = "ramdisk";
 static const char *DEV_VENDOR = "machina";
+static const int SECTOR_SIZE = 512;
 
 struct internal_t
 {
@@ -59,6 +61,12 @@ static int drvapi_status( device_t *dev )
     return EOK;
 }
 
+static int drvapi_size( device_t *dev, size_t *size )
+{
+    *size = ((internal_t*) dev->internals)->size;
+    return EOK;
+}
+
 //
 // Driver
 //
@@ -67,9 +75,10 @@ static int driver_attach(device_driver_t *drv, device_t *dev)
 {
     if (!drv || !dev)
         return EARGUMENT;
-    if (dev->id_product == DEV_PRODUCT_ID || dev->id_vendor == DEV_VENDOR_ID)
+    if (dev->id_product != DEV_PRODUCT_ID || dev->id_vendor != DEV_VENDOR_ID)
         return EINVALID;
-	return EOK;
+    dev->driver = &def_driver;
+    return EOK;
 }
 
 static int driver_remove(device_t *dev)
@@ -108,6 +117,7 @@ int kramdsk_create_driver( system_bus_t *bus, device_driver_t **drv )
     def_driver.dev_api.storage.ioctl = drvapi_ioctl;
     def_driver.dev_api.storage.sync = drvapi_sync;
     def_driver.dev_api.storage.status = drvapi_status;
+    def_driver.dev_api.storage.size = drvapi_size;
     *drv = &def_driver;
 
     return EOK;
@@ -119,17 +129,16 @@ int kramdsk_create_driver( system_bus_t *bus, device_driver_t **drv )
 
 int kramdsk_create_device( system_bus_t *bus, size_t size, device_t **dev )
 {
-    static const int sector_size = 512;
     static int devid = 0;
     if (dev == nullptr) return EARGUMENT;
     if (devid > 99) return ETOOLONG;
 
-    size = (size + sector_size - 1) & (~(sector_size - 1));
+    size = (size + SECTOR_SIZE - 1) & (~(SECTOR_SIZE - 1));
     void *data = heap_allocate(size);
     if (data == nullptr) return EMEMORY;
 
     int result = kdev_create_device(DEV_TYPE_STORAGE, DEV_VENDOR_ID,
-        DEV_PRODUCT_ID, "ramfs", sizeof(internal_t), dev);
+        DEV_PRODUCT_ID, "ramdsk", sizeof(internal_t), dev);
     if (result)
     {
         heap_free(data);
@@ -146,7 +155,32 @@ int kramdsk_create_device( system_bus_t *bus, size_t size, device_t **dev )
     internal_t *tmp = (internal_t*) (*dev)->internals;
     tmp->ptr = data;
     tmp->size = size;
-    tmp->sector_size = sector_size;
+    tmp->sector_size = SECTOR_SIZE;
+
+    return bus->attach(bus, *dev);
+}
+
+int kramdsk_create_device( system_bus_t *bus, void *ptr, size_t size, device_t **dev )
+{
+    if (ptr == nullptr || (size % SECTOR_SIZE) != 0) return EMEMORY;
+    if (dev == nullptr) return EARGUMENT;
+    if (devid > 99) return ETOOLONG;
+
+    int result = kdev_create_device(DEV_TYPE_STORAGE, DEV_VENDOR_ID,
+        DEV_PRODUCT_ID, "ramfs", sizeof(internal_t), dev);
+    if (result) return result;
+
+    if (bus != nullptr)
+        (*dev)->bus = bus;
+    else
+        bus = (*dev)->bus;
+    (*dev)->product = DEV_PRODUCT;
+    (*dev)->vendor = DEV_VENDOR;
+
+    internal_t *tmp = (internal_t*) (*dev)->internals;
+    tmp->ptr = ptr;
+    tmp->size = size;
+    tmp->sector_size = SECTOR_SIZE;
 
     return bus->attach(bus, *dev);
 }

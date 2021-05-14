@@ -138,7 +138,13 @@ struct fsops_t
 
     int (*unmount)( mount_t *mp );
 
-    // TODO: 'remove', 'seek', 'tell'
+    int (*mkfs)( device_t *dev, const char *opts );
+
+    int (*remove)( mount_t *mp, const char *path, int flags );
+
+    int (*seek)( file_t *fp, ssize_t pos, int flags );
+
+    int (*tell)( file_t *fp, ssize_t *pos );
 };
 
 struct filesystem_t
@@ -161,6 +167,8 @@ int vfs_unregister( const char *type );
 
 int vfs_mount( const char *type, device_t *dev, const char *target, const char *opts,
     uint32_t flags, mount_t **mp );
+
+int vfs_mkfs( const char *type, device_t *dev, const char *opts, int flags );
 
 int vfs_unmount( const char *target, uint32_t flags );
 

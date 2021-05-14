@@ -14,6 +14,7 @@ add_executable(kernel
     "source/mailbox.cc"
     "source/task.cc"
     "source/procfs.cc"
+    "source/fs/simple.cc"
     "source/ramfs.cc"
     "source/device.cc"
     "source/display.cc"

@@ -99,6 +99,9 @@ struct storage_api
      * @param buffer Input/output buffer
      */
     int (*ioctl)( device_t *dev, int32_t cmd, void *buffer );
+
+    int (*size)( device_t *dev, size_t *size );
+
     int (*status)( device_t *dev );
 };
 

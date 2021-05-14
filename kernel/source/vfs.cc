@@ -218,3 +218,20 @@ int vfs_enumerate( file_t *fp, struct dirent *entry )
     if (fp == NULL) return EINVALID;
     return fp->mp->fs->ops.enumerate(fp, entry);
 }
+
+int vfs_mkfs( const char *type, device_t *dev, const char *opts, int flags )
+{
+    if (dev == nullptr) return EARGUMENT;
+    if (opts && opts[0] == 0) opts = nullptr;
+
+    // find the file system implementation
+    filesystem_t *fs = fsList;
+    while (fs)
+    {
+        if (strcmp(fs->type, type) == 0) break;
+        fs = fs->next;
+    }
+    if (fs == NULL) return ENOENT;
+
+    return fs->ops.mkfs(dev, opts);
+}

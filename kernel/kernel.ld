@@ -67,7 +67,7 @@ SECTIONS
         __stack_start_core0__ = .;
         . = . + (1024 * 1);				/* EL0 stack size */
         __EL0_stack_core0 = .;
-        . = . + (1024 * 16);				/* EL1 stack size */
+        . = . + (1024 * 32);				/* EL1 stack size */
         __EL1_stack_core0 = .;
         . = . + (1024 * 16);				/* EL2 stack size (start-up) */
         __EL2_stack_core0 = .;

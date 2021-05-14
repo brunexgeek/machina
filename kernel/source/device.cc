@@ -129,7 +129,7 @@ int kdev_enumerate_driver()
     device_driver_t *drv = driver_list;
     while (drv)
     {
-        klog_print("%s (type=%s)\n",
+        klog_print("  %s (type=%s)\n",
             drv->name, TYPES[drv->dev_type]);
         drv = drv->next;
     }
@@ -141,7 +141,7 @@ int kdev_enumerate_bus( system_bus_t *bus )
     device_t *dev = bus->devices.head;
     while (dev)
     {
-        klog_print("[%s.%d] [%04X:%04X] /dev/%s (driver=%s,vendor=%s,product=%s)\n",
+        klog_print("  [%s.%d] [%04X:%04X] /dev/%s (driver=%s,vendor=%s,product=%s",
             bus->name,
             dev->dev_id,
             dev->id_vendor,
@@ -150,6 +150,14 @@ int kdev_enumerate_bus( system_bus_t *bus )
             dev->driver->name,
             dev->vendor,
             dev->product);
+        if (dev->driver->dev_type == DEV_TYPE_STORAGE)
+        {
+            size_t size = 0;
+            dev->driver->dev_api.storage.size(dev, &size);
+            klog_print(",size=%lu)\n", size);
+        }
+        else
+            klog_print(")\n");
         dev = dev->next;
     }
     return EOK;
@@ -214,4 +222,20 @@ int kdev_create_device( device_type type, uint32_t vendor, uint32_t product,
 	(*dev)->next = nullptr;
 
 	return EOK;
+}
+
+int kdev_find( const char *name, device_t **dev )
+{
+    system_bus_t *bus = bus_list.head;
+    while (bus)
+    {
+        *dev = bus->devices.head;
+        while (*dev)
+        {
+            if (strcmp(name, (*dev)->name) == 0) return EOK;
+            *dev = (*dev)->next;
+        }
+    }
+    *dev = nullptr;
+    return ENOENT;
 }
