@@ -1,21 +1,26 @@
 #include "simple.h"
 #include <sys/errors.h>
+#include <sys/log.h>
 #include <sys/vfs.h>
 #include <sys/heap.h>
 #include <mc/stdlib.h>
 #include <mc/string.h>
 
+#define ESCAPE_WITH_ERROR(x) do {result = (x); goto ESCAPE; } while (false)
+
+#define SIMPLE_SIGNATURE 0x11223344
 /*
 
 Disk layout
 
-+---------------------------+
-| Header (512 bytes)        |
-+---------------------------+
-| FAT (16 or 32 bits entry) |
-+---------------------------+
-| Data area                 |
-+---------------------------+
++-----------------------------+
+| Header (512 bytes + padding |
+| to fit a cluster)           |
++-----------------------------+
+| FAT (16 or 32 bits entry)   |
++-----------------------------+
+| Data area                   |
++-----------------------------+
 
 The size of the FAT depends on the amount of clusters available. The amount
 of clusters is given by dividing the total space of the device by the cluster
@@ -28,6 +33,7 @@ size. If the number of clusters is greater than 2^16, the FAT entries will have
 struct header_t
 {
     uint32_t jump;
+    uint32_t signature;
     uint16_t version;
     /**
      * Sector size.
@@ -75,7 +81,7 @@ struct header_t
     /**
      * Operating system specific data.
      */
-    uint8_t data[461];
+    uint8_t data[457];
     /**
      * Header marker (0x55 0xAA).
      */
@@ -103,6 +109,8 @@ enum file_flag_t
 #define INDEX_UNUSED  0x00000000
 #define INDEX_EOC     0x0FFFFFFE
 #define INDEX_BAD     0x0FFFFFFF
+
+#define INDEX_MASK(x) ((x) & 0x0FFFFFFF)
 
 #define INODE_UNUSED    (char) 0x81
 #define INODE_EOC       (char) 0x82
@@ -169,21 +177,139 @@ struct file_name_t
 
 struct internal_t
 {
-    uint8_t buffer[CLUSTER_SIZE];
+    // TODO: include lock for multi-threaded partition access
+    uint8_t *buffer;
+    header_t header;
+    uint32_t *fat;
 };
 
-static int read_data( device_t *dev, size_t sector, void *buffer, size_t count )
+static int read_sector( device_t *dev, size_t sector, void *buffer, size_t count )
 {
     return dev->driver->dev_api.storage.read(dev, sector, buffer, count);
 }
 
-static int write_data( device_t *dev, size_t sector, void *buffer, size_t count )
+static int write_sector( device_t *dev, size_t sector, void *buffer, size_t count )
 {
     return dev->driver->dev_api.storage.write(dev, sector, buffer, count);
 }
 
+static int read_cluster( device_t *dev, size_t cluster, void *buffer, size_t count )
+{
+    return dev->driver->dev_api.storage.read(dev, cluster / 512, buffer, count);
+}
+
+static int write_cluster( device_t *dev, size_t cluster, void *buffer, size_t count )
+{
+    return dev->driver->dev_api.storage.write(dev, cluster / 512, buffer, count);
+}
+
+uint32_t fat_next_cluster( mount_t *mp, uint32_t cluster )
+{
+    auto internal = (const internal_t*) mp->fsdata;
+    if (cluster >= internal->header.clusters) return INDEX_BAD;
+    return internal->fat[cluster];
+}
+
+/**
+ * Adapted version of Bob Jenkins' "one at a time" 32 bits hash function.
+ */
+static uint32_t hash32( const char *value, int length )
+{
+    uint32_t hash = 0;
+    while (*value != 0 && length > 0)
+    {
+        hash += (uint32_t) *value++;
+        hash += hash << 10;
+        hash ^= hash >> 6;
+    }
+    hash += hash << 3;
+    hash ^= hash >> 11;
+    return hash + (hash << 15);
+}
+
+static uint16_t hash16( const char *value, int length )
+{
+    uint32_t hash = hash32(value, length);
+    return (uint16_t) ( (hash >> 16) ^ (hash & 0xFFFF) );
+}
+
+/**
+ * Lookup for the inode corresponding to the given path.
+ *
+ * This function performs a recursive search for the inode represented by
+ * an absolute path.
+ *
+ * @param cluster First cluster of the directory inode. Must be the root directory
+ *     in the first call.
+ */
+static int inode_lookup( mount_t *mp, uint32_t cluster, const char *path, inode_t *inode )
+{
+    if (mp == nullptr || path == nullptr || inode == nullptr)
+        return EARGUMENT;
+
+    auto internal = (const internal_t*) mp->fsdata;
+    auto buffer = internal->buffer;
+
+    // compute the length of the next component
+    while (*path == '/') ++path;
+
+    int max_entries = (internal->header.cluster_size * 512) / sizeof(inode_t);
+    int result = read_cluster(mp->dev, cluster, internal->buffer, 1);
+    if (result) return result;
+
+    while (*path != 0)
+    {
+        inode_t *ptr;
+
+        // compute the length of the current path component
+        size_t i = 0;
+        while (*path != '/' && *path != 0) ++i;
+        if (i == 0) break;
+
+        uint16_t hash = hash16(path, i);
+
+        for (int i = 0; i < max_entries; ++i)
+        {
+            ptr = (inode_t*) buffer + i;
+            if (hash == ptr->hash && strncmp(path, ptr->name, i) == 0)
+            {
+                klog_print("  -- Found\n");
+
+                // we have more components to find?
+                path += i;
+                while (*path == '/') ++path;
+                if (*path == 0)
+                {
+                    memcpy(inode, ptr, sizeof(inode_t));
+                    return EOK;
+                }
+                else
+                {
+                    // to continue the lookup the current inode must be a directory
+                    if (!(ptr->flags & FLAG_DIRECTORY)) return EINVALID;
+                    // follow the current inode
+                    return inode_lookup(mp, ptr->cluster, path, inode);
+                }
+            }
+        }
+
+        // check whether the directory have more entries
+        cluster = INDEX_MASK( fat_next_cluster(mp, cluster) );
+        if (cluster == INDEX_BAD || cluster == INDEX_EOC)
+            return ENOENT;
+        // read the next cluster of the directory
+        result = read_cluster(mp->dev, cluster, internal->buffer, 1);
+        if (result) return result;
+    }
+
+    return ENOENT;
+}
+
 static int simple_open( file_t *fp, const char *path, uint32_t flags )
 {
+    auto internal = (const internal_t*) fp->mp->fsdata;
+    inode_t inode;
+    inode_lookup(fp->mp, internal->header.root_start, path, &inode);
     return ENOIMP;
 }
 
@@ -229,29 +355,34 @@ static int simple_mkfs( device_t *dev, const char *opts )
 
     if (clusters > 65530) return ETOOLONG;
 
-    header_t header;
-    memset(&header, 0, sizeof(header));
-    header.sector_size = 1; // 512
-    header.cluster_size = 8; // 4096 KB
-    header.clusters = clusters;
-    header.fat_start = 1;
-    header.fat_size = clusters * 4 / header.cluster_size + header.cluster_size;
-    header.root_start = header.fat_start + header.fat_size;
-    //header.serial
-    //header.name
-    header.index_size = (clusters > 0x010000) ? 32 : 16;
-    header.marker = 0xAA55;
-    write_data(dev, 0, &header, 1);
+    uint8_t tmp[512];
+    memset(tmp, 0, sizeof(tmp));
 
-    // TODO: zero out FAT entries
+    header_t *header = (header_t*) tmp;
+    header->sector_size = 1; // 512
+    header->cluster_size = 8; // 4096 KB
+    header->clusters = clusters;
+    header->fat_start = 1;
+    header->fat_size = clusters * 4 / header->cluster_size + header->cluster_size;
+    header->root_start = header->fat_start + header->fat_size;
+    //header->serial
+    //header->name
+    header->index_size = (clusters > 0x010000) ? 32 : 16;
+    header->marker = 0xAA55;
+    write_sector(dev, 0, header, 1);
+
+    // zero out FAT entries
+    memset(tmp, 0, sizeof(tmp));
+    for (int i = 0; i < header->fat_size * 8; ++i)
+        write_sector(dev, 4 + i, tmp, 512);
 
     // some dark magic
-    memset(&header, 0, sizeof(header));
-    inode_t *inode = (inode_t*) &header;
+    memset(tmp, 0, sizeof(tmp));
+    inode_t *inode = (inode_t*) tmp;
     // create and empty root directory
     inode->cluster = INDEX_EOC;
     inode->name[0] = INODE_EOC;
-    write_data(dev, 0, inode, 1);
+    write_sector(dev, 0, inode, 4);
 
     return EOK;
 }
@@ -261,14 +392,32 @@ static int simple_mount( mount_t *mp, const char *opts, uint32_t flags )
     (void) mp;
     (void) opts;
     (void) flags;
+    int result;
 
     mp->fsdata = heap_allocate(sizeof(internal_t));
     if (mp->fsdata == nullptr) return EMEMORY;
     internal_t *intr = (internal_t*) mp->fsdata;
 
-    read_data(mp->dev, 0, intr->buffer, SECTOR_PER_CLUSTER);
+    // read the header
+    read_cluster(mp->dev, 0, intr->buffer, 1);
+    memcpy(&intr->header, intr->buffer, sizeof(internal_t));
+    if (intr->header.signature != SIMPLE_SIGNATURE)
+        ESCAPE_WITH_ERROR(EINVALID);
+    // read the FAT entries
+    intr->fat = (uint32_t*) heap_allocate(intr->header.fat_size * 4096);
+    if (intr->fat == nullptr)
+        ESCAPE_WITH_ERROR(EMEMORY);
+    read_cluster(mp->dev, intr->header.fat_start, intr->fat, intr->header.fat_size * 4096);
 
     return EOK;
+
+ESCAPE:
+    if (intr)
+    {
+        if (intr->fat) heap_free(intr->fat);
+        heap_free(intr);
+    }
+    return result;
 }
 
 static int simple_unmount( mount_t *mp )

@@ -121,9 +121,16 @@ extern "C" void kernel_main()
 	device_t *dev;
 	if (kdev_find("ramdsk0", &dev) == EOK)
 	{
-		klog_print("Found device\n");
+		klog_print("Found device %p\n", dev);
 		if (vfs_mkfs("simplefs", dev, "", 0) == EOK)
 			klog_print("File system initialized\n");
+		mount_t *mp;
+		if (vfs_mount("simplefs", dev, "/data", "", 0, &mp) == EOK)
+		{
+			klog_print("File system mounted\n");
+			file_t *fp;
+			vfs_open("/bla", 0, &fp);
+		}
 	}
 
 	klog_print("Done!\n");
